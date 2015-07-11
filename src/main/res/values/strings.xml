@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">StudyGroup</string>
+    <string name="lessons_title">Lessons</string>
+    <string name="details_title">Lesson details</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="year">Year %s</string>
+    <string name="notes_tab">Notes</string>
+    <string name="questions_tab">Questions</string>
+</resources>

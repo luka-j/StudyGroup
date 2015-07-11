@@ -3,11 +3,15 @@ package rs.luka.android.studygroup;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NavUtils;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -22,14 +26,18 @@ import rs.luka.android.studygroup.networkcontroller.CoursesManager;
  */
 public class CourseFragment extends Fragment {
 
+    private static String TAG = "studygroup.CourseFragment";
+
     private RecyclerView lessonsRecyclerView;
     private Callbacks callbacks;
     private LessonsAdapter adapter;
     private UUID courseId;
+    private String courseName;
 
-    protected static Fragment newInstance(UUID courseId) {
+    protected static Fragment newInstance(UUID courseId, String courseName) {
         Bundle args = new Bundle();
-        args.putSerializable(CourseListActivity.EXTRA_COURSE_ID, courseId);
+        args.putSerializable(GroupActivity.EXTRA_COURSE_ID, courseId);
+        args.putString(GroupActivity.EXTRA_COURSE_NAME, courseName);
 
         Fragment f = new CourseFragment();
         f.setArguments(args);
@@ -41,7 +49,8 @@ public class CourseFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        courseId = (UUID) getArguments().getSerializable(CourseListActivity.EXTRA_COURSE_ID);
+        courseId = (UUID) getArguments().getSerializable(GroupActivity.EXTRA_COURSE_ID);
+        courseName = getArguments().getString(GroupActivity.EXTRA_COURSE_NAME);
     }
 
     @Override
@@ -53,8 +62,12 @@ public class CourseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_lessons_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_course, container, false);
 
+        AppCompatActivity ac =  (AppCompatActivity)getActivity();
+        if(NavUtils.getParentActivityIntent(ac) != null) {
+            ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
+        }
         lessonsRecyclerView = (RecyclerView) view.findViewById(R.id.lessons_recycler_view);
         lessonsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         updateUI();
@@ -65,6 +78,8 @@ public class CourseFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume; setting actionbar title");
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(courseName);
         updateUI();
     }
 
@@ -78,7 +93,17 @@ public class CourseFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         //TODO
-        //inflater.inflate(R.menu.fragment_course_list, menu);
+        //inflater.inflate(R.menu.fragment_group, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(getActivity());
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public void updateUI() {

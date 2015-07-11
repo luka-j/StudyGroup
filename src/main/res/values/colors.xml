@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="card_white">#eeeeee</color>
+    <color name="color_primary">#335ce5</color>
+    <color name="color_primary_dark">#1a43cb</color>
+    <color name="color_accent">#dfdfdf</color>
+    <color name="tabsScrollColor">#0f2674</color>
+</resources>
