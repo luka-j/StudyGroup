@@ -23,7 +23,7 @@ import rs.luka.android.studygroup.networkcontroller.CoursesManager;
 /**
  * Created by luka on 11.7.15..
  */
-public class NotesFragment extends Fragment {
+public class NoteListFragment extends Fragment {
 
     private RecyclerView notesRecycler;
     private NoteCallbacks callbacks;
@@ -31,8 +31,8 @@ public class NotesFragment extends Fragment {
     private UUID courseId;
     private String lessonName;
 
-    public static NotesFragment newInstance(UUID courseId, String lessonName) {
-        NotesFragment f = new NotesFragment();
+    public static NoteListFragment newInstance(UUID courseId, String lessonName) {
+        NoteListFragment f = new NoteListFragment();
         Bundle args = new Bundle();
         args.putSerializable(CourseActivity.EXTRA_COURSE_ID, courseId);
         args.putSerializable(CourseActivity.EXTRA_LESSON_NAME, lessonName);
@@ -58,7 +58,7 @@ public class NotesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_notes, container, false);
+        View view = inflater.inflate(R.layout.fragment_note_list, container, false);
 
         notesRecycler = (RecyclerView) view.findViewById(R.id.notes_recycler);
         notesRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -112,14 +112,14 @@ public class NotesFragment extends Fragment {
             super(itemView);
             itemView.setOnClickListener(this);
 
-            titleTextView = (TextView) itemView.findViewById(R.id.note_text);
-            layout = (LinearLayout) itemView.findViewById(R.id.note_layout);
+            titleTextView = (TextView) itemView.findViewById(R.id.item_note_text);
+            layout = (LinearLayout) itemView.findViewById(R.id.item_note_layout);
         }
 
         public void bindNote(Note note) {
             this.note = note;
             titleTextView.setText(note.getText());
-            if(note.getImageUrl() != null) {
+            if (note.getImageUrl() != null) {
                 ImageView imgView = new ImageView(getActivity());
                 imgView.setImageBitmap(CoursesManager.getNoteImage(note.getId()));
                 layout.addView(imgView, 0);

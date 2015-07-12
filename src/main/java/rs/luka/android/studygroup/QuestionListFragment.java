@@ -21,7 +21,7 @@ import rs.luka.android.studygroup.networkcontroller.CoursesManager;
 /**
  * Created by luka on 11.7.15..
  */
-public class QuestionsFragment extends Fragment {
+public class QuestionListFragment extends Fragment {
 
     private RecyclerView questionsRecycler;
     private QuestionCallbacks callbacks;
@@ -29,8 +29,8 @@ public class QuestionsFragment extends Fragment {
     private UUID courseId;
     private String lessonName;
 
-    public static QuestionsFragment newInstance(UUID courseId, String lessonName) {
-        QuestionsFragment f = new QuestionsFragment();
+    public static QuestionListFragment newInstance(UUID courseId, String lessonName) {
+        QuestionListFragment f = new QuestionListFragment();
         Bundle args = new Bundle();
         args.putSerializable(CourseActivity.EXTRA_COURSE_ID, courseId);
         args.putSerializable(CourseActivity.EXTRA_LESSON_NAME, lessonName);
@@ -56,7 +56,7 @@ public class QuestionsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_questions, container, false);
+        View view = inflater.inflate(R.layout.fragment_question_list, container, false);
 
         questionsRecycler = (RecyclerView) view.findViewById(R.id.questions_recycler);
         questionsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -110,8 +110,8 @@ public class QuestionsFragment extends Fragment {
             super(itemView);
             itemView.setOnClickListener(this);
 
-            questionTextView = (TextView) itemView.findViewById(R.id.question_text);
-            answerTextView = (TextView) itemView.findViewById(R.id.answer_text);
+            questionTextView = (TextView) itemView.findViewById(R.id.item_question_text);
+            answerTextView = (TextView) itemView.findViewById(R.id.item_answer_text);
         }
 
         public void bindQuestion(Question question) {

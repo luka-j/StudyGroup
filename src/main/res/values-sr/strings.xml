@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StudyGroup</string>
+    <string name="action_settings">Podešavanja</string>
+    <string name="details_title">Detalji oblasti</string>
+    <string name="lessons_title">Oblasti</string>
+    <string name="note_history">Poslednju izmenu je napravio %1$s, %2$s</string>
+    <string name="notes">Beleške</string>
+    <string name="questions">Pitanja</string>
+    <string name="year">%s. razred</string>
+</resources>

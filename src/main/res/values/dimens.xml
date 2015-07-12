@@ -23,4 +23,11 @@
     <dimen name="list_item_padding_horizontal">@dimen/card_margin_horizontal</dimen>
     <dimen name="list_item_text_size">16sp</dimen>
     <dimen name="question_text_padding_bottom">3dp</dimen>
+
+    <dimen name="dataview_text_size">17sp</dimen>
+    <dimen name="dataview_history_text_size">14sp</dimen>
+    <dimen name="dataview_history_padding_top">28dp</dimen>
+    <dimen name="dataview_margin_vertical">@dimen/card_margin_horizontal</dimen>
+    <dimen name="dataview_margin_horizontal">16dp</dimen>
+    <dimen name="dataview_question_text_padding_bottom">10dp</dimen>
 </resources>

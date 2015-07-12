@@ -6,6 +6,8 @@
     <string name="action_settings">Settings</string>
 
     <string name="year">Year %s</string>
-    <string name="notes_tab">Notes</string>
-    <string name="questions_tab">Questions</string>
+    <string name="notes">Notes</string>
+    <string name="questions">Questions</string>
+
+    <string name="note_history">Last change by %1$s on %2$s</string>
 </resources>

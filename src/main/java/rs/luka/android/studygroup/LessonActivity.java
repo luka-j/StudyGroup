@@ -9,7 +9,6 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -22,7 +21,11 @@ import rs.luka.android.studygroup.model.Question;
 /**
  * Created by luka on 5.7.15..
  */
-public class LessonActivity extends AppCompatActivity implements NotesFragment.NoteCallbacks, QuestionsFragment.QuestionCallbacks {
+public class LessonActivity extends AppCompatActivity implements NoteListFragment.NoteCallbacks, QuestionListFragment.QuestionCallbacks {
+
+    public static final String EXTRA_NOTE = "note";
+    public static final String EXTRA_QUESTION = "question";
+
 
     private Toolbar toolbar;
     private ViewPager pager;
@@ -44,7 +47,7 @@ public class LessonActivity extends AppCompatActivity implements NotesFragment.N
         }
 
         adapter =  new ViewPagerAdapter(getSupportFragmentManager(),
-                new String[]{getString(R.string.notes_tab), getString(R.string.questions_tab)}, numOfTabs);
+                new String[]{getString(R.string.notes), getString(R.string.questions)}, numOfTabs);
 
         // Assigning ViewPager View and setting the adapter
         pager = (ViewPager) findViewById(R.id.pager);
@@ -58,7 +61,7 @@ public class LessonActivity extends AppCompatActivity implements NotesFragment.N
         tabs.setCustomTabColorizer(new SlidingTabLayout.TabColorizer() {
             @Override
             public int getIndicatorColor(int position) {
-                return getResources().getColor(R.color.tabsScrollColor);
+                return getResources().getColor(R.color.white);
             }
         });
 
@@ -89,12 +92,16 @@ public class LessonActivity extends AppCompatActivity implements NotesFragment.N
 
     @Override
     public void onNoteSelected(Note note) {
-        Log.i("test", "note selected " + note.getText());
+        Intent i = new Intent(this, NoteActivity.class);
+        i.putExtra(EXTRA_NOTE, note);
+        startActivity(i);
     }
 
     @Override
     public void onQuestionSelected(Question question) {
-        Log.i("test", "question selected " + question.getQuestion());
+        Intent i = new Intent(this, QuestionActivity.class);
+        i.putExtra(EXTRA_QUESTION, question);
+        startActivity(i);
     }
 
     class ViewPagerAdapter extends FragmentStatePagerAdapter {
@@ -117,10 +124,10 @@ public class LessonActivity extends AppCompatActivity implements NotesFragment.N
         public Fragment getItem(int position) {
             Intent i = getIntent();
             if (position == 0) {
-                return NotesFragment.newInstance((UUID) i.getSerializableExtra(CourseActivity.EXTRA_COURSE_ID),
+                return NoteListFragment.newInstance((UUID) i.getSerializableExtra(CourseActivity.EXTRA_COURSE_ID),
                         i.getStringExtra(CourseActivity.EXTRA_LESSON_NAME));
             } else {
-                return QuestionsFragment.newInstance((UUID) i.getSerializableExtra(CourseActivity.EXTRA_COURSE_ID),
+                return QuestionListFragment.newInstance((UUID) i.getSerializableExtra(CourseActivity.EXTRA_COURSE_ID),
                         i.getStringExtra(CourseActivity.EXTRA_LESSON_NAME));
             }
 
