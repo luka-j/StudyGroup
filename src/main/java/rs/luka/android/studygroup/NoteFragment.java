@@ -18,6 +18,8 @@ import rs.luka.android.studygroup.networkcontroller.CoursesManager;
  * Created by luka on 12.7.15..
  */
 public class NoteFragment extends Fragment {
+    public static final String EXTRA_NOTE = "note";
+
     private Note note;
     private TextView text;
     private ImageView image;
@@ -26,7 +28,7 @@ public class NoteFragment extends Fragment {
     public static NoteFragment newInstance(Note note) {
         NoteFragment f = new NoteFragment();
         Bundle args = new Bundle();
-        args.putSerializable(LessonActivity.EXTRA_NOTE, note);
+        args.putSerializable(EXTRA_NOTE, note);
         f.setArguments(args);
         return f;
     }
@@ -36,7 +38,7 @@ public class NoteFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        note = (Note) getArguments().getSerializable(LessonActivity.EXTRA_NOTE);
+        note = (Note) getArguments().getSerializable(EXTRA_NOTE);
     }
 
     @Override

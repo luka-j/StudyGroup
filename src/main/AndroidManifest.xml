@@ -35,14 +35,14 @@
                 android:value=".CourseActivity" />
         </activity>
         <activity
-            android:name=".NoteActivity"
+            android:name=".NotePagerActivity"
             android:label="@string/notes">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".LessonActivity" />
         </activity>
         <activity
-            android:name=".QuestionActivity"
+            android:name=".QuestionPagerActivity"
             android:label="@string/questions">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

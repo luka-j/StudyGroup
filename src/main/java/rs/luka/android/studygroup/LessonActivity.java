@@ -12,20 +12,27 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.io.Serializable;
+import java.util.List;
 import java.util.UUID;
 
 import rs.luka.android.studygroup.google.SlidingTabLayout;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.networkcontroller.CoursesManager;
 
 /**
  * Created by luka on 5.7.15..
  */
 public class LessonActivity extends AppCompatActivity implements NoteListFragment.NoteCallbacks, QuestionListFragment.QuestionCallbacks {
 
-    public static final String EXTRA_NOTE = "note";
-    public static final String EXTRA_QUESTION = "question";
+    public static final String EXTRA_LIST_NOTES = "noteList";
+    public static final String EXTRA_CURRENT_NOTE = "noteIndex";
+    public static final String EXTRA_LIST_QUESTIONS = "questionList";
+    public static final String EXTRA_CURRENT_QUESTION = "questionIndex";
 
+    private UUID courseId;
+    private String lessonName;
 
     private Toolbar toolbar;
     private ViewPager pager;
@@ -37,9 +44,11 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lesson);
+        courseId = (UUID) getIntent().getSerializableExtra(CourseActivity.EXTRA_COURSE_ID);
+        lessonName = getIntent().getStringExtra(CourseActivity.EXTRA_LESSON_NAME);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle(getIntent().getStringExtra(CourseActivity.EXTRA_LESSON_NAME));
+        toolbar.setTitle(lessonName);
         setSupportActionBar(toolbar);
 
         if(NavUtils.getParentActivityIntent(this) != null) {
@@ -50,7 +59,7 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
                 new String[]{getString(R.string.notes), getString(R.string.questions)}, numOfTabs);
 
         // Assigning ViewPager View and setting the adapter
-        pager = (ViewPager) findViewById(R.id.pager);
+        pager = (ViewPager) findViewById(R.id.tab_pager);
         pager.setAdapter(adapter);
 
         // Assigning the Sliding Tab Layout View
@@ -92,15 +101,21 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
 
     @Override
     public void onNoteSelected(Note note) {
-        Intent i = new Intent(this, NoteActivity.class);
-        i.putExtra(EXTRA_NOTE, note);
+        List<Note> l = CoursesManager.getExistingNotes(courseId, lessonName);
+        Intent i = new Intent(this, NotePagerActivity.class);
+        //standardne implementacije (arraylist/linkedlist) su Serializable
+        i.putExtra(EXTRA_LIST_NOTES, (Serializable) l);
+        i.putExtra(EXTRA_CURRENT_NOTE, l.indexOf(note));
         startActivity(i);
     }
 
     @Override
     public void onQuestionSelected(Question question) {
-        Intent i = new Intent(this, QuestionActivity.class);
-        i.putExtra(EXTRA_QUESTION, question);
+        List<Question> l = CoursesManager.getExistingQuestions(courseId, lessonName);
+        Intent i = new Intent(this, QuestionPagerActivity.class);
+        //standardne implementacije (arraylist/linkedlist) su Serializable
+        i.putExtra(EXTRA_LIST_QUESTIONS, (Serializable) l);
+        i.putExtra(EXTRA_CURRENT_QUESTION, l.indexOf(question));
         startActivity(i);
     }
 
@@ -122,13 +137,10 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
         //This method return the fragment for the every position in the View Pager
         @Override
         public Fragment getItem(int position) {
-            Intent i = getIntent();
             if (position == 0) {
-                return NoteListFragment.newInstance((UUID) i.getSerializableExtra(CourseActivity.EXTRA_COURSE_ID),
-                        i.getStringExtra(CourseActivity.EXTRA_LESSON_NAME));
+                return NoteListFragment.newInstance(courseId, lessonName);
             } else {
-                return QuestionListFragment.newInstance((UUID) i.getSerializableExtra(CourseActivity.EXTRA_COURSE_ID),
-                        i.getStringExtra(CourseActivity.EXTRA_LESSON_NAME));
+                return QuestionListFragment.newInstance(courseId, lessonName);
             }
 
         }

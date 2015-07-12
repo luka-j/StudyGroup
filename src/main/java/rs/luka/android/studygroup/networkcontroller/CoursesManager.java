@@ -2,6 +2,7 @@ package rs.luka.android.studygroup.networkcontroller;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +65,11 @@ public class CoursesManager {
         return notes.get(courseId);
     }
 
+    @Nullable
+    public static List<Note> getExistingNotes(UUID courseId, String lesson) {
+        return notes.get(courseId);
+    }
+
     private static void fetchNotes(UUID id) {
         List<Note> n = new ArrayList<>();
         n.add(new Note(id, "Zemlja je okrugla", null));
@@ -83,6 +89,11 @@ public class CoursesManager {
             questions = new HashMap<>();
         if(!questions.containsKey(courseId))
             fetchQuestions(courseId);
+        return questions.get(courseId);
+    }
+
+    @Nullable
+    public static List<Question> getExistingQuestions(UUID courseId, String lesson) {
         return questions.get(courseId);
     }
 

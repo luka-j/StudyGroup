@@ -18,6 +18,8 @@ import rs.luka.android.studygroup.networkcontroller.CoursesManager;
  * Created by luka on 12.7.15..
  */
 public class QuestionFragment extends Fragment {
+    public static final String EXTRA_QUESTION = "question";
+
     private Question question;
     private TextView questionText;
     private TextView answerText;
@@ -27,7 +29,7 @@ public class QuestionFragment extends Fragment {
     public static QuestionFragment newInstance(Question question) {
         QuestionFragment f = new QuestionFragment();
         Bundle args = new Bundle();
-        args.putSerializable(LessonActivity.EXTRA_QUESTION, question);
+        args.putSerializable(EXTRA_QUESTION, question);
         f.setArguments(args);
         return f;
     }
@@ -37,7 +39,7 @@ public class QuestionFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        question = (Question) getArguments().getSerializable(LessonActivity.EXTRA_QUESTION);
+        question = (Question) getArguments().getSerializable(EXTRA_QUESTION);
     }
 
     @Override
