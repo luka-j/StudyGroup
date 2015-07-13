@@ -81,6 +81,10 @@ public class CoursesManager {
                 "Ovaj prostor nije namenjen za pisanje knjiga", null));
         n.add(new Note(id, "Kada se pritisne, izadje ceo sadrzaj + slika ako postoji", null));
         n.add(new Note(id, "Jos neki red, kako bi se pojavio scroll sa strane", null));
+        n.add(new Note(id, "Sakriva Toolbar kad se scrolluje", null));
+        n.add(new Note(id, "Jos", null));
+        n.add(new Note(id, "par", null));
+        n.add(new Note(id, "redova", null));
         notes.put(id, n);
     }
 

@@ -60,8 +60,10 @@ public class NoteListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_note_list, container, false);
 
+        Activity ac = getActivity();
         notesRecycler = (RecyclerView) view.findViewById(R.id.notes_recycler);
-        notesRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+        notesRecycler.setLayoutManager(new LinearLayoutManager(ac));
+        //notesRecycler.addOnScrollListener(new HideShowListener(ac.findViewById(R.id.lesson_container)));
         updateUI();
 
         return view;

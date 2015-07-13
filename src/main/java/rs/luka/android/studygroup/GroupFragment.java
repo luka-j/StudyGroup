@@ -2,9 +2,11 @@ package rs.luka.android.studygroup;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,6 +28,7 @@ public class GroupFragment extends Fragment {
     private RecyclerView courseRecyclerView;
     private Callbacks callbacks;
     private CourseAdapter adapter;
+    private FloatingActionButton fab;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,6 +48,13 @@ public class GroupFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_group, container, false);
 
         courseRecyclerView = (RecyclerView) view.findViewById(R.id.course_recycler_view);
+        fab = (FloatingActionButton) view.findViewById(R.id.fab_add_course);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("WIP", "FAB (add course) pressed!");
+            }
+        });
         courseRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         updateUI();
 

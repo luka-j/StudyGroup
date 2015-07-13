@@ -7,25 +7,25 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/dataview_margin_horizontal"
-        android:layout_marginLeft="@dimen/dataview_margin_horizontal"
-        android:layout_marginRight="@dimen/dataview_margin_horizontal"
-        android:layout_marginTop="@dimen/dataview_margin_horizontal"
-        android:orientation="vertical">
+        android:layout_marginBottom="@dimen/siview_margin_horizontal"
+        android:layout_marginTop="@dimen/siview_margin_horizontal"
+        android:orientation="vertical"
+        android:paddingLeft="@dimen/siview_margin_horizontal"
+        android:paddingRight="@dimen/siview_margin_horizontal">
 
         <TextView
             android:id="@+id/question_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="@dimen/dataview_question_text_padding_bottom"
-            android:textSize="@dimen/dataview_text_size"
+            android:paddingBottom="@dimen/siview_question_text_padding_bottom"
+            android:textSize="@dimen/siview_text_size"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/answer_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/dataview_text_size" />
+            android:textSize="@dimen/siview_text_size" />
 
         <ImageView
             android:id="@+id/question_image"
@@ -36,7 +36,7 @@
             android:id="@+id/question_history"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingTop="@dimen/dataview_history_padding_top" />
+            android:paddingTop="@dimen/siview_history_padding_top" />
     </LinearLayout>
 
 </ScrollView>

@@ -2,6 +2,7 @@ package rs.luka.android.studygroup;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -9,8 +10,10 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import java.io.Serializable;
 import java.util.List;
@@ -31,6 +34,7 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
     public static final String EXTRA_LIST_QUESTIONS = "questionList";
     public static final String EXTRA_CURRENT_QUESTION = "questionIndex";
 
+    private int numOfTabs = 2;
     private UUID courseId;
     private String lessonName;
 
@@ -38,7 +42,7 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
     private ViewPager pager;
     private ViewPagerAdapter adapter;
     private SlidingTabLayout tabs;
-    private int numOfTabs =2;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,9 +77,16 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
                 return getResources().getColor(R.color.white);
             }
         });
-
         // Setting the ViewPager For the SlidingTabsLayout
         tabs.setViewPager(pager);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab_add_noqu);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("WIP", "FAB (add note/question) pressed!");
+            }
+        });
     }
 
 
