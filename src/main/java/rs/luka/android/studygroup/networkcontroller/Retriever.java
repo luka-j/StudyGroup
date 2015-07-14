@@ -18,7 +18,7 @@ import rs.luka.android.studygroup.model.Question;
 /**
  * Created by Luka on 7/2/2015.
  */
-public class CoursesManager {
+public class Retriever {
 
     private static List<Course> courses;
     private static Map<UUID, List<Note>> notes;

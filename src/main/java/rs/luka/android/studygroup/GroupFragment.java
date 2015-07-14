@@ -1,12 +1,12 @@
 package rs.luka.android.studygroup;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,7 +18,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import rs.luka.android.studygroup.model.Course;
-import rs.luka.android.studygroup.networkcontroller.CoursesManager;
+import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by Luka on 7/1/2015.
@@ -52,7 +52,7 @@ public class GroupFragment extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i("WIP", "FAB (add course) pressed!");
+                startActivity(new Intent(getActivity(), AddCourseActivity.class));
             }
         });
         courseRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -81,7 +81,7 @@ public class GroupFragment extends Fragment {
     }
 
     public void updateUI() {
-        List<Course> courses = CoursesManager.getCourses();
+        List<Course> courses = Retriever.getCourses();
 
         if (adapter == null) {
             adapter = new CourseAdapter(courses);
@@ -119,7 +119,7 @@ public class GroupFragment extends Fragment {
             subjectTextView.setText(course.getSubject());
             teacherTextView.setText(course.getTeacher());
             if(course.getYear()!=null)
-                yearTextView.setText(getResources().getString(R.string.year, course.getYear().toString()));
+                yearTextView.setText(getResources().getString(R.string.year_no, course.getYear().toString()));
             else
                 yearTextView.setText("");
             imageView.setImageResource(course.getImage());

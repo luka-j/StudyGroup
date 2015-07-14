@@ -22,7 +22,7 @@ import java.util.UUID;
 import rs.luka.android.studygroup.google.SlidingTabLayout;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
-import rs.luka.android.studygroup.networkcontroller.CoursesManager;
+import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 5.7.15..
@@ -112,7 +112,7 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
 
     @Override
     public void onNoteSelected(Note note) {
-        List<Note> l = CoursesManager.getExistingNotes(courseId, lessonName);
+        List<Note> l = Retriever.getExistingNotes(courseId, lessonName);
         Intent i = new Intent(this, NotePagerActivity.class);
         //standardne implementacije (arraylist/linkedlist) su Serializable
         i.putExtra(EXTRA_LIST_NOTES, (Serializable) l);
@@ -122,7 +122,7 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
 
     @Override
     public void onQuestionSelected(Question question) {
-        List<Question> l = CoursesManager.getExistingQuestions(courseId, lessonName);
+        List<Question> l = Retriever.getExistingQuestions(courseId, lessonName);
         Intent i = new Intent(this, QuestionPagerActivity.class);
         //standardne implementacije (arraylist/linkedlist) su Serializable
         i.putExtra(EXTRA_LIST_QUESTIONS, (Serializable) l);

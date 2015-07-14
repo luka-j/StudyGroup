@@ -1,7 +1,5 @@
 package rs.luka.android.studygroup.model;
 
-import android.media.Image;
-
 import java.util.UUID;
 
 /**
@@ -10,9 +8,9 @@ import java.util.UUID;
 public class Group {
     private final UUID id;
     private final String name;
-    private final Image image;
+    private final String image;
 
-    public Group(UUID id, String name, Image image) {
+    public Group(UUID id, String name, String image) {
         this.id = id;
         this.name = name;
         this.image = image;
@@ -26,7 +24,7 @@ public class Group {
         return name;
     }
 
-    public Image getImage() {
+    public String getImage() {
         return image;
     }
 }

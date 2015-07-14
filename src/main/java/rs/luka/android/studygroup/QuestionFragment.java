@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import rs.luka.android.studygroup.model.Question;
-import rs.luka.android.studygroup.networkcontroller.CoursesManager;
+import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 12.7.15..
@@ -65,8 +65,8 @@ public class QuestionFragment extends Fragment {
         questionText.setText(question.getQuestion());
         answerText.setText(question.getAnswer());
         if (question.getAnswerImageUrl() != null)
-            image.setImageBitmap(CoursesManager.getQuestionImage(question.getId()));
-        history.setText(CoursesManager.getQuestionHistory(question.getId(), getActivity()));
+            image.setImageBitmap(Retriever.getQuestionImage(question.getId()));
+        history.setText(Retriever.getQuestionHistory(question.getId(), getActivity()));
     }
 
     @Override

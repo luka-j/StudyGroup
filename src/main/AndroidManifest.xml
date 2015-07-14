@@ -24,7 +24,6 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".GroupActivity" />
-
         </activity>
         <activity
             android:name=".LessonActivity"
@@ -47,6 +46,13 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".LessonActivity" />
+        </activity>
+        <activity
+            android:name=".AddCourseActivity"
+            android:label="@string/add_course">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".GroupActivity" />
         </activity>
     </application>
 

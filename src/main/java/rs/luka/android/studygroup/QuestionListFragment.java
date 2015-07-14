@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import rs.luka.android.studygroup.model.Question;
-import rs.luka.android.studygroup.networkcontroller.CoursesManager;
+import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 11.7.15..
@@ -85,7 +85,7 @@ public class QuestionListFragment extends Fragment {
     }
 
     public void updateUI() {
-        List<Question> questions = CoursesManager.getQuestions(courseId, lessonName);
+        List<Question> questions = Retriever.getQuestions(courseId, lessonName);
 
         if (adapter == null) {
             adapter = new QuestionsAdapter(questions);

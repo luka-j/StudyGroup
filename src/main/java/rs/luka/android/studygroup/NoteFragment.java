@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import rs.luka.android.studygroup.model.Note;
-import rs.luka.android.studygroup.networkcontroller.CoursesManager;
+import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 12.7.15..
@@ -62,8 +62,8 @@ public class NoteFragment extends Fragment {
     private void updateUI() {
         text.setText(note.getText());
         if (note.getImageUrl() != null)
-            image.setImageBitmap(CoursesManager.getNoteImage(note.getId()));
-        history.setText(CoursesManager.getNoteHistory(note.getId(), getActivity()));
+            image.setImageBitmap(Retriever.getNoteImage(note.getId()));
+        history.setText(Retriever.getNoteHistory(note.getId(), getActivity()));
     }
 
     @Override

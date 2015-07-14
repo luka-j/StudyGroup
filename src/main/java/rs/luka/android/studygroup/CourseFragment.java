@@ -19,7 +19,7 @@ import android.widget.TextView;
 import java.util.List;
 import java.util.UUID;
 
-import rs.luka.android.studygroup.networkcontroller.CoursesManager;
+import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 3.7.15..
@@ -107,7 +107,7 @@ public class CourseFragment extends Fragment {
     }
 
     public void updateUI() {
-        List<String> lessons = CoursesManager.getLessons(courseId);
+        List<String> lessons = Retriever.getLessons(courseId);
 
         if (adapter == null) {
             adapter = new LessonsAdapter(lessons);

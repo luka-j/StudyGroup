@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 import rs.luka.android.studygroup.model.Note;
-import rs.luka.android.studygroup.networkcontroller.CoursesManager;
+import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 11.7.15..
@@ -89,7 +89,7 @@ public class NoteListFragment extends Fragment {
     }
 
     public void updateUI() {
-        List<Note> notes = CoursesManager.getNotes(courseId, lessonName);
+        List<Note> notes = Retriever.getNotes(courseId, lessonName);
 
         if (adapter == null) {
             adapter = new NotesAdapter(notes);
@@ -123,7 +123,7 @@ public class NoteListFragment extends Fragment {
             titleTextView.setText(note.getText());
             if (note.getImageUrl() != null) {
                 ImageView imgView = new ImageView(getActivity());
-                imgView.setImageBitmap(CoursesManager.getNoteImage(note.getId()));
+                imgView.setImageBitmap(Retriever.getNoteImage(note.getId()));
                 layout.addView(imgView, 0);
             }
         }
