@@ -1,5 +1,6 @@
 package rs.luka.android.studygroup;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -10,7 +11,6 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,6 +33,8 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
     public static final String EXTRA_CURRENT_NOTE = "noteIndex";
     public static final String EXTRA_LIST_QUESTIONS = "questionList";
     public static final String EXTRA_CURRENT_QUESTION = "questionIndex";
+    public static final String EXTRA_CURRENT_LESSON = CourseActivity.EXTRA_LESSON_NAME;
+    public static final String EXTRA_CURRENT_COURSE = CourseActivity.EXTRA_COURSE_NAME;
 
     private int numOfTabs = 2;
     private UUID courseId;
@@ -81,10 +83,21 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
         tabs.setViewPager(pager);
 
         fab = (FloatingActionButton) findViewById(R.id.fab_add_noqu);
+        final Activity This = this;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i("WIP", "FAB (add note/question) pressed!");
+                if (pager.getCurrentItem() == 0) {
+                    Intent i = new Intent(This, AddNoteActivity.class);
+                    i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
+                    i.putExtra(EXTRA_CURRENT_COURSE, getIntent().getStringExtra(CourseActivity.EXTRA_COURSE_NAME));
+                    startActivity(i);
+                } else {
+                    Intent i = new Intent(This, AddQuestionActivity.class);
+                    i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
+                    i.putExtra(EXTRA_CURRENT_COURSE, getIntent().getStringExtra(CourseActivity.EXTRA_COURSE_NAME));
+                    startActivity(i);
+                }
             }
         });
     }

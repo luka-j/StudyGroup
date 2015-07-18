@@ -2,20 +2,24 @@ package rs.luka.android.studygroup;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.UUID;
 
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.networkcontroller.Retriever;
@@ -25,15 +29,29 @@ import rs.luka.android.studygroup.networkcontroller.Retriever;
  */
 public class GroupFragment extends Fragment {
 
+    private String groupName;
+    private UUID groupId;
     private RecyclerView courseRecyclerView;
     private Callbacks callbacks;
     private CourseAdapter adapter;
     private FloatingActionButton fab;
 
+    public static GroupFragment newInstance(UUID groupId, String groupName) {
+        GroupFragment f = new GroupFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(RootActivity.EXTRA_GROUP_ID, groupId);
+        args.putString(RootActivity.EXTRA_GROUP_NAME, groupName);
+        f.setArguments(args);
+        return f;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+        groupName = getArguments().getString(RootActivity.EXTRA_GROUP_NAME);
+        groupId = (UUID) getArguments().getSerializable(RootActivity.EXTRA_GROUP_ID);
     }
 
     @Override
@@ -46,6 +64,9 @@ public class GroupFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_group, container, false);
+
+        AppCompatActivity ac = (AppCompatActivity) getActivity();
+        ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         courseRecyclerView = (RecyclerView) view.findViewById(R.id.course_recycler_view);
         fab = (FloatingActionButton) view.findViewById(R.id.fab_add_course);
@@ -65,6 +86,7 @@ public class GroupFragment extends Fragment {
     public void onResume() {
         super.onResume();
         updateUI();
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(groupName);
     }
 
     @Override
@@ -80,8 +102,20 @@ public class GroupFragment extends Fragment {
         //inflater.inflate(R.menu.fragment_group, menu);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                Intent i = new Intent(getActivity(), RootActivity.class);
+                i.putExtra(RootActivity.EXTRA_SHOW_LIST, true);
+                startActivity(i);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     public void updateUI() {
-        List<Course> courses = Retriever.getCourses();
+        List<Course> courses = Retriever.getCourses(groupId);
 
         if (adapter == null) {
             adapter = new CourseAdapter(courses);
@@ -117,12 +151,19 @@ public class GroupFragment extends Fragment {
         public void bindCourse(Course course) {
             this.course = course;
             subjectTextView.setText(course.getSubject());
-            teacherTextView.setText(course.getTeacher());
+            if (course.getTeacher() != null)
+                teacherTextView.setText(course.getTeacher());
+            else
+                teacherTextView.setText("");
             if(course.getYear()!=null)
                 yearTextView.setText(getResources().getString(R.string.year_no, course.getYear().toString()));
             else
                 yearTextView.setText("");
-            imageView.setImageResource(course.getImage());
+            Bitmap img = Retriever.getCourseImage(course.getId());
+            if (img != null)
+                imageView.setImageBitmap(img);
+            else
+                imageView.setImageResource(R.drawable.placeholder);
         }
 
         @Override

@@ -42,5 +42,16 @@ public abstract class SingleFragmentActivity extends AppCompatActivity {
         }
     }
 
+    /*@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.w("fk this shit", "onActivityResult: activity");
+        getSupportFragmentManager().findFragmentById(R.id.fragment_container).onActivityResult(requestCode, resultCode, data);
+        Log.w("fk this shit", "onActivityResult: activity exits");
+    }
+
+    @Override
+    public void startActivityForResult(Intent intent, int requestCode) {
+        super.startActivityForResult(intent, requestCode);
+    }*/
 }
 

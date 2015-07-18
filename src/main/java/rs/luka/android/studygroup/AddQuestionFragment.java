@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -23,29 +22,36 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.util.Date;
 
 import rs.luka.android.studygroup.networkcontroller.Adder;
 import rs.luka.android.studygroup.networkcontroller.Limits;
 
 /**
- * Created by luka on 13.7.15..
+ * Created by luka on 14.7.15..
  */
-public class AddCourseFragment extends Fragment {
+public class AddQuestionFragment extends Fragment {
 
     private static final int IDEAL_IMAGE_DIMENSION = 300;
     private static final int INTENT_IMAGE = 0;
     private static final File imageDir = new File(Environment.getExternalStorageDirectory().toString() + "/DCIM/StudyGroup/");
-
-    private EditText subject;
-    private TextInputLayout subjectTil;
-    private EditText teacher;
-    private TextInputLayout teacherTil;
-    private EditText year;
-    private TextInputLayout yearTil;
+    private EditText lesson;
+    private EditText answer;
+    private EditText question;
+    private TextInputLayout lessonTil;
+    private TextInputLayout questionTil;
     private CardView add;
     private ImageView image;
     private File imageFile;
 
+    public static AddQuestionFragment newInstance(String lesson, String course) {
+        AddQuestionFragment f = new AddQuestionFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(LessonActivity.EXTRA_CURRENT_LESSON, lesson);
+        args.putSerializable(LessonActivity.EXTRA_CURRENT_COURSE, course);
+        f.setArguments(args);
+        return f;
+    }
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,33 +61,35 @@ public class AddCourseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_add_course, container, false);
+        View view = inflater.inflate(R.layout.fragment_add_question, container, false);
 
         AppCompatActivity ac = (AppCompatActivity) getActivity();
         if (NavUtils.getParentActivityIntent(ac) != null) {
             ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
         }
 
-        subject = (EditText) view.findViewById(R.id.add_course_name_input);
-        subjectTil = (TextInputLayout) view.findViewById(R.id.add_course_name_til);
-        teacher = (EditText) view.findViewById(R.id.add_course_prof_input);
-        teacherTil = (TextInputLayout) view.findViewById(R.id.add_course_prof_til);
-        year = (EditText) view.findViewById(R.id.add_course_year_input);
-        yearTil = (TextInputLayout) view.findViewById(R.id.add_course_year_til);
+        lesson = (EditText) view.findViewById(R.id.add_question_lesson_input);
+        answer = (EditText) view.findViewById(R.id.add_question_answer_input);
+        question = (EditText) view.findViewById(R.id.add_question_text_input);
+        lessonTil = (TextInputLayout) view.findViewById(R.id.add_question_lesson_til);
+        questionTil = (TextInputLayout) view.findViewById(R.id.add_question_text_til);
         add = (CardView) view.findViewById(R.id.button_add);
-        image = (ImageView) view.findViewById(R.id.add_course_image);
+        image = (ImageView) view.findViewById(R.id.add_question_image);
+
+        lesson.setText(getArguments().getString(LessonActivity.EXTRA_CURRENT_LESSON));
+        question.requestFocus();
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                submit();
+                doSubmit();
             }
         });
-        year.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        answer.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    submit();
+                    doSubmit();
                     return true;
                 }
                 return false;
@@ -93,9 +101,9 @@ public class AddCourseFragment extends Fragment {
                 Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 if (!imageDir.isDirectory())
                     imageDir.mkdir();
-                imageFile = new File(imageDir, "course " + subject + " image.jpg");
-                if (imageFile.exists())
-                    imageFile.delete();
+                imageFile = new File(imageDir, getArguments().getString(LessonActivity.EXTRA_CURRENT_COURSE) +
+                        " - " + getArguments().getString(LessonActivity.EXTRA_CURRENT_LESSON) + " "
+                        + new Date().getTime() + ".jpg");
                 Intent gallery = new Intent(Intent.ACTION_PICK);
                 gallery.setType("image/*");
                 camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
@@ -104,7 +112,6 @@ public class AddCourseFragment extends Fragment {
                 startActivityForResult(chooserIntent, INTENT_IMAGE);
             }
         });
-
         return view;
     }
 
@@ -127,46 +134,25 @@ public class AddCourseFragment extends Fragment {
         }
     }
 
-    private void submit() {
+    private void doSubmit() {
         boolean error = false;
-        String subjectText = subject.getText().toString(),
-                teacherText = teacher.getText().toString(),
-                yearText = year.getText().toString();
-        if (subjectText.isEmpty()) {
-            subjectTil.setError(getString(R.string.error_empty));
+        String lessonStr = lesson.getText().toString(),
+                questionStr = question.getText().toString(),
+                answerStr = answer.getText().toString();
+        if (lessonStr.isEmpty()) {
+            lessonTil.setError(getString(R.string.error_empty));
             error = true;
-        } else if (subjectText.length() > Limits.COURSE_NAME_MAX_LENGTH) {
-            subjectTil.setError(getString(R.string.error_too_long));
+        } else if (lessonStr.length() > Limits.LESSON_MAX_LENGTH) {
+            lessonTil.setError(getString(R.string.error_too_long));
             error = true;
-        } else subjectTil.setError(null);
-        if (teacherText.length() > 128) {
-            teacherTil.setError(getString(R.string.error_too_long));
+        } else lessonTil.setError(null);
+        if (questionStr.isEmpty()) {
+            questionTil.setError(getString(R.string.error_empty));
             error = true;
-        } else teacherTil.setError(null);
-        if (!yearText.isEmpty() && Integer.parseInt(yearText) > Limits.COURSE_YEAR_MAX) {
-            yearTil.setError(getString(R.string.error_number_too_large, getString(R.string.year)));
-            error = true;
-        } else if (!yearText.isEmpty() && Integer.parseInt(yearText) < Limits.COURSE_YEAR_MIN) {
-            yearTil.setError(getString(R.string.error_negative_number, getString(R.string.year)));
-            error = true;
-        } else yearTil.setError(null);
+        } else questionTil.setError(null);
         if (!error) {
-            if (imageFile.exists()) {
-                Adder.addCourse(subjectText, teacherText, yearText, imageFile);
-            } else {
-                Adder.addCourse(subjectText, teacherText, yearText, null);
-            }
+            Adder.addQuestion(lessonStr, questionStr, answerStr, imageFile);
             getActivity().onBackPressed();
         }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(getActivity());
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

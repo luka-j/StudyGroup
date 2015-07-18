@@ -9,11 +9,13 @@ public class Group {
     private final UUID id;
     private final String name;
     private final String image;
+    private final String place;
 
-    public Group(UUID id, String name, String image) {
+    public Group(UUID id, String name, String place, String image) {
         this.id = id;
         this.name = name;
         this.image = image;
+        this.place = place;
     }
 
     public UUID getId() {
@@ -26,5 +28,9 @@ public class Group {
 
     public String getImage() {
         return image;
+    }
+
+    public String getPlace() {
+        return place;
     }
 }

@@ -17,7 +17,7 @@
         android:paddingLeft="@dimen/button_text_padding_horizontal"
         android:paddingRight="@dimen/button_text_padding_horizontal"
         android:paddingTop="@dimen/button_text_padding_vertical"
-        android:text="@string/add"
+        android:text="@string/submit"
         android:textAllCaps="true"
         android:textColor="@color/white"
         android:textSize="@dimen/button_text_size" />

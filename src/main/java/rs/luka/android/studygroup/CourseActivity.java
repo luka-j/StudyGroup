@@ -11,6 +11,7 @@ import java.util.UUID;
 public class CourseActivity extends SingleFragmentActivity implements CourseFragment.Callbacks {
 
     protected static final String EXTRA_COURSE_ID = GroupActivity.EXTRA_COURSE_ID; //convenience
+    protected static final String EXTRA_COURSE_NAME = GroupActivity.EXTRA_COURSE_NAME;
     protected static final String EXTRA_LESSON_NAME = "lessonName";
 
     @Override
@@ -24,6 +25,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
         Intent i = new Intent(this, LessonActivity.class);
         i.putExtra(EXTRA_COURSE_ID, getIntent().getSerializableExtra(EXTRA_COURSE_ID));
         i.putExtra(EXTRA_LESSON_NAME, title);
+        i.putExtra(EXTRA_COURSE_NAME, getIntent().getStringExtra(GroupActivity.EXTRA_COURSE_NAME));
         startActivity(i);
     }
 }

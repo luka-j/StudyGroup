@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
 
@@ -25,7 +26,18 @@ public class Retriever {
     private static Map<UUID, List<Question>> questions;
     private static Map<UUID, List<String>> lessons;
 
-    public static List<Course> getCourses() {
+    public static boolean isUserLoggedIn() {
+        return true;
+    }
+
+    public static List<Group> getGroups() {
+        ArrayList<Group> groups = new ArrayList<>();
+        groups.add(new Group(UUID.randomUUID(), "MG", "Beograd", null));
+        //groups.add(new Group(UUID.randomUUID(), "MG - OS", "Beograd", null));
+        return groups;
+    }
+
+    public static List<Course> getCourses(UUID id) {
         if(courses==null) {
             fetchCourses();
         }
@@ -115,6 +127,16 @@ public class Retriever {
     }
 
     public static Bitmap getQuestionImage(UUID id) {
+
+        return null;
+    }
+
+    public static Bitmap getCourseImage(UUID id) {
+
+        return null;
+    }
+
+    public static Bitmap getGroupImage(UUID id) {
 
         return null;
     }
