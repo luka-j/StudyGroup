@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.activities.singleitemactivities;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -11,8 +11,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Note;
-import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 12.7.15..

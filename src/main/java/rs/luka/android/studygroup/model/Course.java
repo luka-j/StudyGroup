@@ -1,11 +1,8 @@
 package rs.luka.android.studygroup.model;
 
-import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 
 import java.util.UUID;
-
-import rs.luka.android.studygroup.R;
 
 /**
  * Created by Luka on 7/1/2015.

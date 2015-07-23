@@ -1,33 +1,72 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.activities.recyclers;
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
+import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Question;
-import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 11.7.15..
  */
 public class QuestionListFragment extends Fragment {
 
+    private Set<Question> selected = new HashSet<>();
+    private ActionMode actionMode;
     private RecyclerView questionsRecycler;
     private QuestionCallbacks callbacks;
     private QuestionsAdapter adapter;
+    private ActionMode.Callback selectItems = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            mode.getMenuInflater().inflate(R.menu.context_question, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.context_edit:
+                    actionMode.finish();
+                    return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            selected.clear();
+            adapter.notifyDataSetChanged();
+        }
+    };
     private UUID courseId;
     private String lessonName;
+    private SwipeRefreshLayout swipe;
 
     public static QuestionListFragment newInstance(UUID courseId, String lessonName) {
         QuestionListFragment f = new QuestionListFragment();
@@ -62,7 +101,39 @@ public class QuestionListFragment extends Fragment {
         questionsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
         updateUI();
 
+        swipe = (SwipeRefreshLayout) view.findViewById(R.id.questions_swipe);
+        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh();
+            }
+        });
+        swipe.setColorSchemeResources(R.color.refresh_progress_1,
+                                      R.color.refresh_progress_2,
+                                      R.color.refresh_progress_3);
+
         return view;
+    }
+
+    public void stopRefreshing() {
+        swipe.setRefreshing(false);
+    }
+
+    private void refresh() {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                List<Question> newNotes = Retriever.getQuestions(courseId, lessonName);
+                newNotes.add(new Question(UUID.randomUUID(),
+                                          "Čemu sad ovo?",
+                                          "Don't ask me",
+                                          null));
+                newNotes.add(new Question(UUID.randomUUID(), "Ali koga ću drugog?", "", null));
+                adapter.setNotes(newNotes);
+                adapter.notifyDataSetChanged();
+                stopRefreshing();
+            }
+        }, 2500);
     }
 
     @Override
@@ -100,7 +171,8 @@ public class QuestionListFragment extends Fragment {
         void onQuestionSelected(Question question);
     }
 
-    private class QuestionHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    private class QuestionHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener, View.OnLongClickListener {
         private TextView questionTextView;
         private TextView answerTextView;
 
@@ -109,6 +181,7 @@ public class QuestionListFragment extends Fragment {
         public QuestionHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
 
             questionTextView = (TextView) itemView.findViewById(R.id.item_question_text);
             answerTextView = (TextView) itemView.findViewById(R.id.item_answer_text);
@@ -122,7 +195,44 @@ public class QuestionListFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            callbacks.onQuestionSelected(question);
+            if (selected.isEmpty()) { callbacks.onQuestionSelected(question); } else {
+                if (selected.contains(question)) {
+                    selected.remove(question);
+                    deselect(v);
+                    if (selected.isEmpty()) { actionMode.finish(); }
+                } else {
+                    select(v);
+                }
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            if (selected.isEmpty()) {
+                actionMode = getActivity().startActionMode(selectItems);
+            }
+            select(v);
+            return true;
+            //return false;
+        }
+
+        private void select(View v) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                v.animate().translationZ(4).setDuration(100).start();
+            }
+            v.setBackgroundResource(R.color.card_selected);
+            v.setActivated(true);
+            selected.add(question);
+        }
+
+        private void deselect(View v) {
+            if (v.isActivated()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    v.animate().translationZ(-4).setDuration(100).start();
+                }
+                v.setBackgroundResource(R.color.background_material_light);
+                v.setActivated(false);
+            }
         }
     }
 

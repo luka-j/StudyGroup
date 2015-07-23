@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.activities.recyclers;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -11,6 +11,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,10 +20,15 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
+import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.activities.singleitemactivities.AddNoteActivity;
+import rs.luka.android.studygroup.activities.singleitemactivities.AddQuestionActivity;
+import rs.luka.android.studygroup.activities.singleitemactivities.NotePagerActivity;
+import rs.luka.android.studygroup.activities.singleitemactivities.QuestionPagerActivity;
 import rs.luka.android.studygroup.google.SlidingTabLayout;
+import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
-import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 5.7.15..
@@ -112,15 +118,33 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
         switch (item.getItemId()) {
             case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(this);
+                //NavUtils.navigateUpFromSameTask(this);
+                //TODO: vidi zasto NavUtils.NavigateUpFromSameTask ne radi
+                Intent i = new Intent(this, CourseActivity.class);
+                i.putExtra(GroupActivity.EXTRA_COURSE_ID,
+                           getIntent().getSerializableExtra(CourseActivity.EXTRA_COURSE_ID));
+                i.putExtra(GroupActivity.EXTRA_COURSE_NAME,
+                           getIntent().getSerializableExtra(CourseActivity.EXTRA_COURSE_NAME));
+                startActivity(i);
+                Log.i("test", "starting activity on id.home");
                 return true;
         }
-
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        /*if(Retriever.getNumberOfLessons(courseId) == 1) { //nije neophodno, ali me nervira animacija na Lollipopu
+            Intent i = new Intent(this, CourseActivity.class); //neprirodna je, s obzirom da se vracam nazad
+            i.putExtra(CourseActivity.EXTRA_GO_BACKWARD, true); //pa je izbegavam koliko je moguce
+            startActivity(i);
+            Log.i("test", "started activity; going back");
+        }
+        else {*/
+        super.onBackPressed();
+        //}
     }
 
     @Override
@@ -143,14 +167,18 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
         startActivity(i);
     }
 
+    protected FloatingActionButton getFab() {
+        return fab;
+    }
+
     class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
-        CharSequence titles[]; // This will Store the titles of the Tabs which are Going to be passed when ViewPagerAdapter is created
+        CharSequence[] titles; // This will Store the titles of the Tabs which are Going to be passed when ViewPagerAdapter is created
         int numOfTabs; // Store the number of tabs, this will also be passed when the ViewPagerAdapter is created
 
 
         // Build a Constructor and assign the passed Values to appropriate values in the class
-        public ViewPagerAdapter(FragmentManager fm, CharSequence mTitles[], int numofTabs) {
+        public ViewPagerAdapter(FragmentManager fm, CharSequence[] mTitles, int numofTabs) {
             super(fm);
 
             this.titles = mTitles;

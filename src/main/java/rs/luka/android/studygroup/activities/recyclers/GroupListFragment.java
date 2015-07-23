@@ -1,23 +1,33 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.activities.recyclers;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
+import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.activities.singleitemactivities.AddGroupActivity;
+import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Group;
-import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 17.7.15..
@@ -27,6 +37,7 @@ public class GroupListFragment extends Fragment {
     private Callbacks callbacks;
     private GroupAdapter adapter;
     private FloatingActionButton fab;
+    private SwipeRefreshLayout swipe;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,14 +61,43 @@ public class GroupListFragment extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO:
-                //startActivity(new Intent(getActivity(), AddCourseActivity.class));
+                startActivity(new Intent(getActivity(), AddGroupActivity.class));
             }
         });
         recycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+        registerForContextMenu(recycler);
         updateUI();
 
+        swipe = (SwipeRefreshLayout) view.findViewById(R.id.group_list_swipe);
+        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh();
+            }
+        });
+        swipe.setColorSchemeResources(R.color.refresh_progress_1,
+                                      R.color.refresh_progress_2,
+                                      R.color.refresh_progress_3);
+
         return view;
+    }
+
+    public void stopRefreshing() {
+        swipe.setRefreshing(false);
+    }
+
+    private void refresh() {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                List<Group> newGroups = new LinkedList<>();
+                newGroups.add(new Group(UUID.randomUUID(), "MG", "BG", null));
+                newGroups.add(new Group(UUID.randomUUID(), "MG - OS", "BG", null));
+                adapter.setGroups(newGroups);
+                adapter.notifyDataSetChanged();
+                stopRefreshing();
+            }
+        }, 800);
     }
 
     @Override
@@ -79,6 +119,16 @@ public class GroupListFragment extends Fragment {
         //inflater.inflate(R.menu.fragment_group, menu);
     }
 
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.context_edit:
+                Log.i("test", "wanna edit group " + adapter.selectedGroup.getName());
+                return true;
+        }
+        return onContextItemSelected(item);
+    }
+
     public void updateUI() {
         List<Group> groups = Retriever.getGroups();
 
@@ -95,7 +145,9 @@ public class GroupListFragment extends Fragment {
         void onGroupSelected(Group group);
     }
 
-    private class GroupHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    private class GroupHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener, View.OnLongClickListener,
+                       View.OnCreateContextMenuListener {
         private TextView name;
         private TextView place;
         private ImageView image;
@@ -105,6 +157,8 @@ public class GroupListFragment extends Fragment {
         public GroupHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
+            itemView.setOnCreateContextMenuListener(this);
 
             name = (TextView) itemView.findViewById(R.id.card_group_name_text);
             place = (TextView) itemView.findViewById(R.id.card_group_place_text);
@@ -122,9 +176,22 @@ public class GroupListFragment extends Fragment {
         public void onClick(View v) {
             callbacks.onGroupSelected(group);
         }
+
+        @Override
+        public boolean onLongClick(View v) {
+            adapter.selectedGroup = group;
+            return false;
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v,
+                                        ContextMenu.ContextMenuInfo menuInfo) {
+            getActivity().getMenuInflater().inflate(R.menu.context_group_list, menu);
+        }
     }
 
     private class GroupAdapter extends RecyclerView.Adapter<GroupHolder> {
+        private Group selectedGroup = null;
 
         private List<Group> groups;
 

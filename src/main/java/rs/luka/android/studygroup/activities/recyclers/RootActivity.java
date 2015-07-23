@@ -1,38 +1,39 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.activities.recyclers;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 import java.util.List;
 
+import rs.luka.android.studygroup.activities.SingleFragmentActivity;
+import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Group;
-import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by luka on 17.7.15..
  */
-public class RootActivity extends AppCompatActivity implements GroupListFragment.Callbacks {
+public class RootActivity extends SingleFragmentActivity implements GroupListFragment.Callbacks {
     public static final String EXTRA_GROUP_ID = "groupId";
     public static final String EXTRA_GROUP_NAME = "groupName";
     public static final String EXTRA_SHOW_LIST = "showList";
     private static final String TAG = "studygroup.RootActivity";
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected Fragment createFragment() {
+        return new GroupListFragment();
+    }
+
+    @Override
+    protected boolean shouldCreateFragment() {
         if (getIntent().getBooleanExtra(EXTRA_SHOW_LIST, false)) {
             Log.i(TAG, "showing list, extra supplied");
-            inflateFragment();
-            return;
+            return true;
         }
         //Log.i(TAG, "called from diff activity: " + getIntent().getPackage());
         if (!Retriever.isUserLoggedIn()) {
             //login
+            return false;
         } else {
             List<Group> groups = Retriever.getGroups();
             if (groups.size() == 1) {
@@ -41,28 +42,11 @@ public class RootActivity extends AppCompatActivity implements GroupListFragment
                 i.putExtra(EXTRA_GROUP_NAME, groups.get(0).getName());
                 Log.i(TAG, "one group, starting it");
                 startActivity(i);
+                return false;
             } else {
                 Log.i(TAG, "multiple groups, showing list");
-                inflateFragment();
+                return true;
             }
-        }
-    }
-
-
-    private void inflateFragment() {
-        setContentView(R.layout.activity_fragment);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        FragmentManager fm = getSupportFragmentManager();
-        Fragment fragment = fm.findFragmentById(R.id.fragment_container);
-
-        if (fragment == null) {
-            fragment = new GroupListFragment();
-            fm.beginTransaction()
-                    .add(R.id.fragment_container, fragment)
-                    .commit();
         }
     }
 

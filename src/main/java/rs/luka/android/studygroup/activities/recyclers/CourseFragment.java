@@ -1,12 +1,15 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.activities.recyclers;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,10 +19,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import rs.luka.android.studygroup.networkcontroller.Retriever;
+import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.io.Hider;
+import rs.luka.android.studygroup.io.Retriever;
 
 /**
  * Created by luka on 3.7.15..
@@ -33,6 +39,7 @@ public class CourseFragment extends Fragment {
     private LessonsAdapter adapter;
     private UUID courseId;
     private String courseName;
+    private SwipeRefreshLayout swipe;
 
     protected static Fragment newInstance(UUID courseId, String courseName) {
         Bundle args = new Bundle();
@@ -70,9 +77,47 @@ public class CourseFragment extends Fragment {
         }
         lessonsRecyclerView = (RecyclerView) view.findViewById(R.id.lessons_recycler_view);
         lessonsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
         updateUI();
 
+
+        new ItemTouchHelper(new TouchHelperCallbacks(0,
+                                                     ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT))
+                .attachToRecyclerView(lessonsRecyclerView);
+
+        swipe = (SwipeRefreshLayout) view.findViewById(R.id.course_swipe);
+        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh();
+            }
+        });
+        swipe.setColorSchemeResources(R.color.refresh_progress_1,
+                                      R.color.refresh_progress_2,
+                                      R.color.refresh_progress_3);
+
         return view;
+    }
+
+    public void stopRefreshing() {
+        swipe.setRefreshing(false);
+    }
+
+    private void refresh() {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                List<String> newLessons = new LinkedList<>();
+                newLessons.add("Logika");
+                newLessons.add("Brojevi");
+                newLessons.add("Racionalni algebarski izrazi");
+                newLessons.add("Jednačine i nejednačine");
+                newLessons.add("Stepenovanje i korenovanje");
+                adapter.setTitles(newLessons);
+                adapter.notifyDataSetChanged();
+                stopRefreshing();
+            }
+        }, 1500);
     }
 
     @Override
@@ -122,8 +167,48 @@ public class CourseFragment extends Fragment {
         void onLessonSelected(String title);
     }
 
+    private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
+
+        public TouchHelperCallbacks(int dragDirs, int swipeDirs) {
+            super(dragDirs, swipeDirs);
+        }
+
+        @Override
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
+                              RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
+            final String title    = ((LessonHolder) viewHolder).title;
+            final int    position = viewHolder.getAdapterPosition();
+            adapter.removeTitle(position);
+            rs.luka.android.studygroup.Snackbar.make(lessonsRecyclerView,
+                                                     R.string.course_hidden,
+                                                     rs.luka.android.studygroup.Snackbar.LENGTH_LONG)
+                                               .setAction(R.string.undo,
+                                                          new View.OnClickListener() {
+                                                              @Override
+                                                              public void onClick(View v) {
+                                                                  adapter.addTitle(title, position);
+                                                                  Hider.showLesson(courseId, title);
+                                                              }
+                                                          })
+                                               .setActionTextColor(getActivity().getResources()
+                                                                                .getColor(R.color.color_accent))
+                                               .colorTheFuckingTextToWhite(getActivity())
+                                               .doStuffThatGoogleDidntFuckingDoProperly(getActivity(),
+                                                                                        null)
+                                               .show();
+            Hider.hideLesson(courseId, title);
+        }
+    }
+
     private class LessonHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private TextView titleTextView;
+        private TextView noteCount;
+        private TextView questionCount;
 
         private String title;
 
@@ -132,11 +217,17 @@ public class CourseFragment extends Fragment {
             itemView.setOnClickListener(this);
 
             titleTextView = (TextView) itemView.findViewById(R.id.card_lesson_title);
+            noteCount = (TextView) itemView.findViewById(R.id.note_count_text);
+            questionCount = (TextView) itemView.findViewById(R.id.question_count_text);
         }
 
         public void bindCourse(String title) {
             this.title = title;
             titleTextView.setText(title);
+            noteCount.setText(getString(R.string.notes_no,
+                                        Retriever.getNumberOfNotes(courseId, title)));
+            questionCount.setText(getString(R.string.questions_no,
+                                            Retriever.getNumberOfQuestions(courseId, title)));
         }
 
         @Override
@@ -173,6 +264,18 @@ public class CourseFragment extends Fragment {
 
         public void setTitles(List<String> titles) {
             this.titles = titles;
+        }
+
+        public void removeTitle(int position) {
+            titles.remove(position);
+            this.notifyItemRemoved(position);
+            this.notifyItemRangeChanged(position, titles.size());
+        }
+
+        public void addTitle(String title, int position) {
+            titles.add(position, title);
+            this.notifyItemInserted(position);
+            this.notifyItemRangeChanged(position, titles.size());
         }
     }
 }

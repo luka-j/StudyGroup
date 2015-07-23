@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.networkcontroller;
+package rs.luka.android.studygroup.io;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -48,7 +48,14 @@ public class Retriever {
         courses = new ArrayList<>();
         courses.add(new Course(UUID.randomUUID(), "Fizika", "Zoran Nikolic", 1, null));
         courses.add(new Course(UUID.randomUUID(), "Geometrija", "Bojana Matic", 1, null));
+        courses.add(new Course(UUID.randomUUID(), "Srpski jezik", "Mirjana Mićić", 1, null));
         courses.add(new Course(UUID.randomUUID(), "Informatika i racunarstvo", "Zeljko Lezaja", 2, null));
+        courses.add(new Course(UUID.randomUUID(), "Istorija", "Aleksandar Glavnik", 2, null));
+    }
+
+    public static int getNumberOfLessons(UUID courseId) {
+
+        return 1;
     }
 
     public static List<String> getLessons(UUID id) {
@@ -66,6 +73,11 @@ public class Retriever {
         l.add("Statika");
         l.add("Zakoni odrzanja");
         lessons.put(id, l);
+    }
+
+    public static int getNumberOfNotes(UUID courseId, String lesson) {
+
+        return 18;
     }
 
     public static List<Note> getNotes(UUID courseId, String lesson) {
@@ -98,6 +110,11 @@ public class Retriever {
         n.add(new Note(id, "par", null));
         n.add(new Note(id, "redova", null));
         notes.put(id, n);
+    }
+
+    public static int getNumberOfQuestions(UUID courseId, String lesson) {
+
+        return 5;
     }
 
     public static List<Question> getQuestions(UUID courseId, String lesson) {

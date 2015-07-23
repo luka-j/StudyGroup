@@ -5,6 +5,11 @@
     <color name="color_primary_dark">#303F9F</color>
     <color name="color_accent">#FF5722</color>
     <color name="color_primary_light">#C5CAE9</color>
-    <color name="tabsScrollColor">#0f2674</color>
+    <color name="tabsScrollColor">#1d2763</color>
     <color name="primary_text">#212121</color>
+    <color name="refresh_progress_1">@color/color_accent</color>
+    <color name="refresh_progress_2">@color/color_primary_light</color>
+    <color name="refresh_progress_3">@color/color_primary</color>
+    <color name="card_selected">@color/color_primary_light</color>
+    <color name="actionmode_background">@color/color_primary_dark</color>
 </resources>

@@ -2,6 +2,7 @@
     <string name="app_name" translatable="false">StudyGroup</string>
     <string name="lessons_title">Lessons</string>
     <string name="details_title">Lesson details</string>
+    <string name="add_group">Add group</string>
     <string name="add_course">Add course</string>
     <string name="add_note">Add note</string>
     <string name="add_question">Add question</string>
@@ -11,6 +12,9 @@
     <string name="year_no">Year %s</string>
     <string name="notes">Notes</string>
     <string name="questions">Questions</string>
+
+    <string name="notes_no">Notes: %d</string>
+    <string name="questions_no">Questions: %d</string>
 
     <string name="note_history">Last change by %1$s on %2$s</string>
 
@@ -26,9 +30,19 @@
     <string name="lesson">Lesson</string>
     <string name="question">Question</string>
     <string name="answer">Answer</string>
+    <string name="group_name">Group name</string>
+    <string name="group_place">Place</string>
 
     <string name="add">Add</string>
     <string name="submit">Submit</string>
     <string name="select_image">Select image using…</string>
     <string name="select_audio">Select audio using…</string>
+
+    <string name="undo">Undo</string>
+    <string name="course_hidden">Course hidden</string>
+    <string name="lesson_hidden">Lesson hidden</string>
+    <string name="note_hidden">Note hidden</string>
+    <string name="question_hidden">Question hidden</string>
+
+    <string name="edit">Edit</string>
 </resources>

@@ -1,14 +1,20 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.activities.recyclers;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,11 +24,16 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.Snackbar;
+import rs.luka.android.studygroup.activities.singleitemactivities.AddCourseActivity;
+import rs.luka.android.studygroup.io.Hider;
+import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Course;
-import rs.luka.android.studygroup.networkcontroller.Retriever;
 
 /**
  * Created by Luka on 7/1/2015.
@@ -35,6 +46,8 @@ public class GroupFragment extends Fragment {
     private Callbacks callbacks;
     private CourseAdapter adapter;
     private FloatingActionButton fab;
+    private SwipeRefreshLayout swipe;
+    private CoordinatorLayout  coordinator;
 
     public static GroupFragment newInstance(UUID groupId, String groupName) {
         GroupFragment f = new GroupFragment();
@@ -52,6 +65,7 @@ public class GroupFragment extends Fragment {
 
         groupName = getArguments().getString(RootActivity.EXTRA_GROUP_NAME);
         groupId = (UUID) getArguments().getSerializable(RootActivity.EXTRA_GROUP_ID);
+        //setRetainInstance(true);
     }
 
     @Override
@@ -70,6 +84,7 @@ public class GroupFragment extends Fragment {
 
         courseRecyclerView = (RecyclerView) view.findViewById(R.id.course_recycler_view);
         fab = (FloatingActionButton) view.findViewById(R.id.fab_add_course);
+        coordinator = (CoordinatorLayout) view.findViewById(R.id.coordinator);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -77,9 +92,53 @@ public class GroupFragment extends Fragment {
             }
         });
         courseRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        registerForContextMenu(courseRecyclerView);
         updateUI();
 
+
+        new ItemTouchHelper(new TouchHelperCallbacks(0,
+                                                     ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT))
+                .attachToRecyclerView(courseRecyclerView);
+
+        swipe = (SwipeRefreshLayout) view.findViewById(R.id.group_swipe);
+        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh();
+            }
+        });
+        swipe.setColorSchemeResources(R.color.refresh_progress_1,
+                                      R.color.refresh_progress_2,
+                                      R.color.refresh_progress_3);
+
         return view;
+    }
+
+    public void stopRefreshing() {
+        swipe.setRefreshing(false);
+    }
+
+    private void refresh() {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                List<Course> newCourses = new LinkedList<>();
+                newCourses.add(new Course(UUID.randomUUID(), "Analiza", "Sandra Andric", 1, null));
+                newCourses.add(new Course(UUID.randomUUID(),
+                                          "Psihologija",
+                                          "Mirjana Repac",
+                                          2,
+                                          null));
+                newCourses.add(new Course(UUID.randomUUID(),
+                                          "Srpski jezik",
+                                          "Mirjana Micic",
+                                          1,
+                                          null));
+                adapter.setCourses(newCourses);
+                adapter.notifyDataSetChanged();
+                stopRefreshing();
+            }
+        }, 1000);
     }
 
     @Override
@@ -100,6 +159,16 @@ public class GroupFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
         //TODO
         //inflater.inflate(R.menu.fragment_group, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.context_edit:
+                Log.i("test", "wanna edit course " + adapter.selectedCourse.getSubject());
+                return true;
+        }
+        return onContextItemSelected(item);
     }
 
     @Override
@@ -130,7 +199,46 @@ public class GroupFragment extends Fragment {
         void onCourseSelected(Course course);
     }
 
-    private class CourseHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
+
+        public TouchHelperCallbacks(int dragDirs, int swipeDirs) {
+            super(dragDirs, swipeDirs);
+        }
+
+        @Override
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
+                              RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
+            final Course course   = ((CourseHolder) viewHolder).course;
+            final int    position = viewHolder.getAdapterPosition();
+            adapter.removeCourse(position);
+            Snackbar.make(coordinator, R.string.course_hidden, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.undo, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            adapter.addCourse(course, position);
+                            Hider.showCourse(course.getId());
+                        }
+                    })
+                    .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
+                    .colorTheFuckingTextToWhite(getActivity())
+                    .doStuffThatGoogleDidntFuckingDoProperly(getActivity(), fab)
+                    .show();
+            // ((TextView)(coordinator.findViewById(android.support.design.R.id.snackbar_text)))
+            //       .setTextColor(getActivity().getResources().getColor(R.color.white)); //fuck you Google
+            // doesn't actually work
+            Hider.hideCourse(course.getId());
+        }
+    }
+
+    private class CourseHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener, View.OnLongClickListener,
+                       View.OnCreateContextMenuListener {
+
         private TextView subjectTextView;
         private TextView teacherTextView;
         private TextView yearTextView;
@@ -141,6 +249,8 @@ public class GroupFragment extends Fragment {
         public CourseHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
+            itemView.setOnCreateContextMenuListener(this);
 
             subjectTextView = (TextView) itemView.findViewById(R.id.card_course_subject_text);
             teacherTextView = (TextView) itemView.findViewById(R.id.card_course_teacher_text);
@@ -155,7 +265,7 @@ public class GroupFragment extends Fragment {
                 teacherTextView.setText(course.getTeacher());
             else
                 teacherTextView.setText("");
-            if(course.getYear()!=null)
+            if (course.getYear() != null)
                 yearTextView.setText(getResources().getString(R.string.year_no, course.getYear().toString()));
             else
                 yearTextView.setText("");
@@ -170,9 +280,22 @@ public class GroupFragment extends Fragment {
         public void onClick(View v) {
             callbacks.onCourseSelected(course);
         }
+
+        @Override
+        public boolean onLongClick(View v) {
+            adapter.selectedCourse = course;
+            return false;
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v,
+                                        ContextMenu.ContextMenuInfo menuInfo) {
+            getActivity().getMenuInflater().inflate(R.menu.context_group, menu);
+        }
     }
 
     private class CourseAdapter extends RecyclerView.Adapter<CourseHolder> {
+        private Course selectedCourse;
 
         private List<Course> courses;
 
@@ -200,6 +323,18 @@ public class GroupFragment extends Fragment {
 
         public void setCourses(List<Course> courses) {
             this.courses = courses;
+        }
+
+        public void removeCourse(int position) {
+            courses.remove(position);
+            this.notifyItemRemoved(position);
+            this.notifyItemRangeChanged(position, courses.size());
+        }
+
+        public void addCourse(Course course, int position) {
+            courses.add(position, course);
+            this.notifyItemInserted(position);
+            this.notifyItemRangeChanged(position, courses.size());
         }
     }
 }

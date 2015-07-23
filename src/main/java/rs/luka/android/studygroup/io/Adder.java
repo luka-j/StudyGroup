@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.networkcontroller;
+package rs.luka.android.studygroup.io;
 
 import android.util.Log;
 
@@ -22,6 +22,12 @@ public class Adder {
     public static void addQuestion(String lesson, String question, String answer, File imageFile) {
         Log.i(TAG, "Add question: lesson " + lesson + "\nQuestion: " + question + "\nAnswer: " + answer
                 + "\nFiles: image " + getNullableFilePath(imageFile));
+    }
+
+    public static void addGroup(String name, String place, File image) {
+        Log.i(TAG,
+              "Add group: name " + name + ", place: " + place + "\nImage path: "
+              + getNullableFilePath(image));
     }
 
     private static String getNullableFilePath(File f) {

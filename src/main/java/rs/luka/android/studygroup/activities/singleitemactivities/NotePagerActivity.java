@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.activities.singleitemactivities;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,6 +10,8 @@ import android.support.v7.widget.Toolbar;
 
 import java.util.List;
 
+import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.activities.recyclers.LessonActivity;
 import rs.luka.android.studygroup.model.Note;
 
 /**

@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.activities.singleitemactivities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -24,28 +24,27 @@ import android.widget.TextView;
 
 import java.io.File;
 
-import rs.luka.android.studygroup.networkcontroller.Adder;
-import rs.luka.android.studygroup.networkcontroller.Limits;
+import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.Utils;
+import rs.luka.android.studygroup.io.Adder;
+import rs.luka.android.studygroup.io.Limits;
 
 /**
- * Created by luka on 13.7.15..
+ * Created by luka on 18.7.15..
  */
-public class AddCourseFragment extends Fragment {
+public class AddGroupFragment extends Fragment {
 
-    private static final int IDEAL_IMAGE_DIMENSION = 300;
-    private static final int INTENT_IMAGE = 0;
-    private static final File imageDir = new File(Environment.getExternalStorageDirectory().toString() + "/DCIM/StudyGroup/");
-
-    private EditText subject;
-    private TextInputLayout subjectTil;
-    private EditText teacher;
-    private TextInputLayout teacherTil;
-    private EditText year;
-    private TextInputLayout yearTil;
-    private CardView add;
-    private ImageView image;
-    private File imageFile;
-
+    private static final int  IDEAL_IMAGE_DIMENSION = 300;
+    private static final int  INTENT_IMAGE          = 0;
+    private static final File imageDir              = new File(
+            Environment.getExternalStorageDirectory().toString() + "/DCIM/StudyGroup/");
+    private EditText        name;
+    private EditText        place;
+    private TextInputLayout nameTil;
+    private TextInputLayout placeTil;
+    private CardView        add;
+    private ImageView       image;
+    private File            imageFile;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,33 +54,31 @@ public class AddCourseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_add_course, container, false);
+        View view = inflater.inflate(R.layout.fragment_add_group, container, false);
 
         AppCompatActivity ac = (AppCompatActivity) getActivity();
         if (NavUtils.getParentActivityIntent(ac) != null) {
             ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
         }
 
-        subject = (EditText) view.findViewById(R.id.add_course_name_input);
-        subjectTil = (TextInputLayout) view.findViewById(R.id.add_course_name_til);
-        teacher = (EditText) view.findViewById(R.id.add_course_prof_input);
-        teacherTil = (TextInputLayout) view.findViewById(R.id.add_course_prof_til);
-        year = (EditText) view.findViewById(R.id.add_course_year_input);
-        yearTil = (TextInputLayout) view.findViewById(R.id.add_course_year_til);
+        name = (EditText) view.findViewById(R.id.add_group_name_input);
+        place = (EditText) view.findViewById(R.id.add_group_place_input);
+        nameTil = (TextInputLayout) view.findViewById(R.id.add_group_name_til);
+        placeTil = (TextInputLayout) view.findViewById(R.id.add_group_place_til);
         add = (CardView) view.findViewById(R.id.button_add);
-        image = (ImageView) view.findViewById(R.id.add_course_image);
+        image = (ImageView) view.findViewById(R.id.add_group_image);
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                submit();
+                doSubmit();
             }
         });
-        year.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        place.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    submit();
+                    doSubmit();
                     return true;
                 }
                 return false;
@@ -91,20 +88,17 @@ public class AddCourseFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (!imageDir.isDirectory())
-                    imageDir.mkdir();
-                imageFile = new File(imageDir, "course " + subject + " image.jpg");
-                if (imageFile.exists())
-                    imageFile.delete();
+                if (!imageDir.isDirectory()) { imageDir.mkdir(); }
+                imageFile = new File(imageDir, "group_image.jpg");
                 Intent gallery = new Intent(Intent.ACTION_PICK);
                 gallery.setType("image/*");
                 camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
-                Intent chooserIntent = Intent.createChooser(camera, getString(R.string.select_image));
+                Intent chooserIntent = Intent.createChooser(camera,
+                                                            getString(R.string.select_image));
                 chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
                 startActivityForResult(chooserIntent, INTENT_IMAGE);
             }
         });
-
         return view;
     }
 
@@ -112,7 +106,8 @@ public class AddCourseFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != Activity.RESULT_CANCELED) {
             if (requestCode == INTENT_IMAGE) {
-                if (data != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
+                if (data
+                    != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
                     imageFile = new File(Utils.getRealPathFromURI(getActivity(), data.getData()));
                 }
                 BitmapFactory.Options opts = new BitmapFactory.Options();
@@ -127,35 +122,23 @@ public class AddCourseFragment extends Fragment {
         }
     }
 
-    private void submit() {
+    private void doSubmit() {
         boolean error = false;
-        String subjectText = subject.getText().toString(),
-                teacherText = teacher.getText().toString(),
-                yearText = year.getText().toString();
-        if (subjectText.isEmpty()) {
-            subjectTil.setError(getString(R.string.error_empty));
+        String nameStr = name.getText().toString(),
+                placeStr = place.getText().toString();
+        if (nameStr.isEmpty()) {
+            nameTil.setError(getString(R.string.error_empty));
             error = true;
-        } else if (subjectText.length() > Limits.COURSE_NAME_MAX_LENGTH) {
-            subjectTil.setError(getString(R.string.error_too_long));
+        } else if (nameStr.length() > Limits.GROUP_NAME_MAX_LENGTH) {
+            nameTil.setError(getString(R.string.error_too_long));
             error = true;
-        } else subjectTil.setError(null);
-        if (teacherText.length() > 128) {
-            teacherTil.setError(getString(R.string.error_too_long));
+        } else { nameTil.setError(null); }
+        if (placeStr.length() > Limits.GROUP_PLACE_MAX_LENGTH) {
+            placeTil.setError(getString(R.string.error_too_long));
             error = true;
-        } else teacherTil.setError(null);
-        if (!yearText.isEmpty() && Integer.parseInt(yearText) > Limits.COURSE_YEAR_MAX) {
-            yearTil.setError(getString(R.string.error_number_too_large, getString(R.string.year)));
-            error = true;
-        } else if (!yearText.isEmpty() && Integer.parseInt(yearText) < Limits.COURSE_YEAR_MIN) {
-            yearTil.setError(getString(R.string.error_negative_number, getString(R.string.year)));
-            error = true;
-        } else yearTil.setError(null);
+        } else { placeTil.setError(null); }
         if (!error) {
-            if (imageFile.exists()) {
-                Adder.addCourse(subjectText, teacherText, yearText, imageFile);
-            } else {
-                Adder.addCourse(subjectText, teacherText, yearText, null);
-            }
+            Adder.addGroup(nameStr, placeStr, imageFile);
             getActivity().onBackPressed();
         }
     }
