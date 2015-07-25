@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.activities;
+package rs.luka.android.studygroup.ui;
 
 /**
  * Created by Luka on 7/1/2015.

@@ -1,8 +1,7 @@
-package rs.luka.android.studygroup.activities.recyclers;
+package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
@@ -13,7 +12,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -24,36 +22,31 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.Snackbar;
-import rs.luka.android.studygroup.activities.singleitemactivities.AddCourseActivity;
-import rs.luka.android.studygroup.io.Hider;
-import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 
 /**
  * Created by Luka on 7/1/2015.
  */
 public class GroupFragment extends Fragment {
 
-    private String groupName;
-    private UUID groupId;
-    private RecyclerView courseRecyclerView;
-    private Callbacks callbacks;
-    private CourseAdapter adapter;
+    private Group              group;
+    private RecyclerView       courseRecyclerView;
+    private Callbacks          callbacks;
+    private CourseAdapter      adapter;
     private FloatingActionButton fab;
     private SwipeRefreshLayout swipe;
     private CoordinatorLayout  coordinator;
 
-    public static GroupFragment newInstance(UUID groupId, String groupName) {
-        GroupFragment f = new GroupFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(RootActivity.EXTRA_GROUP_ID, groupId);
-        args.putString(RootActivity.EXTRA_GROUP_NAME, groupName);
+    public static GroupFragment newInstance(Group group) {
+        GroupFragment f    = new GroupFragment();
+        Bundle        args = new Bundle();
+        args.putParcelable(RootActivity.EXTRA_GROUP, group);
         f.setArguments(args);
         return f;
     }
@@ -63,8 +56,7 @@ public class GroupFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        groupName = getArguments().getString(RootActivity.EXTRA_GROUP_NAME);
-        groupId = (UUID) getArguments().getSerializable(RootActivity.EXTRA_GROUP_ID);
+        group = getArguments().getParcelable(RootActivity.EXTRA_GROUP);
         //setRetainInstance(true);
     }
 
@@ -88,7 +80,9 @@ public class GroupFragment extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getActivity(), AddCourseActivity.class));
+                Intent i = new Intent(getActivity(), AddCourseActivity.class);
+                i.putExtra(RootActivity.EXTRA_GROUP, group);
+                startActivity(i);
             }
         });
         courseRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -122,30 +116,17 @@ public class GroupFragment extends Fragment {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                List<Course> newCourses = new LinkedList<>();
-                newCourses.add(new Course(UUID.randomUUID(), "Analiza", "Sandra Andric", 1, null));
-                newCourses.add(new Course(UUID.randomUUID(),
-                                          "Psihologija",
-                                          "Mirjana Repac",
-                                          2,
-                                          null));
-                newCourses.add(new Course(UUID.randomUUID(),
-                                          "Srpski jezik",
-                                          "Mirjana Micic",
-                                          1,
-                                          null));
-                adapter.setCourses(newCourses);
-                adapter.notifyDataSetChanged();
+                ;
                 stopRefreshing();
             }
-        }, 1000);
+        }, 3000);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         updateUI();
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(groupName);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName());
     }
 
     @Override
@@ -165,7 +146,7 @@ public class GroupFragment extends Fragment {
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.context_edit:
-                Log.i("test", "wanna edit course " + adapter.selectedCourse.getSubject());
+                callbacks.onEdit(adapter.selectedCourse);
                 return true;
         }
         return onContextItemSelected(item);
@@ -184,7 +165,7 @@ public class GroupFragment extends Fragment {
     }
 
     public void updateUI() {
-        List<Course> courses = Retriever.getCourses(groupId);
+        List<Course> courses = group.getCourseList();
 
         if (adapter == null) {
             adapter = new CourseAdapter(courses);
@@ -197,6 +178,8 @@ public class GroupFragment extends Fragment {
 
     public interface Callbacks {
         void onCourseSelected(Course course);
+
+        void onEdit(Course course);
     }
 
     private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
@@ -221,7 +204,7 @@ public class GroupFragment extends Fragment {
                         @Override
                         public void onClick(View v) {
                             adapter.addCourse(course, position);
-                            Hider.showCourse(course.getId());
+                            course.showCourse();
                         }
                     })
                     .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
@@ -231,7 +214,7 @@ public class GroupFragment extends Fragment {
             // ((TextView)(coordinator.findViewById(android.support.design.R.id.snackbar_text)))
             //       .setTextColor(getActivity().getResources().getColor(R.color.white)); //fuck you Google
             // doesn't actually work
-            Hider.hideCourse(course.getId());
+            course.hideCourse();
         }
     }
 
@@ -261,18 +244,14 @@ public class GroupFragment extends Fragment {
         public void bindCourse(Course course) {
             this.course = course;
             subjectTextView.setText(course.getSubject());
-            if (course.getTeacher() != null)
+            if (course.getTeacher() != null) {
                 teacherTextView.setText(course.getTeacher());
-            else
-                teacherTextView.setText("");
-            if (course.getYear() != null)
-                yearTextView.setText(getResources().getString(R.string.year_no, course.getYear().toString()));
-            else
-                yearTextView.setText("");
-            Bitmap img = Retriever.getCourseImage(course.getId());
-            if (img != null)
-                imageView.setImageBitmap(img);
-            else
+            } else { teacherTextView.setText(""); }
+            if (course.getYear() != null) {
+                yearTextView.setText(getResources().getString(R.string.year_no,
+                                                              course.getYear().toString()));
+            } else { yearTextView.setText(""); }
+            if (course.hasImage()) { imageView.setImageBitmap(course.getImage()); } else
                 imageView.setImageResource(R.drawable.placeholder);
         }
 
@@ -306,7 +285,9 @@ public class GroupFragment extends Fragment {
         @Override
         public CourseHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-            View view = layoutInflater.inflate(R.layout.card_course, parent, false);
+            View view = layoutInflater.inflate(R.layout.card_course,
+                                               parent,
+                                               false);
             return new CourseHolder(view);
         }
 

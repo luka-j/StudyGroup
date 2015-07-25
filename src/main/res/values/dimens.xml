@@ -49,4 +49,5 @@
     <dimen name="addview_image_height">110dp</dimen>
     <dimen name="addview_image_margin_top">16dp</dimen>
     <dimen name="addview_second_image_margin_left">8dp</dimen>
+    <dimen name="addview_buttons_gap">14dp</dimen>
 </resources>

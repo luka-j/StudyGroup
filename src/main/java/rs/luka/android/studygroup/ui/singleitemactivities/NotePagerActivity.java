@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.activities.singleitemactivities;
+package rs.luka.android.studygroup.ui.singleitemactivities;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -11,15 +11,17 @@ import android.support.v7.widget.Toolbar;
 import java.util.List;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.activities.recyclers.LessonActivity;
-import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Note;
+import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
 
 /**
  * Created by luka on 12.7.15..
  */
-public class QuestionPagerActivity extends AppCompatActivity {
+public class NotePagerActivity extends AppCompatActivity {
     private ViewPager viewPager;
-    private List<Question> questions;
+    private List<Note> notes;
+    private Note      callingNote;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,20 +30,22 @@ public class QuestionPagerActivity extends AppCompatActivity {
 
         viewPager = (ViewPager) findViewById(R.id.view_pager);
 
-        questions = (List<Question>) getIntent().getSerializableExtra(LessonActivity.EXTRA_LIST_QUESTIONS);
+        notes = ((Course) getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE))
+                .getNotesByLesson(getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON));
+        callingNote = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_NOTE);
         FragmentManager fm = getSupportFragmentManager();
         viewPager.setAdapter(new FragmentStatePagerAdapter(fm) {
             @Override
             public int getCount() {
-                return questions.size();
+                return notes.size();
             }
 
             @Override
             public Fragment getItem(int pos) {
-                return QuestionFragment.newInstance(questions.get(pos));
+                return NoteFragment.newInstance(notes.get(pos));
 
             }
         });
-        viewPager.setCurrentItem(getIntent().getIntExtra(LessonActivity.EXTRA_CURRENT_QUESTION, 0));
+        viewPager.setCurrentItem(notes.indexOf(callingNote));
     }
 }

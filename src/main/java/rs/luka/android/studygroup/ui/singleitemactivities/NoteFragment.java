@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.activities.singleitemactivities;
+package rs.luka.android.studygroup.ui.singleitemactivities;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -12,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Note;
 
 /**
@@ -21,15 +20,15 @@ import rs.luka.android.studygroup.model.Note;
 public class NoteFragment extends Fragment {
     public static final String EXTRA_NOTE = "note";
 
-    private Note note;
+    private Note     note;
     private TextView text;
     private ImageView image;
     private TextView history;
 
     public static NoteFragment newInstance(Note note) {
-        NoteFragment f = new NoteFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(EXTRA_NOTE, note);
+        NoteFragment f    = new NoteFragment();
+        Bundle       args = new Bundle();
+        args.putParcelable(EXTRA_NOTE, note);
         f.setArguments(args);
         return f;
     }
@@ -39,7 +38,7 @@ public class NoteFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        note = (Note) getArguments().getSerializable(EXTRA_NOTE);
+        note = getArguments().getParcelable(EXTRA_NOTE);
     }
 
     @Override
@@ -62,9 +61,10 @@ public class NoteFragment extends Fragment {
 
     private void updateUI() {
         text.setText(note.getText());
-        if (note.getImageUrl() != null)
-            image.setImageBitmap(Retriever.getNoteImage(note.getId()));
-        history.setText(Retriever.getNoteHistory(note.getId(), getActivity()));
+        if (note.hasImage()) {
+            image.setImageBitmap(note.getImage());
+        }
+        history.setText(note.getHistory(getActivity()));
     }
 
     @Override

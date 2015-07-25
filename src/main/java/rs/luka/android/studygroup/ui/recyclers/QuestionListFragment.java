@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.activities.recyclers;
+package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
 import android.os.Build;
@@ -20,10 +20,9 @@ import android.widget.TextView;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.io.Retriever;
+import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Question;
 
 /**
@@ -32,10 +31,10 @@ import rs.luka.android.studygroup.model.Question;
 public class QuestionListFragment extends Fragment {
 
     private Set<Question> selected = new HashSet<>();
-    private ActionMode actionMode;
-    private RecyclerView questionsRecycler;
+    private ActionMode        actionMode;
+    private RecyclerView      questionsRecycler;
     private QuestionCallbacks callbacks;
-    private QuestionsAdapter adapter;
+    private QuestionsAdapter  adapter;
     private ActionMode.Callback selectItems = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -52,6 +51,7 @@ public class QuestionListFragment extends Fragment {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.context_edit:
+                    callbacks.onQuestionsEdit(selected);
                     actionMode.finish();
                     return true;
             }
@@ -64,15 +64,15 @@ public class QuestionListFragment extends Fragment {
             adapter.notifyDataSetChanged();
         }
     };
-    private UUID courseId;
-    private String lessonName;
+    private Course             course;
+    private String             lessonName;
     private SwipeRefreshLayout swipe;
 
-    public static QuestionListFragment newInstance(UUID courseId, String lessonName) {
-        QuestionListFragment f = new QuestionListFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(CourseActivity.EXTRA_COURSE_ID, courseId);
-        args.putSerializable(CourseActivity.EXTRA_LESSON_NAME, lessonName);
+    public static QuestionListFragment newInstance(Course course, String lessonName) {
+        QuestionListFragment f    = new QuestionListFragment();
+        Bundle               args = new Bundle();
+        args.putParcelable(CourseActivity.EXTRA_COURSE, course);
+        args.putString(CourseActivity.EXTRA_LESSON_NAME, lessonName);
         f.setArguments(args);
         return f;
     }
@@ -82,7 +82,7 @@ public class QuestionListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        courseId = (UUID) getArguments().getSerializable(CourseActivity.EXTRA_COURSE_ID);
+        course = getArguments().getParcelable(CourseActivity.EXTRA_COURSE);
         lessonName = getArguments().getString(CourseActivity.EXTRA_LESSON_NAME);
     }
 
@@ -123,17 +123,10 @@ public class QuestionListFragment extends Fragment {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                List<Question> newNotes = Retriever.getQuestions(courseId, lessonName);
-                newNotes.add(new Question(UUID.randomUUID(),
-                                          "Čemu sad ovo?",
-                                          "Don't ask me",
-                                          null));
-                newNotes.add(new Question(UUID.randomUUID(), "Ali koga ću drugog?", "", null));
-                adapter.setNotes(newNotes);
-                adapter.notifyDataSetChanged();
+
                 stopRefreshing();
             }
-        }, 2500);
+        }, 3500);
     }
 
     @Override
@@ -156,7 +149,7 @@ public class QuestionListFragment extends Fragment {
     }
 
     public void updateUI() {
-        List<Question> questions = Retriever.getQuestions(courseId, lessonName);
+        List<Question> questions = course.getQuestionsByLesson(lessonName);
 
         if (adapter == null) {
             adapter = new QuestionsAdapter(questions);
@@ -169,17 +162,21 @@ public class QuestionListFragment extends Fragment {
 
     public interface QuestionCallbacks {
         void onQuestionSelected(Question question);
+
+        void onQuestionsEdit(Set<Question> questions);
     }
 
     private class QuestionHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener, View.OnLongClickListener {
         private TextView questionTextView;
         private TextView answerTextView;
+        private View container;
 
         private Question question;
 
         public QuestionHolder(View itemView) {
             super(itemView);
+            container = itemView;
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);
 
@@ -191,6 +188,11 @@ public class QuestionListFragment extends Fragment {
             this.question = question;
             questionTextView.setText(question.getQuestion());
             answerTextView.setText(question.getAnswer());
+            if (selected.contains(question)) {
+                select(container);
+            } else {
+                deselect(container);
+            }
         }
 
         @Override
@@ -247,7 +249,9 @@ public class QuestionListFragment extends Fragment {
         @Override
         public QuestionHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-            View view = layoutInflater.inflate(R.layout.list_item_question, parent, false);
+            View view = layoutInflater.inflate(R.layout.list_item_question,
+                                               parent,
+                                               false);
             return new QuestionHolder(view);
         }
 

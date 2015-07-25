@@ -45,11 +45,6 @@ public class Snackbar {
     public static final  int LENGTH_LONG        = 0;
     private static final int ANIMATION_DURATION = 250;
 
-
-    //odavde ide Guglov kod, sa dodatim animacijama za FAB, i možda još nečim (ne sećam se)
-    //takođe, zamenio sam hard-kodovane konstante iz drugih klasa sa imenima
-    //nemam živaca da tražim licencu, pretpostavimo da je Apache 2.0
-    //ionako je dekompajliran
     private static final int ANIMATION_FADE_DURATION = 180;
     private static final int MSG_SHOW                = 0;
     private static final int MSG_DISMISS             = 1;
@@ -131,9 +126,8 @@ public class Snackbar {
     }
 
     public Snackbar colorTheFuckingTextToWhite(Context c) {
-        ((TextView) mView.findViewById(android.support.design.R.id.snackbar_text)).setTextColor(c.getResources()
-                                                                                                 .getColor(
-                                                                                                         R.color.white));
+        ((TextView) mView.findViewById(android.support.design.R.id.snackbar_text))
+                .setTextColor(c.getResources().getColor(R.color.white));
         return this;
     }
 
@@ -463,12 +457,12 @@ public class Snackbar {
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             }
 
-            int     multiLineVPadding  = this.getResources()
-                                             .getDimensionPixelSize(android.support.design.R.dimen.snackbar_padding_vertical_2lines);
-            int     singleLineVPadding = this.getResources()
-                                             .getDimensionPixelSize(android.support.design.R.dimen.snackbar_padding_vertical);
-            boolean isMultiLine        = this.mMessageView.getLayout().getLineCount() > 1;
-            boolean remeasure          = false;
+            int multiLineVPadding = this.getResources()
+                                        .getDimensionPixelSize(android.support.design.R.dimen.snackbar_padding_vertical_2lines);
+            int singleLineVPadding = this.getResources()
+                                         .getDimensionPixelSize(android.support.design.R.dimen.snackbar_padding_vertical);
+            boolean isMultiLine = this.mMessageView.getLayout().getLineCount() > 1;
+            boolean remeasure   = false;
             if (isMultiLine && this.mMaxInlineActionWidth > 0
                 && this.mActionView.getMeasuredWidth() > this.mMaxInlineActionWidth) {
                 if (this.updateViewsWithinLayout(1,

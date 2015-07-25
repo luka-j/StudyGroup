@@ -26,5 +26,11 @@ public class Utils {
         }
     }
 
+    public static Integer intPrimitiveToObj(int val, int invalidValue) {
+        return val == invalidValue ? null : val;
+    }
 
+    public static int integerObjToPrimitive(Integer val, int invalidValue) {
+        return val == null ? invalidValue : val;
+    }
 }

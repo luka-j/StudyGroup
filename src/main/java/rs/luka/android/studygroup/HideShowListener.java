@@ -15,7 +15,7 @@ public class HideShowListener extends RecyclerView.OnScrollListener {
 
     private static int VIEW_ELEVATION = 4;
     // Keeps track of the overall vertical offset in the list
-    int verticalOffset;
+    int     verticalOffset;
     // Determines the scroll UP/DOWN direction
     boolean scrollingUp;
     private View view;
@@ -34,7 +34,8 @@ public class HideShowListener extends RecyclerView.OnScrollListener {
                     toolbarAnimateShow(verticalOffset);
                 }
             } else {
-                if (view.getTranslationY() < view.getHeight() * -0.6 && verticalOffset > view.getHeight()) {
+                if (view.getTranslationY() < view.getHeight() * -0.6
+                    && verticalOffset > view.getHeight()) {
                     toolbarAnimateHide();
                 } else {
                     toolbarAnimateShow(verticalOffset);
@@ -85,29 +86,29 @@ public class HideShowListener extends RecyclerView.OnScrollListener {
 
     private void toolbarAnimateShow(final int verticalOffset) {
         view.animate()
-                .translationY(0)
-                .setInterpolator(new LinearInterpolator())
-                .setDuration(180)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-                        toolbarSetElevation(verticalOffset == 0 ? 0 : VIEW_ELEVATION);
-                    }
-                });
+            .translationY(0)
+            .setInterpolator(new LinearInterpolator())
+            .setDuration(180)
+            .setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    toolbarSetElevation(verticalOffset == 0 ? 0 : VIEW_ELEVATION);
+                }
+            });
 
     }
 
     private void toolbarAnimateHide() {
         view.animate()
-                .translationY(-view.getHeight())
-                .setInterpolator(new LinearInterpolator())
-                .setDuration(180)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        toolbarSetElevation(0);
-                    }
-                });
+            .translationY(-view.getHeight())
+            .setInterpolator(new LinearInterpolator())
+            .setDuration(180)
+            .setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    toolbarSetElevation(0);
+                }
+            });
     }
 }
 

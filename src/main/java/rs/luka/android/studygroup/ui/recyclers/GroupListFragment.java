@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.activities.recyclers;
+package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -9,7 +9,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,20 +21,21 @@ import android.widget.TextView;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Random;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.activities.singleitemactivities.AddGroupActivity;
 import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.model.ID;
+import rs.luka.android.studygroup.ui.singleitemactivities.AddGroupActivity;
 
 /**
  * Created by luka on 17.7.15..
  */
 public class GroupListFragment extends Fragment {
-    private RecyclerView recycler;
-    private Callbacks callbacks;
-    private GroupAdapter adapter;
+    private RecyclerView       recycler;
+    private Callbacks          callbacks;
+    private GroupAdapter       adapter;
     private FloatingActionButton fab;
     private SwipeRefreshLayout swipe;
 
@@ -91,8 +91,10 @@ public class GroupListFragment extends Fragment {
             @Override
             public void run() {
                 List<Group> newGroups = new LinkedList<>();
-                newGroups.add(new Group(UUID.randomUUID(), "MG", "BG", null));
-                newGroups.add(new Group(UUID.randomUUID(), "MG - OS", "BG", null));
+                newGroups.add(new Group(new ID(System.currentTimeMillis(),
+                                               (short) new Random().nextInt(65535)), "MG", "BG"));
+                newGroups.add(new Group(new ID(System.currentTimeMillis(),
+                                               (short) new Random().nextInt(65535)), "MG - OS", "BG"));
                 adapter.setGroups(newGroups);
                 adapter.notifyDataSetChanged();
                 stopRefreshing();
@@ -123,7 +125,7 @@ public class GroupListFragment extends Fragment {
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.context_edit:
-                Log.i("test", "wanna edit group " + adapter.selectedGroup.getName());
+                callbacks.onEditGroup(adapter.selectedGroup);
                 return true;
         }
         return onContextItemSelected(item);
@@ -143,6 +145,8 @@ public class GroupListFragment extends Fragment {
 
     public interface Callbacks {
         void onGroupSelected(Group group);
+
+        void onEditGroup(Group group);
     }
 
     private class GroupHolder extends RecyclerView.ViewHolder
@@ -169,7 +173,7 @@ public class GroupListFragment extends Fragment {
             this.group = group;
             name.setText(group.getName());
             place.setText(group.getPlace());
-            image.setImageBitmap(Retriever.getGroupImage(group.getId()));
+            if (group.hasImage()) { image.setImageBitmap(group.getImage()); }
         }
 
         @Override
@@ -202,7 +206,9 @@ public class GroupListFragment extends Fragment {
         @Override
         public GroupHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-            View view = layoutInflater.inflate(R.layout.card_group, parent, false);
+            View view = layoutInflater.inflate(R.layout.card_group,
+                                               parent,
+                                               false);
             return new GroupHolder(view);
         }
 

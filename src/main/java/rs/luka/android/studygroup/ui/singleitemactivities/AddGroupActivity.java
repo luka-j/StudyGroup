@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.activities.singleitemactivities;
+package rs.luka.android.studygroup.ui.singleitemactivities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,15 +8,13 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -28,12 +26,13 @@ import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.Utils;
 import rs.luka.android.studygroup.io.Adder;
 import rs.luka.android.studygroup.io.Limits;
+import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.ui.recyclers.RootActivity;
 
 /**
  * Created by luka on 18.7.15..
  */
-public class AddGroupFragment extends Fragment {
-
+public class AddGroupActivity extends AppCompatActivity {
     private static final int  IDEAL_IMAGE_DIMENSION = 300;
     private static final int  INTENT_IMAGE          = 0;
     private static final File imageDir              = new File(
@@ -45,28 +44,35 @@ public class AddGroupFragment extends Fragment {
     private CardView        add;
     private ImageView       image;
     private File            imageFile;
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-    }
+    private Group           group;
+    private boolean         editing;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_add_group, container, false);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_add_group);
 
-        AppCompatActivity ac = (AppCompatActivity) getActivity();
-        if (NavUtils.getParentActivityIntent(ac) != null) {
-            ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
+        group = getIntent().getParcelableExtra(RootActivity.EXTRA_GROUP);
+        editing = group != null;
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (NavUtils.getParentActivityIntent(this) != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
         }
 
-        name = (EditText) view.findViewById(R.id.add_group_name_input);
-        place = (EditText) view.findViewById(R.id.add_group_place_input);
-        nameTil = (TextInputLayout) view.findViewById(R.id.add_group_name_til);
-        placeTil = (TextInputLayout) view.findViewById(R.id.add_group_place_til);
-        add = (CardView) view.findViewById(R.id.button_add);
-        image = (ImageView) view.findViewById(R.id.add_group_image);
+        name = (EditText) findViewById(R.id.add_group_name_input);
+        place = (EditText) findViewById(R.id.add_group_place_input);
+        nameTil = (TextInputLayout) findViewById(R.id.add_group_name_til);
+        placeTil = (TextInputLayout) findViewById(R.id.add_group_place_til);
+        add = (CardView) findViewById(R.id.button_add);
+        image = (ImageView) findViewById(R.id.add_group_image);
+        if (editing) {
+            name.setText(group.getName());
+            place.setText(group.getPlace());
+            if (group.hasImage()) { image.setImageBitmap(group.getImage()); }
+            name.setSelection(name.getText().length());
+        }
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -99,7 +105,6 @@ public class AddGroupFragment extends Fragment {
                 startActivityForResult(chooserIntent, INTENT_IMAGE);
             }
         });
-        return view;
     }
 
     @Override
@@ -108,7 +113,7 @@ public class AddGroupFragment extends Fragment {
             if (requestCode == INTENT_IMAGE) {
                 if (data
                     != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
-                    imageFile = new File(Utils.getRealPathFromURI(getActivity(), data.getData()));
+                    imageFile = new File(Utils.getRealPathFromURI(this, data.getData()));
                 }
                 BitmapFactory.Options opts = new BitmapFactory.Options();
                 opts.inJustDecodeBounds = true;
@@ -138,8 +143,12 @@ public class AddGroupFragment extends Fragment {
             error = true;
         } else { placeTil.setError(null); }
         if (!error) {
-            Adder.addGroup(nameStr, placeStr, imageFile);
-            getActivity().onBackPressed();
+            if (editing) {
+                group.edit(nameStr, placeStr, imageFile);
+            } else {
+                Adder.addGroup(nameStr, placeStr, imageFile);
+            }
+            this.onBackPressed();
         }
     }
 
@@ -147,7 +156,7 @@ public class AddGroupFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(getActivity());
+                NavUtils.navigateUpFromSameTask(this);
                 return true;
         }
         return super.onOptionsItemSelected(item);

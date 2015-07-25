@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
 
@@ -21,52 +21,53 @@ import rs.luka.android.studygroup.model.Question;
  */
 public class Retriever {
 
-    private static List<Course> courses;
-    private static Map<UUID, List<Note>> notes;
-    private static Map<UUID, List<Question>> questions;
-    private static Map<UUID, List<String>> lessons;
+    private static List<Course>            courses;
+    private static Map<ID, List<Note>>     notes;
+    private static Map<ID, List<Question>> questions;
+    private static Map<ID, List<String>>   lessons;
 
     public static boolean isUserLoggedIn() {
         return true;
     }
 
     public static List<Group> getGroups() {
-        ArrayList<Group> groups = new ArrayList<>();
-        groups.add(new Group(UUID.randomUUID(), "MG", "Beograd", null));
+        List<Group> groups = new ArrayList<>();
+        groups.add(new Group(ID.generateGroupId(), "MG", "Beograd"));
         //groups.add(new Group(UUID.randomUUID(), "MG - OS", "Beograd", null));
         return groups;
     }
 
-    public static List<Course> getCourses(UUID id) {
-        if(courses==null) {
-            fetchCourses();
+    public static List<Course> getCourses(ID id) {
+        if (courses == null) {
+            fetchCourses(id);
         }
         return courses;
     }
 
-    private static void fetchCourses() {
+    private static void fetchCourses(ID id) {
         courses = new ArrayList<>();
-        courses.add(new Course(UUID.randomUUID(), "Fizika", "Zoran Nikolic", 1, null));
-        courses.add(new Course(UUID.randomUUID(), "Geometrija", "Bojana Matic", 1, null));
-        courses.add(new Course(UUID.randomUUID(), "Srpski jezik", "Mirjana Mićić", 1, null));
-        courses.add(new Course(UUID.randomUUID(), "Informatika i racunarstvo", "Zeljko Lezaja", 2, null));
-        courses.add(new Course(UUID.randomUUID(), "Istorija", "Aleksandar Glavnik", 2, null));
+        courses.add(new Course(new ID(id, (short) 0), "Fizika", "Zoran Nikolic", 1));
+        courses.add(new Course(new ID(id, (short) 1), "Geometrija", "Bojana Matic", 1));
+        courses.add(new Course(new ID(id, (short) 2), "Srpski jezik", "Mirjana Mićić", 1));
+        courses.add(new Course(new ID(id, (short) 3),
+                               "Informatika i racunarstvo",
+                               "Zeljko Lezaja",
+                               2));
+        courses.add(new Course(new ID(id, (short) 4), "Istorija", "Aleksandar Glavnik", 2));
     }
 
-    public static int getNumberOfLessons(UUID courseId) {
+    public static int getNumberOfLessons(ID courseId) {
 
-        return 1;
+        return 2;
     }
 
-    public static List<String> getLessons(UUID id) {
-        if(lessons == null)
-            lessons = new HashMap<>();
-        if(!lessons.containsKey(id))
-            fetchLessons(id);
+    public static List<String> getLessons(ID id) {
+        if (lessons == null) { lessons = new HashMap<>(); }
+        if (!lessons.containsKey(id)) { fetchLessons(id); }
         return lessons.get(id);
     }
 
-    private static void fetchLessons(UUID id) {
+    private static void fetchLessons(ID id) {
         List<String> l = new ArrayList<>();
         l.add("Kinematika");
         l.add("Dinamika");
@@ -75,94 +76,93 @@ public class Retriever {
         lessons.put(id, l);
     }
 
-    public static int getNumberOfNotes(UUID courseId, String lesson) {
+    public static int getNumberOfNotes(ID courseId, String lesson) {
 
         return 18;
     }
 
-    public static List<Note> getNotes(UUID courseId, String lesson) {
-        if(notes==null)
-            notes=new HashMap<>();
-        if(!notes.containsKey(courseId)) {
+    public static List<Note> getNotes(ID courseId, String lesson) {
+        if (notes == null) { notes = new HashMap<>(); }
+        if (!notes.containsKey(courseId)) {
             fetchNotes(courseId);
         }
         return notes.get(courseId);
     }
 
     @Nullable
-    public static List<Note> getExistingNotes(UUID courseId, String lesson) {
+    public static List<Note> getExistingNotes(ID courseId, String lesson) {
         return notes.get(courseId);
     }
 
-    private static void fetchNotes(UUID id) {
+    private static void fetchNotes(ID id) {
         List<Note> n = new ArrayList<>();
-        n.add(new Note(id, "Zemlja je okrugla", null));
-        n.add(new Note(id, "Imam previse vremena", null));
-        n.add(new Note(id, "Ovo nije funkcionalno", null));
-        n.add(new Note(id, "Samo popunjava prostor", null));
-        n.add(new Note(id, "Primer u dva reda, sa nekim dugackim tekstom", null));
-        n.add(new Note(id, "Ako ima vise od dva reda, dodace tri tacke na kraju. " +
-                "Ovaj prostor nije namenjen za pisanje knjiga", null));
-        n.add(new Note(id, "Kada se pritisne, izadje ceo sadrzaj + slika ako postoji", null));
-        n.add(new Note(id, "Jos neki red, kako bi se pojavio scroll sa strane", null));
-        n.add(new Note(id, "Sakriva Toolbar kad se scrolluje", null));
-        n.add(new Note(id, "Jos", null));
-        n.add(new Note(id, "par", null));
-        n.add(new Note(id, "redova", null));
+        n.add(new Note(new ID(id, 0), "Zemlja je okrugla"));
+        n.add(new Note(new ID(id, 1), "Imam previse vremena"));
+        n.add(new Note(new ID(id, 2), "Ovo nije funkcionalno"));
+        n.add(new Note(new ID(id, 3), "Samo popunjava prostor"));
+        n.add(new Note(new ID(id, 4), "Primer u dva reda, sa nekim dugackim tekstom"));
+        n.add(new Note(new ID(id, 5), "Ako ima vise od dva reda, dodace tri tacke na kraju. " +
+                                      "Ovaj prostor nije namenjen za pisanje knjiga"));
+        n.add(new Note(new ID(id, 6), "Kada se pritisne, izadje ceo sadrzaj + slika ako postoji"));
+        n.add(new Note(new ID(id, 7), "Jos neki red, kako bi se pojavio scroll sa strane"));
+        n.add(new Note(new ID(id, 8), "Sakriva Toolbar kad se scrolluje"));
+        n.add(new Note(new ID(id, 9), "Jos"));
+        n.add(new Note(new ID(id, 10), "par"));
+        n.add(new Note(new ID(id, 11), "redova"));
         notes.put(id, n);
     }
 
-    public static int getNumberOfQuestions(UUID courseId, String lesson) {
+    public static int getNumberOfQuestions(ID courseId, String lesson) {
 
         return 5;
     }
 
-    public static List<Question> getQuestions(UUID courseId, String lesson) {
-        if(questions==null)
-            questions = new HashMap<>();
-        if(!questions.containsKey(courseId))
-            fetchQuestions(courseId);
+    public static List<Question> getQuestions(ID courseId, String lesson) {
+        if (questions == null) { questions = new HashMap<>(); }
+        if (!questions.containsKey(courseId)) { fetchQuestions(courseId); }
         return questions.get(courseId);
     }
 
     @Nullable
-    public static List<Question> getExistingQuestions(UUID courseId, String lesson) {
+    public static List<Question> getExistingQuestions(ID courseId, String lesson) {
         return questions.get(courseId);
     }
 
-    public static void fetchQuestions(UUID id) {
+    public static void fetchQuestions(ID id) {
         List<Question> q = new ArrayList<>();
-        q.add(new Question(id, "Koliko je sati", "Otkud ja znam", null));
-        q.add(new Question(id, "Koji je dan?", "Na raspustu sam", null));
-        q.add(new Question(id, "Zasto je aplikacija na engleskom?", "nmp, bilo mi lakse kad sam pisao, prevescu posle", null));
+        q.add(new Question(new ID(id, 0), "Koliko je sati", "Otkud ja znam"));
+        q.add(new Question(new ID(id, 1), "Koji je dan?", "Na raspustu sam"));
+        q.add(new Question(new ID(id, 2),
+                           "Zasto je aplikacija na engleskom?",
+                           "nmp, bilo mi lakse kad sam pisao, prevescu posle"));
         questions.put(id, q);
     }
 
-    public static Bitmap getNoteImage(UUID id) {
+    public static Bitmap getNoteImage(ID id) {
 
         return null;
     }
 
-    public static Bitmap getQuestionImage(UUID id) {
+    public static Bitmap getQuestionImage(ID id) {
 
         return null;
     }
 
-    public static Bitmap getCourseImage(UUID id) {
+    public static Bitmap getCourseImage(ID id) {
 
         return null;
     }
 
-    public static Bitmap getGroupImage(UUID id) {
+    public static Bitmap getGroupImage(ID id) {
 
         return null;
     }
 
-    public static String getNoteHistory(UUID id, Context c) {
+    public static String getNoteHistory(ID id, Context c) {
         return c.getString(R.string.note_history, "Pera", "20. 6. 2014. 16:32");
     }
 
-    public static String getQuestionHistory(UUID id, Context c) {
+    public static String getQuestionHistory(ID id, Context c) {
         return c.getString(R.string.note_history, "Pera", "20. 6. 2014. 16:32");
     }
 }

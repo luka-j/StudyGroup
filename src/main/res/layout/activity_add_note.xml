@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical">
+
+    <include layout="@layout/toolbar"/>
+
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+        <RelativeLayout
+            android:id="@+id/add_note_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/layout_padding_vertical"
+            android:paddingLeft="@dimen/layout_padding_horizontal"
+            android:paddingRight="@dimen/layout_padding_horizontal"
+            android:paddingTop="@dimen/layout_padding_vertical">
+
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/add_note_lesson_til"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/add_note_lesson_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/lesson"
+                    android:inputType="text"/>
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/add_note_text_til"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/add_note_lesson_til">
+
+                <EditText
+                    android:id="@+id/add_note_text_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/note"/>
+            </android.support.design.widget.TextInputLayout>
+
+            <ImageView
+                android:id="@+id/add_note_image"
+                android:layout_width="@dimen/addview_image_width"
+                android:layout_height="@dimen/addview_image_height"
+                android:layout_below="@id/add_note_text_til"
+                android:layout_marginTop="@dimen/addview_image_margin_top"
+                android:src="@drawable/empty"/>
+
+            <ImageView
+                android:id="@+id/add_note_audio"
+                android:layout_width="@dimen/addview_image_width"
+                android:layout_height="@dimen/addview_image_height"
+                android:layout_below="@id/add_note_text_til"
+                android:layout_marginLeft="@dimen/addview_second_image_margin_left"
+                android:layout_marginStart="@dimen/addview_second_image_margin_left"
+                android:layout_marginTop="@dimen/addview_image_margin_top"
+                android:layout_toEndOf="@id/add_note_image"
+                android:layout_toRightOf="@id/add_note_image"
+                android:src="@drawable/audio"/>
+
+            <include
+                layout="@layout/button_add"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_below="@id/add_note_image"
+                android:layout_marginTop="@dimen/button_margin_top"/>
+        </RelativeLayout>
+    </ScrollView>
+</LinearLayout>

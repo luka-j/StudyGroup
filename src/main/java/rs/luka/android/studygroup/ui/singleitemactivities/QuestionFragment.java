@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.activities.singleitemactivities;
+package rs.luka.android.studygroup.ui.singleitemactivities;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -12,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Question;
 
 /**
@@ -28,9 +27,9 @@ public class QuestionFragment extends Fragment {
     private TextView history;
 
     public static QuestionFragment newInstance(Question question) {
-        QuestionFragment f = new QuestionFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(EXTRA_QUESTION, question);
+        QuestionFragment f    = new QuestionFragment();
+        Bundle           args = new Bundle();
+        args.putParcelable(EXTRA_QUESTION, question);
         f.setArguments(args);
         return f;
     }
@@ -40,7 +39,7 @@ public class QuestionFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        question = (Question) getArguments().getSerializable(EXTRA_QUESTION);
+        question = (Question) getArguments().getParcelable(EXTRA_QUESTION);
     }
 
     @Override
@@ -65,9 +64,10 @@ public class QuestionFragment extends Fragment {
     private void updateUI() {
         questionText.setText(question.getQuestion());
         answerText.setText(question.getAnswer());
-        if (question.getAnswerImageUrl() != null)
-            image.setImageBitmap(Retriever.getQuestionImage(question.getId()));
-        history.setText(Retriever.getQuestionHistory(question.getId(), getActivity()));
+        if (question.hasImage()) {
+            image.setImageBitmap(question.getImage());
+        }
+        history.setText(question.getHistory(getActivity()));
     }
 
     @Override

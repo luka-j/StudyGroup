@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.activities.recyclers;
+package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -16,38 +16,39 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.activities.singleitemactivities.AddNoteActivity;
-import rs.luka.android.studygroup.activities.singleitemactivities.AddQuestionActivity;
-import rs.luka.android.studygroup.activities.singleitemactivities.NotePagerActivity;
-import rs.luka.android.studygroup.activities.singleitemactivities.QuestionPagerActivity;
 import rs.luka.android.studygroup.google.SlidingTabLayout;
-import rs.luka.android.studygroup.io.Retriever;
+import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.ui.singleitemactivities.AddNoteActivity;
+import rs.luka.android.studygroup.ui.singleitemactivities.AddQuestionActivity;
+import rs.luka.android.studygroup.ui.singleitemactivities.NotePagerActivity;
+import rs.luka.android.studygroup.ui.singleitemactivities.QuestionPagerActivity;
 
 /**
  * Created by luka on 5.7.15..
  */
-public class LessonActivity extends AppCompatActivity implements NoteListFragment.NoteCallbacks, QuestionListFragment.QuestionCallbacks {
+public class LessonActivity extends AppCompatActivity
+        implements NoteListFragment.NoteCallbacks, QuestionListFragment.QuestionCallbacks {
 
-    public static final String EXTRA_LIST_NOTES = "noteList";
-    public static final String EXTRA_CURRENT_NOTE = "noteIndex";
-    public static final String EXTRA_LIST_QUESTIONS = "questionList";
-    public static final String EXTRA_CURRENT_QUESTION = "questionIndex";
-    public static final String EXTRA_CURRENT_LESSON = CourseActivity.EXTRA_LESSON_NAME;
-    public static final String EXTRA_CURRENT_COURSE = CourseActivity.EXTRA_COURSE_NAME;
+    public static final String EXTRA_CURRENT_NOTE       = "noteIndex";
+    public static final String EXTRA_CURRENT_QUESTION   = "questionIndex";
+    public static final String EXTRA_CURRENT_LESSON     = CourseActivity.EXTRA_LESSON_NAME;
+    public static final String EXTRA_CURRENT_COURSE     = CourseActivity.EXTRA_COURSE;
+    public static final String EXTRA_SELECTED_NOTES     = "selNotes";
+    public static final String EXTRA_SELECTED_QUESTIONS = "selQuestions";
 
     private int numOfTabs = 2;
-    private UUID courseId;
+    private Course course;
     private String lessonName;
 
-    private Toolbar toolbar;
-    private ViewPager pager;
+    private Toolbar          toolbar;
+    private ViewPager        pager;
     private ViewPagerAdapter adapter;
     private SlidingTabLayout tabs;
     private FloatingActionButton fab;
@@ -56,19 +57,20 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lesson);
-        courseId = (UUID) getIntent().getSerializableExtra(CourseActivity.EXTRA_COURSE_ID);
+        course = getIntent().getParcelableExtra(CourseActivity.EXTRA_COURSE);
         lessonName = getIntent().getStringExtra(CourseActivity.EXTRA_LESSON_NAME);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(lessonName);
         setSupportActionBar(toolbar);
 
-        if(NavUtils.getParentActivityIntent(this) != null) {
+        if (NavUtils.getParentActivityIntent(this) != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
         }
 
-        adapter =  new ViewPagerAdapter(getSupportFragmentManager(),
-                new String[]{getString(R.string.notes), getString(R.string.questions)}, numOfTabs);
+        adapter = new ViewPagerAdapter(getSupportFragmentManager(),
+                                       new String[]{getString(R.string.notes),
+                                                    getString(R.string.questions)}, numOfTabs);
 
         // Assigning ViewPager View and setting the adapter
         pager = (ViewPager) findViewById(R.id.tab_pager);
@@ -96,12 +98,14 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
                 if (pager.getCurrentItem() == 0) {
                     Intent i = new Intent(This, AddNoteActivity.class);
                     i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
-                    i.putExtra(EXTRA_CURRENT_COURSE, getIntent().getStringExtra(CourseActivity.EXTRA_COURSE_NAME));
+                    i.putExtra(EXTRA_CURRENT_COURSE,
+                               getIntent().getParcelableExtra(CourseActivity.EXTRA_COURSE));
                     startActivity(i);
                 } else {
                     Intent i = new Intent(This, AddQuestionActivity.class);
                     i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
-                    i.putExtra(EXTRA_CURRENT_COURSE, getIntent().getStringExtra(CourseActivity.EXTRA_COURSE_NAME));
+                    i.putExtra(EXTRA_CURRENT_COURSE,
+                               getIntent().getParcelableExtra(CourseActivity.EXTRA_COURSE));
                     startActivity(i);
                 }
             }
@@ -122,13 +126,17 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
             case android.R.id.home:
                 //NavUtils.navigateUpFromSameTask(this);
                 //TODO: vidi zasto NavUtils.NavigateUpFromSameTask ne radi
-                Intent i = new Intent(this, CourseActivity.class);
-                i.putExtra(GroupActivity.EXTRA_COURSE_ID,
-                           getIntent().getSerializableExtra(CourseActivity.EXTRA_COURSE_ID));
-                i.putExtra(GroupActivity.EXTRA_COURSE_NAME,
-                           getIntent().getSerializableExtra(CourseActivity.EXTRA_COURSE_NAME));
-                startActivity(i);
-                Log.i("test", "starting activity on id.home");
+                if (course.getNumberOfLessons()
+                    == 1) { //nervira me animacija na Lollipopu, nije prirodna
+                    Intent i = new Intent(this,
+                                          CourseActivity.class); //s obzirom da idem nazad, ne napred
+                    i.putExtra(GroupActivity.EXTRA_COURSE, //pa je izbegavam kad nije neophodno
+                               getIntent().getSerializableExtra(CourseActivity.EXTRA_COURSE));
+                    startActivity(i);
+                    Log.i("test", "starting activity on id.home");
+                } else {
+                    NavUtils.navigateUpFromSameTask(this);
+                }
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -149,21 +157,41 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
 
     @Override
     public void onNoteSelected(Note note) {
-        List<Note> l = Retriever.getExistingNotes(courseId, lessonName);
         Intent i = new Intent(this, NotePagerActivity.class);
-        //standardne implementacije (arraylist/linkedlist) su Serializable
-        i.putExtra(EXTRA_LIST_NOTES, (Serializable) l);
-        i.putExtra(EXTRA_CURRENT_NOTE, l.indexOf(note));
+        i.putExtra(EXTRA_CURRENT_COURSE, course);
+        i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
+        i.putExtra(EXTRA_CURRENT_NOTE, note);
+        startActivity(i);
+    }
+
+    @Override
+    public void onNotesEdit(Set<Note> notes) {
+        ArrayList<Note> l = new ArrayList<>(notes);
+        Collections.sort(l);
+        Intent i = new Intent(this, AddNoteActivity.class);
+        i.putParcelableArrayListExtra(EXTRA_SELECTED_NOTES, l);
+        i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
+        i.putExtra(EXTRA_CURRENT_COURSE, course);
         startActivity(i);
     }
 
     @Override
     public void onQuestionSelected(Question question) {
-        List<Question> l = Retriever.getExistingQuestions(courseId, lessonName);
         Intent i = new Intent(this, QuestionPagerActivity.class);
-        //standardne implementacije (arraylist/linkedlist) su Serializable
-        i.putExtra(EXTRA_LIST_QUESTIONS, (Serializable) l);
-        i.putExtra(EXTRA_CURRENT_QUESTION, l.indexOf(question));
+        i.putExtra(EXTRA_CURRENT_COURSE, course);
+        i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
+        i.putExtra(EXTRA_CURRENT_QUESTION, question);
+        startActivity(i);
+    }
+
+    @Override
+    public void onQuestionsEdit(Set<Question> questions) {
+        ArrayList<Question> l = new ArrayList<>(questions);
+        Collections.sort(l);
+        Intent i = new Intent(this, AddQuestionActivity.class);
+        i.putParcelableArrayListExtra(EXTRA_SELECTED_QUESTIONS, l);
+        i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
+        i.putExtra(EXTRA_CURRENT_COURSE, course);
         startActivity(i);
     }
 
@@ -173,8 +201,10 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
 
     class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
-        CharSequence[] titles; // This will Store the titles of the Tabs which are Going to be passed when ViewPagerAdapter is created
-        int numOfTabs; // Store the number of tabs, this will also be passed when the ViewPagerAdapter is created
+        CharSequence[] titles;
+        // This will Store the titles of the Tabs which are Going to be passed when ViewPagerAdapter is created
+        int            numOfTabs;
+        // Store the number of tabs, this will also be passed when the ViewPagerAdapter is created
 
 
         // Build a Constructor and assign the passed Values to appropriate values in the class
@@ -190,9 +220,9 @@ public class LessonActivity extends AppCompatActivity implements NoteListFragmen
         @Override
         public Fragment getItem(int position) {
             if (position == 0) {
-                return NoteListFragment.newInstance(courseId, lessonName);
+                return NoteListFragment.newInstance(course, lessonName);
             } else {
-                return QuestionListFragment.newInstance(courseId, lessonName);
+                return QuestionListFragment.newInstance(course, lessonName);
             }
 
         }

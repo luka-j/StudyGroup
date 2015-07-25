@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="rs.luka.android.studygroup" >
+<manifest
+    package="rs.luka.android.studygroup"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -16,7 +17,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activities.recyclers.RootActivity"
+            android:name=".ui.recyclers.RootActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,74 +26,74 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.recyclers.GroupActivity"
+            android:name=".ui.recyclers.GroupActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.recyclers.RootActivity" />
+                android:value=".ui.recyclers.RootActivity"/>
         </activity>
         <activity
-            android:name=".activities.recyclers.CourseActivity"
+            android:name=".ui.recyclers.CourseActivity"
             android:label="@string/lessons_title"
             android:launchMode="singleTop">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.recyclers.GroupActivity" />
+                android:value=".ui.recyclers.GroupActivity"/>
         </activity>
         <activity
-            android:name=".activities.recyclers.LessonActivity"
+            android:name=".ui.recyclers.LessonActivity"
             android:label="@string/details_title"
             android:launchMode="singleTop">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.recyclers.CourseActivity" />
+                android:value=".ui.recyclers.CourseActivity"/>
         </activity>
         <activity
-            android:name=".activities.singleitemactivities.NotePagerActivity"
+            android:name=".ui.singleitemactivities.NotePagerActivity"
             android:label="@string/notes">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.recyclers.LessonActivity" />
+                android:value=".ui.recyclers.LessonActivity"/>
         </activity>
         <activity
-            android:name=".activities.singleitemactivities.QuestionPagerActivity"
+            android:name=".ui.singleitemactivities.QuestionPagerActivity"
             android:label="@string/questions">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.recyclers.LessonActivity" />
+                android:value=".ui.recyclers.LessonActivity"/>
         </activity>
         <activity
-            android:name=".activities.singleitemactivities.AddGroupActivity"
+            android:name=".ui.singleitemactivities.AddGroupActivity"
             android:label="@string/add_group"
             android:windowSoftInputMode="stateVisible">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.recyclers.RootActivity" />
+                android:value=".ui.recyclers.RootActivity"/>
         </activity>
         <activity
-            android:name=".activities.singleitemactivities.AddCourseActivity"
+            android:name=".ui.singleitemactivities.AddCourseActivity"
             android:label="@string/add_course"
             android:windowSoftInputMode="stateVisible">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.recyclers.GroupActivity" />
+                android:value=".ui.recyclers.GroupActivity"/>
         </activity>
         <activity
-            android:name=".activities.singleitemactivities.AddNoteActivity"
+            android:name=".ui.singleitemactivities.AddNoteActivity"
             android:label="@string/add_note"
             android:windowSoftInputMode="stateVisible">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.recyclers.LessonActivity" />
+                android:value=".ui.recyclers.LessonActivity"/>
         </activity>
         <activity
-            android:name=".activities.singleitemactivities.AddQuestionActivity"
+            android:name=".ui.singleitemactivities.AddQuestionActivity"
             android:label="@string/add_question"
             android:windowSoftInputMode="stateVisible">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.recyclers.LessonActivity" />
+                android:value=".ui.recyclers.LessonActivity"/>
         </activity>
     </application>
 

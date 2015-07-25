@@ -29,14 +29,17 @@ public class ScrollingFabBehavior extends CoordinatorLayout.Behavior<FloatingAct
     }
 
     @Override
-    public boolean layoutDependsOn(CoordinatorLayout parent, FloatingActionButton fab, View dependency) {
+    public boolean layoutDependsOn(CoordinatorLayout parent, FloatingActionButton fab,
+                                   View dependency) {
         return dependency instanceof AppBarLayout;
     }
 
     @Override
-    public boolean onDependentViewChanged(CoordinatorLayout parent, FloatingActionButton fab, View dependency) {
+    public boolean onDependentViewChanged(CoordinatorLayout parent, FloatingActionButton fab,
+                                          View dependency) {
         if (dependency instanceof AppBarLayout) {
-            CoordinatorLayout.LayoutParams lp = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
+            CoordinatorLayout.LayoutParams lp
+                    = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
             int fabBottomMargin = lp.bottomMargin;
             int distanceToScroll = fab.getHeight() + fabBottomMargin;
             float ratio = dependency.getY() / (float) toolbarHeight;

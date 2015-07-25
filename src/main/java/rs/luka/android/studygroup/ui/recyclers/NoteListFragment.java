@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.activities.recyclers;
+package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
 import android.os.Build;
@@ -8,7 +8,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,12 +22,9 @@ import android.widget.TextView;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.Snackbar;
-import rs.luka.android.studygroup.io.Hider;
-import rs.luka.android.studygroup.io.Retriever;
+import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Note;
 
 /**
@@ -37,10 +33,10 @@ import rs.luka.android.studygroup.model.Note;
 public class NoteListFragment extends Fragment {
 
     private Set<Note> selected = new HashSet<>();
-    private ActionMode actionMode;
-    private RecyclerView notesRecycler;
+    private ActionMode    actionMode;
+    private RecyclerView  notesRecycler;
     private NoteCallbacks callbacks;
-    private NotesAdapter adapter;
+    private NotesAdapter  adapter;
     private ActionMode.Callback selectItems = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -57,6 +53,7 @@ public class NoteListFragment extends Fragment {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.context_edit:
+                    callbacks.onNotesEdit(selected);
                     actionMode.finish();
                     return true;
             }
@@ -69,15 +66,15 @@ public class NoteListFragment extends Fragment {
             adapter.notifyDataSetChanged();
         }
     };
-    private UUID courseId;
-    private String lessonName;
+    private Course             course;
+    private String             lessonName;
     private SwipeRefreshLayout swipe;
 
-    public static NoteListFragment newInstance(UUID courseId, String lessonName) {
-        NoteListFragment f = new NoteListFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(CourseActivity.EXTRA_COURSE_ID, courseId);
-        args.putSerializable(CourseActivity.EXTRA_LESSON_NAME, lessonName);
+    public static NoteListFragment newInstance(Course course, String lessonName) {
+        NoteListFragment f    = new NoteListFragment();
+        Bundle           args = new Bundle();
+        args.putParcelable(CourseActivity.EXTRA_COURSE, course);
+        args.putString(CourseActivity.EXTRA_LESSON_NAME, lessonName);
         f.setArguments(args);
         return f;
     }
@@ -87,7 +84,7 @@ public class NoteListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        courseId = (UUID) getArguments().getSerializable(CourseActivity.EXTRA_COURSE_ID);
+        course = getArguments().getParcelable(CourseActivity.EXTRA_COURSE);
         lessonName = getArguments().getString(CourseActivity.EXTRA_LESSON_NAME);
     }
 
@@ -107,9 +104,6 @@ public class NoteListFragment extends Fragment {
         notesRecycler.setLayoutManager(new LinearLayoutManager(ac));
         //notesRecycler.addOnScrollListener(new HideShowListener(ac.findViewById(R.id.lesson_container)));
         updateUI();
-
-        new ItemTouchHelper(new TouchHelperCallbacks(0, ItemTouchHelper.RIGHT))
-                .attachToRecyclerView(notesRecycler);
 
         swipe = (SwipeRefreshLayout) view.findViewById(R.id.notes_swipe);
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -133,11 +127,6 @@ public class NoteListFragment extends Fragment {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                List<Note> newNotes = Retriever.getNotes(courseId, lessonName);
-                newNotes.add(new Note(UUID.randomUUID(), "Nova beleška 1", null));
-                newNotes.add(new Note(UUID.randomUUID(), "Nova beleška 2", null));
-                adapter.setNotes(newNotes);
-                adapter.notifyDataSetChanged();
                 stopRefreshing();
             }
         }, 1800);
@@ -163,7 +152,7 @@ public class NoteListFragment extends Fragment {
     }
 
     public void updateUI() {
-        List<Note> notes = Retriever.getNotes(courseId, lessonName);
+        List<Note> notes = course.getNotesByLesson(lessonName);
 
         if (adapter == null) {
             adapter = new NotesAdapter(notes);
@@ -176,50 +165,15 @@ public class NoteListFragment extends Fragment {
 
     public interface NoteCallbacks {
         void onNoteSelected(Note note);
-    }
 
-    private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
-
-        public TouchHelperCallbacks(int dragDirs, int swipeDirs) {
-            super(dragDirs, swipeDirs);
-        }
-
-        @Override
-        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
-                              RecyclerView.ViewHolder target) {
-            return false;
-        }
-
-        @Override
-        public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
-            final Note note     = ((NoteHolder) viewHolder).note;
-            final int  position = viewHolder.getAdapterPosition();
-            adapter.removeNote(position);
-            Snackbar.make(notesRecycler, R.string.course_hidden, Snackbar.LENGTH_LONG)
-                    .setAction(R.string.undo, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            adapter.addNote(note, position);
-                            Hider.showNote(courseId, note.getId());
-                        }
-                    })
-                    .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
-                    .colorTheFuckingTextToWhite(getActivity())
-                    .doStuffThatGoogleDidntFuckingDoProperly(getActivity(),
-                                                             ((LessonActivity) getActivity()).getFab())
-                    .show();
-            // ((TextView)(coordinator.findViewById(android.support.design.R.id.snackbar_text)))
-            //       .setTextColor(getActivity().getResources().getColor(R.color.white)); //fuck you Google
-            // doesn't actually work
-            Hider.hideNote(courseId, note.getId());
-        }
+        void onNotesEdit(Set<Note> notes);
     }
 
     private class NoteHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener, View.OnLongClickListener {
         private TextView titleTextView;
         private LinearLayout layout;
-        private View container;
+        private View     container;
 
         private Note note;
 
@@ -236,9 +190,9 @@ public class NoteListFragment extends Fragment {
         public void bindNote(Note note) {
             this.note = note;
             titleTextView.setText(note.getText());
-            if (note.getImageUrl() != null) {
+            if (note.hasImage()) {
                 ImageView imgView = new ImageView(getActivity());
-                imgView.setImageBitmap(Retriever.getNoteImage(note.getId()));
+                imgView.setImageBitmap(note.getImage());
                 layout.addView(imgView, 0);
             }
             if (selected.contains(note)) {
@@ -302,7 +256,9 @@ public class NoteListFragment extends Fragment {
         @Override
         public NoteHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-            View view = layoutInflater.inflate(R.layout.list_item_note, parent, false);
+            View view = layoutInflater.inflate(R.layout.list_item_note,
+                                               parent,
+                                               false);
             return new NoteHolder(view);
         }
 

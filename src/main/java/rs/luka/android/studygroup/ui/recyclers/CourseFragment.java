@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.activities.recyclers;
+package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -11,6 +11,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,11 +22,10 @@ import android.widget.TextView;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.io.Hider;
-import rs.luka.android.studygroup.io.Retriever;
+import rs.luka.android.studygroup.Snackbar;
+import rs.luka.android.studygroup.model.Course;
 
 /**
  * Created by luka on 3.7.15..
@@ -34,17 +34,16 @@ public class CourseFragment extends Fragment {
 
     private static String TAG = "studygroup.CourseFragment";
 
-    private RecyclerView lessonsRecyclerView;
-    private Callbacks callbacks;
+    private Course course;
+
+    private RecyclerView   lessonsRecyclerView;
+    private Callbacks      callbacks;
     private LessonsAdapter adapter;
-    private UUID courseId;
-    private String courseName;
     private SwipeRefreshLayout swipe;
 
-    protected static Fragment newInstance(UUID courseId, String courseName) {
+    protected static Fragment newInstance(Course course) {
         Bundle args = new Bundle();
-        args.putSerializable(GroupActivity.EXTRA_COURSE_ID, courseId);
-        args.putString(GroupActivity.EXTRA_COURSE_NAME, courseName);
+        args.putParcelable(GroupActivity.EXTRA_COURSE, course);
 
         Fragment f = new CourseFragment();
         f.setArguments(args);
@@ -56,8 +55,7 @@ public class CourseFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        courseId = (UUID) getArguments().getSerializable(GroupActivity.EXTRA_COURSE_ID);
-        courseName = getArguments().getString(GroupActivity.EXTRA_COURSE_NAME);
+        course = getArguments().getParcelable(GroupActivity.EXTRA_COURSE);
     }
 
     @Override
@@ -71,12 +69,13 @@ public class CourseFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_course, container, false);
 
-        AppCompatActivity ac =  (AppCompatActivity)getActivity();
-        if(NavUtils.getParentActivityIntent(ac) != null) {
+        AppCompatActivity ac = (AppCompatActivity) getActivity();
+        if (NavUtils.getParentActivityIntent(ac) != null) {
             ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
         }
         lessonsRecyclerView = (RecyclerView) view.findViewById(R.id.lessons_recycler_view);
         lessonsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        registerForContextMenu(lessonsRecyclerView);
 
         updateUI();
 
@@ -124,7 +123,7 @@ public class CourseFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume; setting actionbar title");
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(courseName);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(course.getSubject());
         updateUI();
     }
 
@@ -132,6 +131,16 @@ public class CourseFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         callbacks = null;
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.context_rename:
+                callbacks.onEdit(adapter.selectedTitle);
+                return true;
+        }
+        return onContextItemSelected(item);
     }
 
     @Override
@@ -152,7 +161,7 @@ public class CourseFragment extends Fragment {
     }
 
     public void updateUI() {
-        List<String> lessons = Retriever.getLessons(courseId);
+        List<String> lessons = course.getLessonList();
 
         if (adapter == null) {
             adapter = new LessonsAdapter(lessons);
@@ -165,6 +174,8 @@ public class CourseFragment extends Fragment {
 
     public interface Callbacks {
         void onLessonSelected(String title);
+
+        void onEdit(String title);
     }
 
     private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
@@ -184,37 +195,39 @@ public class CourseFragment extends Fragment {
             final String title    = ((LessonHolder) viewHolder).title;
             final int    position = viewHolder.getAdapterPosition();
             adapter.removeTitle(position);
-            rs.luka.android.studygroup.Snackbar.make(lessonsRecyclerView,
-                                                     R.string.course_hidden,
-                                                     rs.luka.android.studygroup.Snackbar.LENGTH_LONG)
-                                               .setAction(R.string.undo,
-                                                          new View.OnClickListener() {
-                                                              @Override
-                                                              public void onClick(View v) {
-                                                                  adapter.addTitle(title, position);
-                                                                  Hider.showLesson(courseId, title);
-                                                              }
-                                                          })
-                                               .setActionTextColor(getActivity().getResources()
-                                                                                .getColor(R.color.color_accent))
-                                               .colorTheFuckingTextToWhite(getActivity())
-                                               .doStuffThatGoogleDidntFuckingDoProperly(getActivity(),
-                                                                                        null)
-                                               .show();
-            Hider.hideLesson(courseId, title);
+            Snackbar.make(lessonsRecyclerView,
+                          R.string.course_hidden,
+                          rs.luka.android.studygroup.Snackbar.LENGTH_LONG)
+                    .setAction(R.string.undo,
+                               new View.OnClickListener() {
+                                   @Override
+                                   public void onClick(View v) {
+                                       adapter.addTitle(title, position);
+                                       course.showLesson(title);
+                                   }
+                               })
+                    .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
+                    .colorTheFuckingTextToWhite(getActivity())
+                    .doStuffThatGoogleDidntFuckingDoProperly(getActivity(), null)
+                    .show();
+            course.hideLesson(title);
         }
     }
 
-    private class LessonHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private TextView titleTextView;
-        private TextView noteCount;
-        private TextView questionCount;
+    private class LessonHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
+                                                                          View.OnLongClickListener,
+                                                                          View.OnCreateContextMenuListener {
+        private final TextView titleTextView;
+        private final TextView noteCount;
+        private final TextView questionCount;
 
         private String title;
 
         public LessonHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
+            itemView.setOnCreateContextMenuListener(this);
 
             titleTextView = (TextView) itemView.findViewById(R.id.card_lesson_title);
             noteCount = (TextView) itemView.findViewById(R.id.note_count_text);
@@ -224,21 +237,32 @@ public class CourseFragment extends Fragment {
         public void bindCourse(String title) {
             this.title = title;
             titleTextView.setText(title);
-            noteCount.setText(getString(R.string.notes_no,
-                                        Retriever.getNumberOfNotes(courseId, title)));
-            questionCount.setText(getString(R.string.questions_no,
-                                            Retriever.getNumberOfQuestions(courseId, title)));
+            noteCount.setText(getString(R.string.notes_no, course.getNoteNumber(title)));
+            questionCount.setText(getString(R.string.questions_no, course.getQuestionNumber(title)));
         }
 
         @Override
         public void onClick(View v) {
             callbacks.onLessonSelected(title);
         }
+
+        @Override
+        public boolean onLongClick(View v) {
+            adapter.selectedTitle = title;
+            return false;
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v,
+                                        ContextMenu.ContextMenuInfo menuInfo) {
+            getActivity().getMenuInflater().inflate(R.menu.context_course, menu);
+        }
     }
 
     private class LessonsAdapter extends RecyclerView.Adapter<LessonHolder> {
 
         private List<String> titles;
+        private String selectedTitle;
 
         public LessonsAdapter(List<String> titles) {
             this.titles = titles;
@@ -247,7 +271,9 @@ public class CourseFragment extends Fragment {
         @Override
         public LessonHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-            View view = layoutInflater.inflate(R.layout.card_lesson, parent, false);
+            View view = layoutInflater.inflate(R.layout.card_lesson,
+                                               parent,
+                                               false);
             return new LessonHolder(view);
         }
 
