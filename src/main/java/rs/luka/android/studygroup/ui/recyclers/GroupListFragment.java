@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Random;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
+import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddGroupActivity;
 
 /**
@@ -132,7 +132,7 @@ public class GroupListFragment extends Fragment {
     }
 
     public void updateUI() {
-        List<Group> groups = Retriever.getGroups();
+        List<Group> groups = User.getInstance().getGroups();
 
         if (adapter == null) {
             adapter = new GroupAdapter(groups);

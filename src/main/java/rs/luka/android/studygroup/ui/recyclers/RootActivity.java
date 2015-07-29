@@ -6,10 +6,11 @@ import android.util.Log;
 
 import java.util.List;
 
-import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddGroupActivity;
+import rs.luka.android.studygroup.ui.singleitemactivities.LoginActivity;
 
 /**
  * Created by luka on 17.7.15..
@@ -31,11 +32,11 @@ public class RootActivity extends SingleFragmentActivity implements GroupListFra
             return true;
         }
         //Log.i(TAG, "called from diff activity: " + getIntent().getPackage());
-        if (!Retriever.isUserLoggedIn()) {
-            //login
+        if (!User.isLoggedIn()) {
+            startActivity(new Intent(this, LoginActivity.class));
             return false;
         } else {
-            List<Group> groups = Retriever.getGroups();
+            List<Group> groups = User.getInstance().getGroups();
             if (groups.size() == 1) {
                 Intent i = new Intent(this, GroupActivity.class);
                 i.putExtra(EXTRA_GROUP, groups.get(0));

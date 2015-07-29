@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.model.Course;
@@ -15,6 +16,7 @@ import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.model.User;
 
 /**
  * Created by Luka on 7/2/2015.
@@ -27,10 +29,10 @@ public class Retriever {
     private static Map<ID, List<String>>   lessons;
 
     public static boolean isUserLoggedIn() {
-        return true;
+        return User.isLoggedIn();
     }
 
-    public static List<Group> getGroups() {
+    public static List<Group> getGroups(UUID userToken) {
         List<Group> groups = new ArrayList<>();
         groups.add(new Group(ID.generateGroupId(), "MG", "Beograd"));
         //groups.add(new Group(UUID.randomUUID(), "MG - OS", "Beograd", null));
