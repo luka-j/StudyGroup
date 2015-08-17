@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/prop_date"/>
+        <TextView
+            android:id="@+id/property_date"
+            style="@style/property_text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/prop_subject"/>
+        <TextView
+            android:id="@+id/property_subject"
+            style="@style/property_text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/prop_lessons"/>
+        <TextView
+            android:id="@+id/property_lessons"
+            style="@style/property_text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/prop_type"/>
+        <TextView
+            android:id="@+id/property_type"
+            style="@style/property_text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/prop_teacher"/>
+        <TextView
+            android:id="@+id/property_teacher"
+            style="@style/property_text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/prop_class"/>
+        <TextView
+            android:id="@+id/property_class"
+            style="@style/property_text"/>
+    </LinearLayout>
+</LinearLayout>

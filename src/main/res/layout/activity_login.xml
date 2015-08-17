@@ -43,9 +43,8 @@
         </android.support.design.widget.TextInputLayout>
 
         <include
+            style="@style/long_button_position"
             layout="@layout/button_login"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/button_margin_top"/>
 
     </LinearLayout>

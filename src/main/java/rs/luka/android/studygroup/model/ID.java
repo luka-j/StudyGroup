@@ -58,6 +58,14 @@ public class ID implements Parcelable {
         return new ID(System.currentTimeMillis(), (short) new Random().nextInt(65536));
     }
 
+    public ID getCourseId() {
+        return new ID(groupId, courseId, random);
+    }
+
+    public ID getGroupId() {
+        return new ID(groupId, random);
+    }
+
     @Override
     public int describeContents() {
         return 0;

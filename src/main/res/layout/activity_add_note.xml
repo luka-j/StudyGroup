@@ -70,13 +70,9 @@
                 android:src="@drawable/audio"/>
 
             <include
+                style="@style/small_button_position"
                 layout="@layout/button_add"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_below="@id/add_note_image"
-                android:layout_marginTop="@dimen/button_margin_top"/>
+                android:layout_below="@id/add_note_image"/>
         </RelativeLayout>
     </ScrollView>
 </LinearLayout>

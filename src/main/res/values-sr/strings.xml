@@ -16,4 +16,5 @@
     <string name="error_negative_number">%s treba da bude pozitivan broj</string>
     <string name="error_number_too_large">%s je prevelik</string>
     <string name="error_too_long">Tekst je predugačak</string>
+    <string name="date_pattern">dd. MM. yyyy.</string>
 </resources>

@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,11 +13,12 @@ import java.util.UUID;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
-import rs.luka.android.studygroup.model.User;
+import rs.luka.android.studygroup.ui.recyclers.ExamQuestionsActivity;
 
 /**
  * Created by Luka on 7/2/2015.
@@ -24,13 +26,10 @@ import rs.luka.android.studygroup.model.User;
 public class Retriever {
 
     private static List<Course>            courses;
+    private static List<Exam>              exams;
     private static Map<ID, List<Note>>     notes;
     private static Map<ID, List<Question>> questions;
     private static Map<ID, List<String>>   lessons;
-
-    public static boolean isUserLoggedIn() {
-        return User.isLoggedIn();
-    }
 
     public static List<Group> getGroups(UUID userToken) {
         List<Group> groups = new ArrayList<>();
@@ -56,6 +55,24 @@ public class Retriever {
                                "Zeljko Lezaja",
                                2));
         courses.add(new Course(new ID(id, (short) 4), "Istorija", "Aleksandar Glavnik", 2));
+    }
+
+    public static List<Exam> getExams(ID id) {
+        if(exams == null) {
+            fetchExams(id);
+        }
+        return exams;
+    }
+
+    private static void fetchExams(ID id) {
+        exams = new ArrayList<>();
+        exams.add(new Exam(new ID(id, 20), "1e", "Stehiometrija", "Kontrolni", new Date(114, 10, 26)));
+        exams.add(new Exam(new ID(id, 21), "1e", "if, nizovi, petlje, rekurzija, bitovni, matrice", "Usmeno", new Date(114, 10, 26)));
+    }
+
+    public static Course getCourseFor(ID id) {
+        ID courseId = id.getCourseId();
+        return new Course(courseId, "Hemija", "Ivana Vukovic", 2);
     }
 
     public static int getNumberOfLessons(ID courseId) {
@@ -121,8 +138,20 @@ public class Retriever {
 
     public static List<Question> getQuestions(ID courseId, String lesson) {
         if (questions == null) { questions = new HashMap<>(); }
-        if (!questions.containsKey(courseId)) { fetchQuestions(courseId); }
+        if (!questions.containsKey(courseId)) {
+            if(lesson.startsWith(ExamQuestionsActivity.EXAM_LESSON_PREFIX)) getExamQuestions(courseId, lesson);
+            else fetchQuestions(courseId);
+        }
         return questions.get(courseId);
+    }
+
+    public static void getExamQuestions(ID courseId, String lesson) {
+        List<Question> q = new ArrayList<>();
+        q.add(new Question(new ID(courseId, 25),
+                                   "Ovo je kao pitanje s nekog kontrolnog",
+                                   "Vazi"));
+        q.add(new Question(new ID(courseId, 26), "Ok?", "k"));
+        questions.put(courseId, q);
     }
 
     @Nullable

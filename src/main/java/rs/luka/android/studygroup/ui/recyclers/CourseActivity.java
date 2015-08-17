@@ -75,9 +75,4 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
     public void onRenamed(String s) {
         Log.i("test", "wanna rename lesson to " + s);
     }
-
-    @Override
-    public void onCancelDialog() {
-        Log.i("test", "cancelled rename");
-    }
 }

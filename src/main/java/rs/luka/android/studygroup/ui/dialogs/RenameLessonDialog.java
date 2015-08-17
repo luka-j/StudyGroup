@@ -1,15 +1,13 @@
 package rs.luka.android.studygroup.ui.dialogs;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+
+import com.afollestad.materialdialogs.MaterialDialog;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.ui.recyclers.CourseActivity;
@@ -37,35 +35,30 @@ public class RenameLessonDialog extends DialogFragment {
     @Override
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity());
         //TextInputLayout til = new TextInputLayout(getActivity());
         final EditText input = new EditText(getActivity());
         input.setText(getArguments().getString(CourseActivity.EXTRA_LESSON_NAME));
         input.requestFocus();
         input.setSelection(input.getText().length());
-        InputMethodManager imm
-                = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(input, InputMethodManager.SHOW_FORCED); //TODO: fix
         //til.addView(input);
-        return builder.setView(input)
-                      .setTitle(R.string.rename_lesson)
-                      .setPositiveButton(R.string.rename, new DialogInterface.OnClickListener() {
-                          @Override
-                          public void onClick(DialogInterface dialog, int which) {
-                              callbacks.onRenamed(input.getText().toString());
-                          }
-                      })
-                      .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                          @Override
-                          public void onClick(DialogInterface dialog, int which) {
-                              callbacks.onCancelDialog();
-                          }
-                      }).create();
+        return builder.title(R.string.rename_lesson)
+                      .positiveText(R.string.rename)
+                      .negativeText(R.string.cancel)
+                .input(getString(R.string.rename_lesson),
+                       getArguments().getString(CourseActivity.EXTRA_LESSON_NAME),
+                       false,
+                       new MaterialDialog.InputCallback() {
+                           @Override
+                           public void onInput(MaterialDialog materialDialog,
+                                               CharSequence charSequence) {
+                               callbacks.onRenamed(charSequence.toString());
+                           }
+                       })
+                      .show();
     }
 
     public interface Callbacks {
         void onRenamed(String s);
-
-        void onCancelDialog();
     }
 }

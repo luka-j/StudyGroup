@@ -5,6 +5,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import java.util.Collection;
+
 /**
  * Created by luka on 16.7.15..
  */
@@ -32,5 +34,18 @@ public class Utils {
 
     public static int integerObjToPrimitive(Integer val, int invalidValue) {
         return val == null ? invalidValue : val;
+    }
+
+    /**
+     * Fuck you, lazily-implemented generics
+     */
+    public static String[] toStringArray(Collection list) {
+        String[] array = new String[list.size()];
+        int i=0;
+        for(Object el : list) {
+            array[i] = el.toString();
+            i++;
+        }
+        return array;
     }
 }

@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import android.support.annotation.Nullable;
 
 import java.io.File;
+import java.util.Calendar;
 import java.util.List;
 
 import rs.luka.android.studygroup.Utils;
@@ -91,7 +92,7 @@ public class Course implements Parcelable {
     }
 
     public int getQuestionNumber(String lesson) {
-        return Retriever.getNumberOfNotes(id, lesson);
+        return Retriever.getNumberOfQuestions(id, lesson);
     }
 
     public List<Question> getQuestionsByLesson(String lesson) {
@@ -122,6 +123,10 @@ public class Course implements Parcelable {
         Adder.addQuestion(id, lesson, question, answer, image);
     }
 
+    public void addExam(String klass, String lesson, String type, Calendar date) {
+
+    }
+
     public void edit(String subject, String teacher, String year, File image) {
 
     }
@@ -149,4 +154,5 @@ public class Course implements Parcelable {
     public int hashCode() {
         return id.hashCode();
     }
+
 }

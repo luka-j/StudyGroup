@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- withText? -->
+    <item android:id="@+id/filter_courses"
+          android:icon="@drawable/filter"
+          android:title="@string/filter"
+          app:showAsAction="ifRoom|withText"/>
+    <item android:id="@+id/raspored_kontrolnih"
+          android:icon="@drawable/list_white"
+          android:title="@string/raspored"
+          app:showAsAction="ifRoom|withText" />
+</menu>

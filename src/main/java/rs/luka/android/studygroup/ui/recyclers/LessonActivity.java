@@ -126,11 +126,9 @@ public class LessonActivity extends AppCompatActivity
             case android.R.id.home:
                 //NavUtils.navigateUpFromSameTask(this);
                 //TODO: vidi zasto NavUtils.NavigateUpFromSameTask ne radi
-                if (course.getNumberOfLessons()
-                    == 1) { //nervira me animacija na Lollipopu, nije prirodna
-                    Intent i = new Intent(this,
-                                          CourseActivity.class); //s obzirom da idem nazad, ne napred
-                    i.putExtra(GroupActivity.EXTRA_COURSE, //pa je izbegavam kad nije neophodno
+                if (course.getNumberOfLessons() == 1) {//nervira me animacija na Lollipopu, nije prirodna
+                    Intent i = new Intent(this, CourseActivity.class); //pa je izbegavam kad nije needed
+                    i.putExtra(GroupActivity.EXTRA_COURSE,
                                getIntent().getSerializableExtra(CourseActivity.EXTRA_COURSE));
                     startActivity(i);
                     Log.i("test", "starting activity on id.home");
@@ -140,19 +138,6 @@ public class LessonActivity extends AppCompatActivity
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onBackPressed() {
-        /*if(Retriever.getNumberOfLessons(courseId) == 1) { //nije neophodno, ali me nervira animacija na Lollipopu
-            Intent i = new Intent(this, CourseActivity.class); //neprirodna je, s obzirom da se vracam nazad
-            i.putExtra(CourseActivity.EXTRA_GO_BACKWARD, true); //pa je izbegavam koliko je moguce
-            startActivity(i);
-            Log.i("test", "started activity; going back");
-        }
-        else {*/
-        super.onBackPressed();
-        //}
     }
 
     @Override
@@ -195,19 +180,11 @@ public class LessonActivity extends AppCompatActivity
         startActivity(i);
     }
 
-    protected FloatingActionButton getFab() {
-        return fab;
-    }
-
-    class ViewPagerAdapter extends FragmentStatePagerAdapter {
+    private class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
         CharSequence[] titles;
-        // This will Store the titles of the Tabs which are Going to be passed when ViewPagerAdapter is created
         int            numOfTabs;
-        // Store the number of tabs, this will also be passed when the ViewPagerAdapter is created
 
-
-        // Build a Constructor and assign the passed Values to appropriate values in the class
         public ViewPagerAdapter(FragmentManager fm, CharSequence[] mTitles, int numofTabs) {
             super(fm);
 
@@ -216,7 +193,6 @@ public class LessonActivity extends AppCompatActivity
 
         }
 
-        //This method return the fragment for the every position in the View Pager
         @Override
         public Fragment getItem(int position) {
             if (position == 0) {
@@ -227,14 +203,10 @@ public class LessonActivity extends AppCompatActivity
 
         }
 
-        // This method return the titles for the Tabs in the Tab Strip
-
         @Override
         public CharSequence getPageTitle(int position) {
             return titles[position];
         }
-
-        // This method return the Number of tabs for the tabs Strip
 
         @Override
         public int getCount() {

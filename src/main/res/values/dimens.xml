@@ -2,6 +2,8 @@
     <dimen name="layout_padding_horizontal">16dp</dimen>
     <dimen name="layout_padding_vertical">16dp</dimen>
 
+    <dimen name="shadow_space">6dp</dimen>
+
     <dimen name="login_margin_horizontal">20dp</dimen>
 
     <dimen name="fab_margin_right">30dp</dimen>
@@ -10,7 +12,8 @@
 
     <dimen name="button_corner_radius">2dp</dimen>
     <dimen name="button_margin_top">12dp</dimen>
-    <dimen name="button_elevation">6dp</dimen>
+    <dimen name="button_elevation">4dp</dimen>
+    <dimen name="date_button_elevation">2dp</dimen>
     <dimen name="button_text_padding_vertical">10dp</dimen>
     <dimen name="button_text_padding_horizontal">16dp</dimen>
     <dimen name="button_text_size">17sp</dimen>
@@ -52,4 +55,12 @@
     <dimen name="addview_image_margin_top">16dp</dimen>
     <dimen name="addview_second_image_margin_left">8dp</dimen>
     <dimen name="addview_buttons_gap">14dp</dimen>
+    <dimen name="addview_date_margin_top">3dp</dimen>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <dimen name="property_text_size">16sp</dimen>
+    <dimen name="property_padding_horizontal">10dp</dimen>
+    <dimen name="property_padding_vertical">4dp</dimen>
 </resources>

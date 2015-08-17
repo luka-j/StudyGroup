@@ -13,7 +13,7 @@
                 android:fillViewport="false"
                 android:isScrollContainer="false">
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/add_question_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -72,13 +72,8 @@
                 android:src="@drawable/empty"/>
 
             <include
-                layout="@layout/button_add"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_below="@id/add_question_image"
-                android:layout_marginTop="@dimen/button_margin_top"/>
-        </RelativeLayout>
+                style="@style/small_button_position"
+                layout="@layout/button_add"/>
+        </LinearLayout>
     </ScrollView>
 </LinearLayout>

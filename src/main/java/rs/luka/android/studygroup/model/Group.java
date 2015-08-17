@@ -3,9 +3,12 @@ package rs.luka.android.studygroup.model;
 import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import rs.luka.android.studygroup.io.Adder;
 import rs.luka.android.studygroup.io.Retriever;
@@ -14,8 +17,8 @@ import rs.luka.android.studygroup.io.Retriever;
  * Created by Luka on 7/1/2015.
  */
 public class Group implements Parcelable {
-    public static final Parcelable.Creator<Group> CREATOR
-            = new Parcelable.Creator<Group>() {
+    public static final  Parcelable.Creator<Group> CREATOR
+                                                       = new Parcelable.Creator<Group>() {
         public Group createFromParcel(Parcel in) {
             return new Group(in);
         }
@@ -24,7 +27,8 @@ public class Group implements Parcelable {
             return new Group[size];
         }
     };
-    private final ID id;
+    private static final String                    TAG = "studygroup.Group";
+    private final ID     id;
     private final String name;
     private final String place;
 
@@ -60,12 +64,38 @@ public class Group implements Parcelable {
         return Retriever.getCourses(id);
     }
 
+    public List<Exam> getExamList() { return Retriever.getExams(id); }
+
+    public List<Integer> getExamYears() {
+        List<Exam> allExams = getExamList();
+        List<Integer> categories = new LinkedList<>();
+        for(Exam exam : allExams) {
+            if(!categories.contains(exam.getYear()))
+                categories.add(exam.getYear());
+        }
+        return categories;
+    }
+
     public void addCourse(String subject, String teacher, String year, File image) {
         Adder.addCourse(id, subject, teacher, year, image);
     }
 
     public void edit(String name, String place, File image) {
 
+    }
+
+    public List<Integer> getCourseYears() {
+        List<Course> allCourses = getCourseList();
+        List<Integer> categories = new LinkedList<>();
+        for(Course course : allCourses) {
+            if(!categories.contains(course.getYear()))
+                categories.add(course.getYear());
+        }
+        return categories;
+    }
+
+    public void filter(Set<Integer> years) {
+        Log.i(TAG, "wanna filter years " + years.toString());
     }
 
     @Override

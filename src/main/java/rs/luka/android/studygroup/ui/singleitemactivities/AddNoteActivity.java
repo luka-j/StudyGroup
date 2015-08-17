@@ -93,7 +93,7 @@ public class AddNoteActivity extends AppCompatActivity {
             params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
             params.addRule(RelativeLayout.ALIGN_PARENT_END);
             params.addRule(RelativeLayout.BELOW, R.id.add_note_image);
-            params.setMargins(0, 14, 0, 0);
+            params.setMargins(0, 14, 0, 10);
             content = (RelativeLayout) findViewById(R.id.add_note_content);
             content.removeView(submit);
             content.addView(buttonsLayout, params);

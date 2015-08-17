@@ -37,7 +37,7 @@ public class AddCourseActivity extends AppCompatActivity {
     private static final int  IDEAL_IMAGE_DIMENSION = 300;
     private static final int  INTENT_IMAGE          = 0;
     private static final File imageDir              = new File(
-            Environment.getExternalStorageDirectory().toString() + "/DCIM/StudyGroup/");
+            Environment.getExternalStorageDirectory(), "DCIM/StudyGroup/");
 
     private EditText        subject;
     private TextInputLayout subjectTil;

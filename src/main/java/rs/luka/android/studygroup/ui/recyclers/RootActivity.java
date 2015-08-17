@@ -63,4 +63,9 @@ public class RootActivity extends SingleFragmentActivity implements GroupListFra
         i.putExtra(EXTRA_GROUP, group);
         startActivity(i);
     }
+
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+    }
 }

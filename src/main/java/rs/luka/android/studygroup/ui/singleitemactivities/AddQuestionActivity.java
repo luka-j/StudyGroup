@@ -32,6 +32,7 @@ import rs.luka.android.studygroup.Utils;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.ui.recyclers.ExamQuestionsActivity;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
 
 /**
@@ -93,7 +94,7 @@ public class AddQuestionActivity extends AppCompatActivity {
             params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
             params.addRule(RelativeLayout.ALIGN_PARENT_END);
             params.addRule(RelativeLayout.BELOW, R.id.add_question_image);
-            params.setMargins(0, 14, 0, 0);
+            params.setMargins(0, 14, 0, 10);
             content = (RelativeLayout) findViewById(R.id.add_question_content);
             content.removeView(add);
             content.addView(buttonsLayout, params);
@@ -116,6 +117,9 @@ public class AddQuestionActivity extends AppCompatActivity {
         }
 
         lesson.setText(getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON));
+        if(getIntent().getBooleanExtra(ExamQuestionsActivity.EXTRA_IMMUTABLE_LESSON, false)) {
+            lesson.setEnabled(false);
+        }
         question.requestFocus();
 
         add.setOnClickListener(new View.OnClickListener() {
