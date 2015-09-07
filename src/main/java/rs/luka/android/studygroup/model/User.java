@@ -1,9 +1,7 @@
 package rs.luka.android.studygroup.model;
 
-import java.util.List;
 import java.util.UUID;
 
-import rs.luka.android.studygroup.io.Retriever;
 import rs.luka.android.studygroup.io.UserManager;
 
 /**
@@ -36,7 +34,6 @@ public class User {
         this.token = token;
     }
 
-    public List<Group> getGroups() {
-        return Retriever.getGroups(token);
-    }
+    public String getName() {return name;}
+
 }

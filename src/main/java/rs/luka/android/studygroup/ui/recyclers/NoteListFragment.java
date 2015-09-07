@@ -1,11 +1,17 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
+import android.app.LoaderManager;
+import android.content.Context;
+import android.content.Loader;
+import android.content.res.TypedArray;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.ActionMode;
@@ -19,24 +25,36 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
+
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Note;
+import rs.luka.android.studygroup.ui.CursorAdapter;
+import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
+import rs.luka.android.studygroup.ui.Snackbar;
 
 /**
  * Created by luka on 11.7.15..
  */
-public class NoteListFragment extends Fragment {
+public class NoteListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private int toolbarHeight;
     private Set<Note> selected = new HashSet<>();
-    private ActionMode    actionMode;
-    private RecyclerView  notesRecycler;
-    private NoteCallbacks callbacks;
-    private NotesAdapter  adapter;
+    private ActionMode               actionMode;
+    private RecyclerView             notesRecycler;
+    private NoteCallbacks            callbacks;
+    private NotesAdapter             adapter;
+    private Course                   course;
+    private String                   lessonName;
+    private PoliteSwipeRefreshLayout swipe;
+    private CircularProgressView     progress;
+    private Snackbar                 snackbar;
     private ActionMode.Callback selectItems = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -56,6 +74,10 @@ public class NoteListFragment extends Fragment {
                     callbacks.onNotesEdit(selected);
                     actionMode.finish();
                     return true;
+                case R.id.context_hide:
+                    hide();
+                    actionMode.finish();
+                    return true;
             }
             return false;
         }
@@ -66,9 +88,6 @@ public class NoteListFragment extends Fragment {
             adapter.notifyDataSetChanged();
         }
     };
-    private Course             course;
-    private String             lessonName;
-    private SwipeRefreshLayout swipe;
 
     public static NoteListFragment newInstance(Course course, String lessonName) {
         NoteListFragment f    = new NoteListFragment();
@@ -77,6 +96,13 @@ public class NoteListFragment extends Fragment {
         args.putString(CourseActivity.EXTRA_LESSON_NAME, lessonName);
         f.setArguments(args);
         return f;
+    }
+
+    protected void setLessonNameIfEmpty(String lessonName) {
+        if (this.lessonName == null || this.lessonName.isEmpty()) {
+            this.lessonName = lessonName;
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(lessonName);
+        }
     }
 
     @Override
@@ -89,7 +115,7 @@ public class NoteListFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
+    public void onAttach(Context activity) {
         super.onAttach(activity);
         callbacks = (NoteCallbacks) activity;
     }
@@ -97,15 +123,29 @@ public class NoteListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_note_list, container, false);
+        final TypedArray styledAttributes = getContext().getTheme().obtainStyledAttributes(
+                new int[]{android.R.attr.actionBarSize});
+        toolbarHeight = (int) styledAttributes.getDimension(0, 0);
+        styledAttributes.recycle();
 
+        View            view    = inflater.inflate(R.layout.fragment_note_list, container, false);
+        final ActionBar toolbar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+
+        progress = (CircularProgressView) view.findViewById(R.id.progress_view);
         Activity ac = getActivity();
         notesRecycler = (RecyclerView) view.findViewById(R.id.notes_recycler);
-        notesRecycler.setLayoutManager(new LinearLayoutManager(ac));
+        final LinearLayoutManager lm = new LinearLayoutManager(ac);
+        notesRecycler.setLayoutManager(lm);
         //notesRecycler.addOnScrollListener(new HideShowListener(ac.findViewById(R.id.lesson_container)));
-        updateUI();
+        setData();
 
-        swipe = (SwipeRefreshLayout) view.findViewById(R.id.notes_swipe);
+        swipe = (PoliteSwipeRefreshLayout) view.findViewById(R.id.notes_swipe);
+        swipe.setOnChildScrollUpListener(new PoliteSwipeRefreshLayout.OnChildScrollUpListener() {
+            @Override
+            public boolean canChildScrollUp() {
+                return lm.findFirstCompletelyVisibleItemPosition() != 0 || toolbar.getHeight() >= toolbarHeight;
+            }
+        });
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -123,25 +163,39 @@ public class NoteListFragment extends Fragment {
         swipe.setRefreshing(false);
     }
 
-    private void refresh() {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                stopRefreshing();
-            }
-        }, 1800);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        updateUI();
+    public void refresh() {
+        swipe.setRefreshing(true);
+        DataManager.refreshNotes(this, getActivity().getLoaderManager());
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         callbacks = null;
+    }
+
+    private void hide() {
+        for (Note n : selected) { n.hide(getActivity()); }
+        refresh();
+        final Set<Note> selected = new HashSet<>(this.selected); //selected se briše kad se actionmode zatvori
+        snackbar = Snackbar.make(notesRecycler, R.string.notes_hidden, Snackbar.LENGTH_LONG)
+                           .setAction(R.string.undo, new View.OnClickListener() {
+                               @Override
+                               public void onClick(View v) {
+                                   for (Note n : selected) { n.show(getActivity()); }
+                                   refresh();
+                               }
+                           })
+                           .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
+                           .colorTheFuckingTextToWhite(getActivity())
+                           .doStuffThatGoogleDidntFuckingDoProperly(getActivity(),
+                                                                    ((LessonActivity) getActivity()).getFab());
+        snackbar.show();
+    }
+
+    protected void dismissSnackbar() {
+        if (snackbar != null) { snackbar.dismiss(); }
+        snackbar = null;
     }
 
     @Override
@@ -151,16 +205,33 @@ public class NoteListFragment extends Fragment {
         //inflater.inflate(R.menu.fragment_group, menu);
     }
 
-    public void updateUI() {
-        List<Note> notes = course.getNotesByLesson(lessonName);
-
+    public void setData() {
         if (adapter == null) {
-            adapter = new NotesAdapter(notes);
+            adapter = new NotesAdapter(getActivity(), null);
             notesRecycler.setAdapter(adapter);
-        } else {
-            adapter.setNotes(notes);
-            adapter.notifyDataSetChanged();
         }
+        DataManager.getNotes(this, getActivity().getLoaderManager());
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        progress.setVisibility(View.VISIBLE);
+        if (course == null) { throw new AssertionError("wtf"); }
+        return course.getNotesLoader(getActivity(), lessonName);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        adapter.changeCursor(data);
+        if (progress != null) {
+            progress.setVisibility(View.GONE);
+        }
+        stopRefreshing();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        adapter.swapCursor(null);
     }
 
     public interface NoteCallbacks {
@@ -192,7 +263,7 @@ public class NoteListFragment extends Fragment {
             titleTextView.setText(note.getText());
             if (note.hasImage()) {
                 ImageView imgView = new ImageView(getActivity());
-                imgView.setImageBitmap(note.getImage());
+                imgView.setImageBitmap(note.getImage(getContext()));
                 layout.addView(imgView, 0);
             }
             if (selected.contains(note)) {
@@ -245,12 +316,11 @@ public class NoteListFragment extends Fragment {
         }
     }
 
-    private class NotesAdapter extends RecyclerView.Adapter<NoteHolder> {
+    private class NotesAdapter extends CursorAdapter<NoteHolder> {
 
-        private List<Note> notes;
 
-        public NotesAdapter(List<Note> notes) {
-            this.notes = notes;
+        public NotesAdapter(Context context, Cursor cursor) {
+            super(context, cursor);
         }
 
         @Override
@@ -263,30 +333,16 @@ public class NoteListFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(NoteHolder holder, int position) {
-            Note note = notes.get(position);
-            holder.bindNote(note);
-        }
-
-        @Override
-        public int getItemCount() {
-            return notes.size();
-        }
-
-        public void setNotes(List<Note> notes) {
-            this.notes = notes;
+        public void onBindViewHolder(NoteHolder holder, Cursor data) {
+            holder.bindNote(((Database.NoteCursor) data).getNote());
         }
 
         public void removeNote(int position) {
-            notes.remove(position);
-            this.notifyItemRemoved(position);
-            this.notifyItemRangeChanged(position, notes.size());
+            //todo
         }
 
         public void addNote(Note note, int position) {
-            notes.add(position, note);
-            this.notifyItemInserted(position);
-            this.notifyItemRangeChanged(position, notes.size());
+            //todo
         }
     }
 }

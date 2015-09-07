@@ -1,8 +1,11 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
-import android.app.Activity;
+import android.app.LoaderManager;
+import android.content.Context;
+import android.content.Loader;
+import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -20,17 +23,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.LinkedList;
-import java.util.List;
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.Snackbar;
+import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.ui.CursorAdapter;
+import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
+import rs.luka.android.studygroup.ui.Snackbar;
 
 /**
  * Created by luka on 3.7.15..
  */
-public class CourseFragment extends Fragment {
+public class CourseFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static String TAG = "studygroup.CourseFragment";
 
@@ -39,13 +45,14 @@ public class CourseFragment extends Fragment {
     private RecyclerView   lessonsRecyclerView;
     private Callbacks      callbacks;
     private LessonsAdapter adapter;
-    private SwipeRefreshLayout swipe;
+    private PoliteSwipeRefreshLayout swipe;
+    private CircularProgressView     progress;
 
-    protected static Fragment newInstance(Course course) {
+    protected static CourseFragment newInstance(Course course) {
         Bundle args = new Bundle();
         args.putParcelable(GroupActivity.EXTRA_COURSE, course);
 
-        Fragment f = new CourseFragment();
+        CourseFragment f = new CourseFragment();
         f.setArguments(args);
         return f;
     }
@@ -59,7 +66,7 @@ public class CourseFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
+    public void onAttach(Context activity) {
         super.onAttach(activity);
         callbacks = (Callbacks) activity;
     }
@@ -71,20 +78,27 @@ public class CourseFragment extends Fragment {
 
         AppCompatActivity ac = (AppCompatActivity) getActivity();
         if (NavUtils.getParentActivityIntent(ac) != null) {
-            ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
+            ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        progress = (CircularProgressView) view.findViewById(R.id.progress_view);
         lessonsRecyclerView = (RecyclerView) view.findViewById(R.id.lessons_recycler_view);
-        lessonsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        lessonsRecyclerView.setLayoutManager(layoutManager);
         registerForContextMenu(lessonsRecyclerView);
 
-        updateUI();
-
+        setData();
 
         new ItemTouchHelper(new TouchHelperCallbacks(0,
                                                      ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT))
                 .attachToRecyclerView(lessonsRecyclerView);
-
-        swipe = (SwipeRefreshLayout) view.findViewById(R.id.course_swipe);
+        swipe = (PoliteSwipeRefreshLayout) view.findViewById(R.id.course_swipe);
+        swipe.setOnChildScrollUpListener(new PoliteSwipeRefreshLayout.OnChildScrollUpListener() {
+            @Override
+            public boolean canChildScrollUp() {
+                return layoutManager.findFirstCompletelyVisibleItemPosition() != 0;
+            }
+        });
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -102,21 +116,8 @@ public class CourseFragment extends Fragment {
         swipe.setRefreshing(false);
     }
 
-    private void refresh() {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                List<String> newLessons = new LinkedList<>();
-                newLessons.add("Logika");
-                newLessons.add("Brojevi");
-                newLessons.add("Racionalni algebarski izrazi");
-                newLessons.add("Jednačine i nejednačine");
-                newLessons.add("Stepenovanje i korenovanje");
-                adapter.setTitles(newLessons);
-                adapter.notifyDataSetChanged();
-                stopRefreshing();
-            }
-        }, 1500);
+    protected void refresh() {
+        DataManager.refreshLessons(this, getActivity().getLoaderManager());
     }
 
     @Override
@@ -124,7 +125,6 @@ public class CourseFragment extends Fragment {
         super.onResume();
         Log.d(TAG, "onResume; setting actionbar title");
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(course.getSubject());
-        updateUI();
     }
 
     @Override
@@ -160,16 +160,41 @@ public class CourseFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    public void updateUI() {
-        List<String> lessons = course.getLessonList();
-
+    public void setData() {
         if (adapter == null) {
-            adapter = new LessonsAdapter(lessons);
+            adapter = new LessonsAdapter(getActivity(), null);
             lessonsRecyclerView.setAdapter(adapter);
-        } else {
-            adapter.setTitles(lessons);
-            adapter.notifyDataSetChanged();
         }
+        DataManager.getLessons(this, getActivity().getLoaderManager());
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        progress.setVisibility(View.VISIBLE);
+        return course.getLessonLoader(getActivity());
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (progress != null) {
+            progress.setVisibility(View.GONE);
+        }
+        data.moveToNext();
+        if (data.getCount() > 1) {
+            data.moveToFirst();
+            data.moveToPrevious();
+            adapter.changeCursor(data);
+            stopRefreshing();
+        } else if (data.getCount() == 1) {
+            ((CourseActivity) getActivity()).skip(((Database.LessonCursor) data).getLessonTitle());
+        } else {
+            ((CourseActivity) getActivity()).skip("");
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        adapter.swapCursor(null);
     }
 
     public interface Callbacks {
@@ -192,25 +217,44 @@ public class CourseFragment extends Fragment {
 
         @Override
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
-            final String title    = ((LessonHolder) viewHolder).title;
-            final int    position = viewHolder.getAdapterPosition();
-            adapter.removeTitle(position);
+            final LessonHolder swipedHolder = (LessonHolder) viewHolder;
+            final String       lesson       = swipedHolder.title;
+            final int noteCount = swipedHolder.noteCount, quesionCount = swipedHolder.questionCount, _id
+                    = swipedHolder._id;
+            course.hideLesson(getActivity(), lesson);
+            refresh();
+            // TODO: 4.9.15. http://stackoverflow.com/questions/32406144/hiding-and-re-showing-cards-in-recyclerview-backed-by-cursor
             Snackbar.make(lessonsRecyclerView,
                           R.string.course_hidden,
-                          rs.luka.android.studygroup.Snackbar.LENGTH_LONG)
+                          Snackbar.LENGTH_LONG)
+                    .setOnHideListener(new Snackbar.OnHideListener() {
+                        @Override
+                        public void onHide() {
+                            new RemoveLessonTask().doInBackground(course, swipedHolder.title);
+                        }
+                    })
                     .setAction(R.string.undo,
                                new View.OnClickListener() {
                                    @Override
                                    public void onClick(View v) {
-                                       adapter.addTitle(title, position);
-                                       course.showLesson(title);
+                                       course.showLesson(getActivity(), _id, lesson, noteCount, quesionCount);
+                                       refresh();
                                    }
                                })
                     .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
                     .colorTheFuckingTextToWhite(getActivity())
                     .doStuffThatGoogleDidntFuckingDoProperly(getActivity(), null)
                     .show();
-            course.hideLesson(title);
+            //viewHolder.itemView.setVisibility(View.GONE); //ne radi
+        }
+    }
+
+    private class RemoveLessonTask extends AsyncTask<Object, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Object... params) {
+            ((Course) params[0]).removeLesson(getActivity(), (String) params[1]);
+            return null;
         }
     }
 
@@ -218,10 +262,13 @@ public class CourseFragment extends Fragment {
                                                                           View.OnLongClickListener,
                                                                           View.OnCreateContextMenuListener {
         private final TextView titleTextView;
-        private final TextView noteCount;
-        private final TextView questionCount;
+        private final TextView noteCountTextView;
+        private final TextView TextView;
 
         private String title;
+        private int noteCount;
+        private int questionCount;
+        private int _id;
 
         public LessonHolder(View itemView) {
             super(itemView);
@@ -230,15 +277,18 @@ public class CourseFragment extends Fragment {
             itemView.setOnCreateContextMenuListener(this);
 
             titleTextView = (TextView) itemView.findViewById(R.id.card_lesson_title);
-            noteCount = (TextView) itemView.findViewById(R.id.note_count_text);
-            questionCount = (TextView) itemView.findViewById(R.id.question_count_text);
+            noteCountTextView = (TextView) itemView.findViewById(R.id.note_count_text);
+            TextView = (TextView) itemView.findViewById(R.id.question_count_text);
         }
 
-        public void bindCourse(String title) {
+        public void bindLesson(String title, int noteNo, int questionNo, int _id) {
             this.title = title;
+            this.noteCount = noteNo;
+            this.questionCount = questionNo;
+            this._id = _id;
             titleTextView.setText(title);
-            noteCount.setText(getString(R.string.notes_no, course.getNoteNumber(title)));
-            questionCount.setText(getString(R.string.questions_no, course.getQuestionNumber(title)));
+            noteCountTextView.setText(getString(R.string.notes_no, noteNo));
+            TextView.setText(getString(R.string.questions_no, questionNo));
         }
 
         @Override
@@ -259,13 +309,12 @@ public class CourseFragment extends Fragment {
         }
     }
 
-    private class LessonsAdapter extends RecyclerView.Adapter<LessonHolder> {
+    private class LessonsAdapter extends CursorAdapter<LessonHolder> {
 
-        private List<String> titles;
         private String selectedTitle;
 
-        public LessonsAdapter(List<String> titles) {
-            this.titles = titles;
+        public LessonsAdapter(Context context, Cursor cursor) {
+            super(context, cursor);
         }
 
         @Override
@@ -278,30 +327,19 @@ public class CourseFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(LessonHolder holder, int position) {
-            String title = titles.get(position);
-            holder.bindCourse(title);
+        public void onBindViewHolder(LessonHolder holder, Cursor data) {
+            holder.bindLesson(((Database.LessonCursor) data).getLessonTitle(),
+                              ((Database.LessonCursor) data).getNoteCount(),
+                              ((Database.LessonCursor) data).getQuestionCount(),
+                              data.getInt(data.getColumnIndex("_id")));
         }
 
-        @Override
-        public int getItemCount() {
-            return titles.size();
-        }
-
-        public void setTitles(List<String> titles) {
-            this.titles = titles;
-        }
-
-        public void removeTitle(int position) {
-            titles.remove(position);
-            this.notifyItemRemoved(position);
-            this.notifyItemRangeChanged(position, titles.size());
+        public void removeTitle(RecyclerView.ViewHolder holder) {
+            //todo
         }
 
         public void addTitle(String title, int position) {
-            titles.add(position, title);
-            this.notifyItemInserted(position);
-            this.notifyItemRangeChanged(position, titles.size());
+            //todo
         }
     }
 }

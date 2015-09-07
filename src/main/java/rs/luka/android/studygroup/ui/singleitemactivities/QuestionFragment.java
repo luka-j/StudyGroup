@@ -39,7 +39,7 @@ public class QuestionFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        question = (Question) getArguments().getParcelable(EXTRA_QUESTION);
+        question = getArguments().getParcelable(EXTRA_QUESTION);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class QuestionFragment extends Fragment {
         questionText.setText(question.getQuestion());
         answerText.setText(question.getAnswer());
         if (question.hasImage()) {
-            image.setImageBitmap(question.getImage());
+            image.setImageBitmap(question.getImage(getContext()));
         }
         history.setText(question.getHistory(getActivity()));
     }

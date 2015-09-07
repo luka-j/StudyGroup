@@ -1,22 +1,26 @@
 package rs.luka.android.studygroup.model;
 
+import android.content.Context;
+import android.content.Loader;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import rs.luka.android.studygroup.io.Adder;
-import rs.luka.android.studygroup.io.Retriever;
+import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.Loaders;
 
 /**
  * Created by Luka on 7/1/2015.
  */
-public class Group implements Parcelable {
+public class Group implements Parcelable, Comparable<Group> {
     public static final  Parcelable.Creator<Group> CREATOR
                                                        = new Parcelable.Creator<Group>() {
         public Group createFromParcel(Parcel in) {
@@ -28,7 +32,8 @@ public class Group implements Parcelable {
         }
     };
     private static final String                    TAG = "studygroup.Group";
-    private final ID     id;
+    private static final Integer[] years = new Integer[]{1, 2, 3, 4}; //TODO
+    private final ID id; //private by design (iliti nikada ne napusta ovu klasu)
     private final String name;
     private final String place;
 
@@ -52,46 +57,36 @@ public class Group implements Parcelable {
         return false;
     }
 
-    public Bitmap getImage() {
-        return Retriever.getGroupImage(id);
+    public Bitmap getImage(Context c) {
+        return DataManager.getImage(c, id);
     }
 
     public String getPlace() {
         return place;
     }
 
-    public List<Course> getCourseList() {
-        return Retriever.getCourses(id);
+    public Loader<Cursor> getCourseLoader(Context c) {
+        return new Loaders.CourseLoader(c, id);
     }
 
-    public List<Exam> getExamList() { return Retriever.getExams(id); }
+    public Loader<Cursor> getExamLoader(Context c) {
+        return new Loaders.ItemLoader(c, id, null, Loaders.ItemLoader.LOAD_EXAMS);
+    }
 
     public List<Integer> getExamYears() {
-        List<Exam> allExams = getExamList();
-        List<Integer> categories = new LinkedList<>();
-        for(Exam exam : allExams) {
-            if(!categories.contains(exam.getYear()))
-                categories.add(exam.getYear());
-        }
-        return categories;
+        return Arrays.asList(years);
     }
 
-    public void addCourse(String subject, String teacher, String year, File image) {
-        Adder.addCourse(id, subject, teacher, year, image);
+    public void addCourse(Context c, String subject, String teacher, String year, File image) {
+        DataManager.addCourse(c, id, subject, teacher, Integer.parseInt(year), image);
     }
 
-    public void edit(String name, String place, File image) {
-
+    public void edit(Context c, String name, String place, File image) {
+        DataManager.editGroup(c, id, name, place, image);
     }
 
     public List<Integer> getCourseYears() {
-        List<Course> allCourses = getCourseList();
-        List<Integer> categories = new LinkedList<>();
-        for(Course course : allCourses) {
-            if(!categories.contains(course.getYear()))
-                categories.add(course.getYear());
-        }
-        return categories;
+        return Arrays.asList(years);
     }
 
     public void filter(Set<Integer> years) {
@@ -118,5 +113,10 @@ public class Group implements Parcelable {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    @Override
+    public int compareTo(@NonNull Group another) {
+        return id.compareTo(another.id);
     }
 }

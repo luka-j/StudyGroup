@@ -119,8 +119,9 @@ public class AddNoteActivity extends AppCompatActivity {
             setFieldsForEditing();
         }
 
-        lesson.setText(getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON));
-        textTil.requestFocus();
+        String lessonText = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
+        lesson.setText(lessonText);
+        if (!lessonText.isEmpty()) { textTil.requestFocus(); }
 
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -197,7 +198,7 @@ public class AddNoteActivity extends AppCompatActivity {
         text.setText(notes.get(currentNote).getText());
         text.setSelection(text.getText().length());
         if (notes.get(currentNote).hasImage()) {
-            image.setImageBitmap(notes.get(currentNote).getImage());
+            image.setImageBitmap(notes.get(currentNote).getImage(this));
         }
     }
 
@@ -221,12 +222,15 @@ public class AddNoteActivity extends AppCompatActivity {
                 currentNote++;
                 if (currentNote < notes.size()) { setFieldsForEditing(); }
                 if (currentNote <= notes.size()) {
-                    notes.get(currentNote - 1).edit(lessonStr, noteStr, imageFile, audioFile);
+                    notes.get(currentNote - 1).edit(this, lessonStr, noteStr, imageFile, audioFile);
                 }
                 if (currentNote == notes.size() - 1) { mergeButtons(); }
                 if (currentNote == notes.size()) { onBackPressed(); }
             } else {
-                course.addNote(lessonStr, noteStr, imageFile, audioFile);
+                course.addNote(this, lessonStr, noteStr, imageFile, audioFile);
+                Intent lessonData = new Intent();
+                lessonData.putExtra(LessonActivity.EXTRA_LESSON, lessonStr);
+                setResult(RESULT_OK, lessonData);
                 onBackPressed();
             }
         }

@@ -4,8 +4,8 @@ import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 
-import java.util.List;
-
+import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
@@ -13,7 +13,7 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddGroupActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.LoginActivity;
 
 /**
- * Created by luka on 17.7.15..
+ * Created by luka on 17.7.15.
  */
 public class RootActivity extends SingleFragmentActivity implements GroupListFragment.Callbacks {
     public static final  String EXTRA_GROUP     = "exGroup";
@@ -36,10 +36,11 @@ public class RootActivity extends SingleFragmentActivity implements GroupListFra
             startActivity(new Intent(this, LoginActivity.class));
             return false;
         } else {
-            List<Group> groups = User.getInstance().getGroups();
-            if (groups.size() == 1) {
+            if (DataManager.getGroupCount(this) == 1) {
                 Intent i = new Intent(this, GroupActivity.class);
-                i.putExtra(EXTRA_GROUP, groups.get(0));
+                Database.GroupCursor c = Database.getInstance(this).queryGroups();
+                c.moveToNext();
+                i.putExtra(EXTRA_GROUP, c.getGroup());
                 Log.i(TAG, "one group, starting it");
                 startActivity(i);
                 return false;
@@ -58,10 +59,10 @@ public class RootActivity extends SingleFragmentActivity implements GroupListFra
     }
 
     @Override
-    public void onEditGroup(Group group) {
+    public void onEditGroup(Group group, int requestCode) {
         Intent i = new Intent(this, AddGroupActivity.class);
         i.putExtra(EXTRA_GROUP, group);
-        startActivity(i);
+        startActivityForResult(i, requestCode);
     }
 
     @Override

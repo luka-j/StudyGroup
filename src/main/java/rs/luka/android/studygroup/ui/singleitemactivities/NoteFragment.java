@@ -62,7 +62,7 @@ public class NoteFragment extends Fragment {
     private void updateUI() {
         text.setText(note.getText());
         if (note.hasImage()) {
-            image.setImageBitmap(note.getImage());
+            image.setImageBitmap(note.getImage(getContext()));
         }
         history.setText(note.getHistory(getActivity()));
     }

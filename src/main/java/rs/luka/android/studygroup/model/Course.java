@@ -1,23 +1,26 @@
 package rs.luka.android.studygroup.model;
 
+import android.content.Context;
+import android.content.Loader;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.util.Calendar;
-import java.util.List;
 
 import rs.luka.android.studygroup.Utils;
-import rs.luka.android.studygroup.io.Adder;
-import rs.luka.android.studygroup.io.Hider;
-import rs.luka.android.studygroup.io.Retriever;
+import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.Loaders;
 
 /**
  * Created by Luka on 7/1/2015.
  */
-public class Course implements Parcelable {
+public class Course implements Parcelable, Comparable<Course> {
 
     public static final Parcelable.Creator<Course> CREATOR
             = new Parcelable.Creator<Course>() {
@@ -34,12 +37,18 @@ public class Course implements Parcelable {
     private final String  teacher;
     private final
     @Nullable     Integer year;
+    private boolean hidden = false;
 
     public Course(ID id, String subject, String teacher, @Nullable Integer year) {
+        this(id, subject, teacher, year, false);
+    }
+
+    public Course(ID id, String subject, String teacher, @Nullable Integer year, boolean hidden) {
         this.id = id;
         this.subject = subject;
         this.teacher = teacher;
         this.year = year;
+        this.hidden = hidden;
     }
 
     private Course(Parcel in) {
@@ -71,64 +80,64 @@ public class Course implements Parcelable {
         return false;
     }
 
-    public Bitmap getImage() {
-        return Retriever.getCourseImage(id);
+    public Bitmap getImage(Context c) {
+        return DataManager.getImage(c, id);
     }
 
-    public int getNumberOfLessons() {
-        return Retriever.getNumberOfLessons(id);
+    public Loader<Cursor> getLessonLoader(Context c) {
+        return new Loaders.LessonLoader(c, id);
     }
 
-    public List<String> getLessonList() {
-        return Retriever.getLessons(id);
+    public Loader<Cursor> getNotesLoader(Context c, String lesson) {
+        return new Loaders.ItemLoader(c, id, lesson, Loaders.ItemLoader.LOAD_NOTES);
     }
 
-    public int getNoteNumber(String lesson) {
-        return Retriever.getNumberOfNotes(id, lesson);
+    public Loader<Cursor> getQuestionsLoader(Context c, String lesson) {
+        return new Loaders.ItemLoader(c, id, lesson, Loaders.ItemLoader.LOAD_QUESTIONS);
     }
 
-    public List<Note> getNotesByLesson(String lesson) {
-        return Retriever.getNotes(id, lesson);
+    public void hide(Context c) {
+        Database.getInstance(c).hideCourse(id);
     }
 
-    public int getQuestionNumber(String lesson) {
-        return Retriever.getNumberOfQuestions(id, lesson);
+    public void show(Context c) {
+        Database.getInstance(c).insertCourse(id, subject, teacher, year);
     }
 
-    public List<Question> getQuestionsByLesson(String lesson) {
-        return Retriever.getQuestions(id, lesson);
+    public void remove(Context c) {
+        DataManager.removeCourse(c, id);
     }
 
-    public void hideCourse() {
-        Hider.hideCourse(id);
+    public void removeLesson(Context c, String lesson) {
+        DataManager.removeLesson(c, id, lesson);
     }
 
-    public void showCourse() {
-        Hider.showCourse(id);
+    public void hideLesson(Context c, String lesson) {
+        Database.getInstance(c).hideLesson(id, lesson);
     }
 
-    public void hideLesson(String lesson) {
-        Hider.hideLesson(id, lesson);
+    public void showLesson(Context c, int _id, String lesson, int noteCount, int questionCount) {
+        Database.getInstance(c).showLesson(id, _id, lesson, noteCount, questionCount);
     }
 
-    public void showLesson(String lesson) {
-        Hider.showLesson(id, lesson);
+    public void addNote(Context c, String lesson, String text, File image, File audio) {
+        DataManager.addNote(c, id, lesson, text); //todo image/audio
     }
 
-    public void addNote(String lesson, String text, File image, File audio) {
-        Adder.addNote(id, lesson, text, image, audio);
+    public void addQuestion(Context c, String lesson, String question, String answer, File image) {
+        DataManager.addQuestion(c, id, lesson, question, answer); //todo image
     }
 
-    public void addQuestion(String lesson, String question, String answer, File image) {
-        Adder.addQuestion(id, lesson, question, answer, image);
+    public void addExam(Context c, String klass, String lesson, String type, Calendar date) {
+        DataManager.addExam(c, id, klass, lesson, type, date.getTime());
     }
 
-    public void addExam(String klass, String lesson, String type, Calendar date) {
-
+    public void edit(Context c, String subject, String teacher, String year, File image) {
+        DataManager.editCourse(c, id, subject, teacher, Integer.valueOf(year), image);
     }
 
-    public void edit(String subject, String teacher, String year, File image) {
-
+    public void renameLesson(Context c, String oldName, String newName) {
+        DataManager.renameLesson(c, id, oldName, newName);
     }
 
     @Override
@@ -146,8 +155,7 @@ public class Course implements Parcelable {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof Course) { return ((Course) o).id.equals(id); }
-        return false;
+        return o instanceof Course && ((Course) o).id.equals(id);
     }
 
     @Override
@@ -155,4 +163,8 @@ public class Course implements Parcelable {
         return id.hashCode();
     }
 
+    @Override
+    public int compareTo(@NonNull Course another) {
+        return id.compareTo(another.id);
+    }
 }

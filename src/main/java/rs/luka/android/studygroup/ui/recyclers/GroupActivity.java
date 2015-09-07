@@ -24,31 +24,20 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     public static final  String EXTRA_GROUP  = RootActivity.EXTRA_GROUP;
     private static final String TAG          = "GroupActivity";
     private List<Integer> filterYears;
+    private GroupFragment fragment; // TODO: 7.9.15. fix REQUEST_EDIT_COURSE i sl. za fragmente (refresh)
 
     @Override
     protected Fragment createFragment() {
-        return GroupFragment.newInstance((Group) getIntent().getParcelableExtra(RootActivity.EXTRA_GROUP));
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        getSupportActionBar().setTitle(((Group) getIntent().getParcelableExtra(RootActivity.EXTRA_GROUP))
-                                                           .getName());
+        fragment = GroupFragment.newInstance((Group) getIntent().getParcelableExtra(RootActivity.EXTRA_GROUP));
+        return fragment;
     }
 
     @Override
     public void onCourseSelected(Course course) {
-        if (course.getNumberOfLessons() > 1) {
-            Intent i = new Intent(this, CourseActivity.class);
-            i.putExtra(EXTRA_COURSE, course);
-            //i.putExtra(CourseActivity.EXTRA_GO_FORWARD, true);
-            startActivity(i);
-        } else {
-            Intent i = new Intent(this, LessonActivity.class);
-            i.putExtra(CourseActivity.EXTRA_LESSON_NAME, course.getLessonList().get(0));
-            startActivity(i);
-        }
+        Intent i = new Intent(this, CourseActivity.class);
+        i.putExtra(EXTRA_COURSE, course);
+        i.putExtra(CourseActivity.EXTRA_GO_FORWARD, true);
+        startActivity(i);
     }
 
     @Override
@@ -68,15 +57,18 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                                                                                 getIntent().getParcelableExtra(
                                                                                         RootActivity.EXTRA_GROUP)));
                 return true;
+            case R.id.show_all:
+                //TODO
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
-    public void onEditSelected(Course course) {
+    public void onEditSelected(Course course, int requestCode) {
         Intent i = new Intent(this, AddCourseActivity.class);
         i.putExtra(EXTRA_COURSE, course);
-        startActivity(i);
+        startActivityForResult(i, requestCode);
     }
 
     @Override

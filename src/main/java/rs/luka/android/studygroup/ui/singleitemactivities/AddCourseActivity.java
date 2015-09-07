@@ -84,7 +84,7 @@ public class AddCourseActivity extends AppCompatActivity {
                 year.setText(course.getYear().toString());
             }
             if (course.hasImage()) {
-                image.setImageBitmap(course.getImage());
+                image.setImageBitmap(course.getImage(this));
             }
             subject.setSelection(subject.getText().length());
         }
@@ -152,11 +152,11 @@ public class AddCourseActivity extends AppCompatActivity {
         if (subjectText.isEmpty()) {
             subjectTil.setError(getString(R.string.error_empty));
             error = true;
-        } else if (subjectText.length() > Limits.COURSE_NAME_MAX_LENGTH) {
+        } else if (subjectText.length() >= Limits.COURSE_NAME_MAX_LENGTH) {
             subjectTil.setError(getString(R.string.error_too_long));
             error = true;
         } else { subjectTil.setError(null); }
-        if (teacherText.length() > Limits.COURSE_TEACHER_MAX_LENGTH) {
+        if (teacherText.length() >= Limits.COURSE_TEACHER_MAX_LENGTH) {
             teacherTil.setError(getString(R.string.error_too_long));
             error = true;
         } else { teacherTil.setError(null); }
@@ -169,12 +169,12 @@ public class AddCourseActivity extends AppCompatActivity {
         } else { yearTil.setError(null); }
         if (!error) {
             if (editing) {
-                course.edit(subjectText, teacherText, yearText, imageFile);
+                course.edit(this, subjectText, teacherText, yearText, imageFile);
             } else {
                 if (imageFile != null && imageFile.exists()) {
-                    group.addCourse(subjectText, teacherText, yearText, imageFile);
+                    group.addCourse(this, subjectText, teacherText, yearText, imageFile);
                 } else {
-                    group.addCourse(subjectText, teacherText, yearText, null);
+                    group.addCourse(this, subjectText, teacherText, yearText, null);
                 }
             }
             onBackPressed();

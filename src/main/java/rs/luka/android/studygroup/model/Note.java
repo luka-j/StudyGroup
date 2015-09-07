@@ -7,9 +7,11 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import java.io.File;
+import java.text.DateFormat;
 
-import rs.luka.android.studygroup.io.Hider;
-import rs.luka.android.studygroup.io.Retriever;
+import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.Database;
 
 /**
  * Created by luka on 2.7.15..
@@ -27,14 +29,17 @@ public class Note implements Parcelable, Comparable<Note> {
     };
     private final ID id;
     private final String text;
+    private final String lesson;
 
-    public Note(ID id, String text) {
+    public Note(ID id, String lesson, String text) {
         this.id = id;
         this.text = text;
+        this.lesson = lesson;
     }
 
     private Note(Parcel in) {
         id = in.readParcelable(Note.class.getClassLoader());
+        lesson = in.readString();
         text = in.readString();
     }
 
@@ -46,24 +51,26 @@ public class Note implements Parcelable, Comparable<Note> {
         return false;
     }
 
-    public Bitmap getImage() {
-        return Retriever.getNoteImage(id);
+    public Bitmap getImage(Context c) {
+        return DataManager.getImage(c, id);
     }
 
-    public void hide() {
-        Hider.hideNote(id);
+    public void hide(Context c) {
+        DataManager.removeNote(c, id, lesson);
     }
 
-    public void show() {
-        Hider.showNote(id);
+    public void show(Context c) {
+        Database.getInstance(c).insertNote(id, lesson, text);
     }
 
-    public void edit(String lesson, String text, File imageFile, File audioFile) {
-        //todo
+    public void edit(Context c, String lesson, String text, File imageFile, File audioFile) {
+        DataManager.editNote(c, id, lesson, text, imageFile, audioFile);
     }
 
     public String getHistory(Context c) {
-        return Retriever.getNoteHistory(id, c);
+        History h = DataManager.getHistory(c, id);
+        return c.getString(R.string.note_history, h.get(0).getAuthor(),
+                           DateFormat.getDateTimeInstance().format(h.get(0).getDate()));
     }
 
     @Override
@@ -74,6 +81,7 @@ public class Note implements Parcelable, Comparable<Note> {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeParcelable(id, 0);
+        dest.writeString(lesson);
         dest.writeString(text);
     }
 
@@ -89,9 +97,6 @@ public class Note implements Parcelable, Comparable<Note> {
 
     @Override
     public int compareTo(@NonNull Note another) {
-        if (id.itemId < another.id.itemId) { return -1; } else if (id.itemId > another.id.itemId) {
-            return 1;
-        }
-        return 0;
+        return id.compareTo(another.id);
     }
 }

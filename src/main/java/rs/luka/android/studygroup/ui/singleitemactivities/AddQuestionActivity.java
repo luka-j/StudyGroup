@@ -12,6 +12,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -44,7 +45,7 @@ public class AddQuestionActivity extends AppCompatActivity {
     private static final int  INTENT_IMAGE          = 0;
     private static final File imageDir              = new File(
             Environment.getExternalStorageDirectory().toString() + "/DCIM/StudyGroup/");
-    private RelativeLayout  content;
+    private LinearLayout content;
     private EditText        lesson;
     private EditText        answer;
     private EditText        question;
@@ -88,14 +89,12 @@ public class AddQuestionActivity extends AppCompatActivity {
         if (editing) {
             LayoutInflater inflater = LayoutInflater.from(this);
             buttonsLayout = (LinearLayout) inflater.inflate(R.layout.buttons_next_done, null, false);
-            RelativeLayout.LayoutParams params
-                    = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams params
+                    = new LinearLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
                                                       RelativeLayout.LayoutParams.WRAP_CONTENT);
-            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-            params.addRule(RelativeLayout.ALIGN_PARENT_END);
-            params.addRule(RelativeLayout.BELOW, R.id.add_question_image);
+            params.gravity = Gravity.END;
             params.setMargins(0, 14, 0, 10);
-            content = (RelativeLayout) findViewById(R.id.add_question_content);
+            content = (LinearLayout) findViewById(R.id.add_question_content);
             content.removeView(add);
             content.addView(buttonsLayout, params);
             next = (CardView) buttonsLayout.findViewById(R.id.button_next);
@@ -116,11 +115,12 @@ public class AddQuestionActivity extends AppCompatActivity {
             setFieldsForEditing();
         }
 
-        lesson.setText(getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON));
+        String lessonText = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
+        lesson.setText(lessonText);
         if(getIntent().getBooleanExtra(ExamQuestionsActivity.EXTRA_IMMUTABLE_LESSON, false)) {
             lesson.setEnabled(false);
         }
-        question.requestFocus();
+        if (!lessonText.isEmpty()) { question.requestFocus(); }
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -185,7 +185,7 @@ public class AddQuestionActivity extends AppCompatActivity {
         question.setSelection(question.getText().length());
         answer.setText(questions.get(currentQuestion).getAnswer());
         if (questions.get(currentQuestion).hasImage()) {
-            image.setImageBitmap(questions.get(currentQuestion).getImage());
+            image.setImageBitmap(questions.get(currentQuestion).getImage(this));
         }
     }
 
@@ -211,12 +211,15 @@ public class AddQuestionActivity extends AppCompatActivity {
                 if (currentQuestion < questions.size()) { setFieldsForEditing(); }
                 if (currentQuestion <= questions.size()) {
                     questions.get(currentQuestion - 1)
-                             .edit(lessonStr, questionStr, answerStr, imageFile);
+                             .edit(this, lessonStr, questionStr, answerStr, imageFile);
                 }
                 if (currentQuestion == questions.size() - 1) { mergeButtons(); }
                 if (currentQuestion == questions.size()) { onBackPressed(); }
             } else {
-                course.addQuestion(lessonStr, questionStr, answerStr, imageFile);
+                course.addQuestion(this, lessonStr, questionStr, answerStr, imageFile);
+                Intent lessonData = new Intent();
+                lessonData.putExtra(LessonActivity.EXTRA_LESSON, lessonStr);
+                setResult(RESULT_OK, lessonData);
                 onBackPressed();
             }
         }

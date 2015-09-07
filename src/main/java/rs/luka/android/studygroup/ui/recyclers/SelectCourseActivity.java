@@ -32,10 +32,10 @@ public class SelectCourseActivity extends SingleFragmentActivity implements Grou
     }
 
     @Override
-    public void onEditSelected(Course course) {
+    public void onEditSelected(Course course, int requestCode) {
         Intent i = new Intent(this, AddCourseActivity.class);
         i.putExtra(GroupActivity.EXTRA_COURSE, course);
-        startActivity(i);
+        startActivityForResult(i, requestCode);
     }
 
     @Override

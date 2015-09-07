@@ -76,7 +76,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/type"
-                    android:imeOptions="actionNext"
+                    android:imeOptions="actionDone"
                     android:inputType="text"/>
             </android.support.design.widget.TextInputLayout>
 
@@ -88,7 +88,5 @@
                 style="@style/small_button_position"
                 layout="@layout/button_add"/>
         </LinearLayout>
-
     </ScrollView>
-
 </LinearLayout>

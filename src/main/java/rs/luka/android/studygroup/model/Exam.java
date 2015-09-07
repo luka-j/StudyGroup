@@ -4,16 +4,19 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
-import rs.luka.android.studygroup.io.Retriever;
+import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.Database;
 
 /**
  * Created by luka on 29.7.15..
  */
-public class Exam implements Parcelable {
+public class Exam implements Parcelable, Comparable<Exam> {
 
     public static final  Parcelable.Creator<Exam> CREATOR
             = new Parcelable.Creator<Exam>() {
@@ -33,7 +36,7 @@ public class Exam implements Parcelable {
     private final String type;
     private final Date   date;
 
-    public Exam(Parcel in) {
+    private Exam(Parcel in) {
         id = in.readParcelable(Exam.class.getClassLoader());
         course = in.readParcelable(Exam.class.getClassLoader());
         klass = in.readString();
@@ -42,9 +45,18 @@ public class Exam implements Parcelable {
         type = in.readString();
     }
 
-    public Exam(ID id, String klass, String lesson, String type, Date date) {
+    public Exam(Context c, ID id, String klass, String lesson, String type, Date date) {
         this.id = id;
-        this.course = Retriever.getCourseFor(id);
+        this.course = DataManager.getCourse(c, id);
+        this.klass = klass;
+        this.lesson = lesson;
+        this.date = date;
+        this.type = type;
+    }
+
+    public Exam(ID id, Course course, String klass, String lesson, String type, Date date) {
+        this.id = id;
+        this.course = course;
         this.klass = klass;
         this.lesson = lesson;
         this.date = date;
@@ -57,6 +69,12 @@ public class Exam implements Parcelable {
 
     public String getDate(Context c) {
         return DateFormat.getDateInstance().format(date);
+    }
+
+    public Calendar getCalendar() {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        return c;
     }
 
     public String getKlass() {
@@ -99,8 +117,21 @@ public class Exam implements Parcelable {
         return null;
     }
 
-    public void show() {}
-    public void hide() {}
+    public void edit(Context c, String klass, String lesson, String type, Date date) {
+        DataManager.editExam(c, id, klass, lesson, type, date);
+    }
+
+    public void show(Context c) {
+        Database.getInstance(c).insertExam(id, klass, lesson, type, date.getTime());
+    }
+
+    public void hide(Context c) {
+        Database.getInstance(c).hideExam(id);
+    }
+
+    public void remove(Context c) {
+        DataManager.removeExam(c, id, lesson);
+    }
 
     @Override
     public int describeContents() {
@@ -115,5 +146,10 @@ public class Exam implements Parcelable {
         dest.writeString(lesson);
         dest.writeLong(date.getTime());
         dest.writeString(type);
+    }
+
+    @Override
+    public int compareTo(@NonNull Exam another) {
+        return id.compareTo(another.id);
     }
 }

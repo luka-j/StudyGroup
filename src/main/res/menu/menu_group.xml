@@ -10,5 +10,9 @@
     <item android:id="@+id/raspored_kontrolnih"
           android:icon="@drawable/list_white"
           android:title="@string/raspored"
-          app:showAsAction="ifRoom|withText" />
+          app:showAsAction="always|withText"/>
+    <item
+        android:id="@+id/show_all"
+        android:title="@string/show_all"
+        app:showAsAction="never"/>
 </menu>

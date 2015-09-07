@@ -24,7 +24,7 @@ import java.io.File;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.Utils;
-import rs.luka.android.studygroup.io.Adder;
+import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.recyclers.RootActivity;
@@ -70,7 +70,7 @@ public class AddGroupActivity extends AppCompatActivity {
         if (editing) {
             name.setText(group.getName());
             place.setText(group.getPlace());
-            if (group.hasImage()) { image.setImageBitmap(group.getImage()); }
+            if (group.hasImage()) { image.setImageBitmap(group.getImage(this)); }
             name.setSelection(name.getText().length());
         }
 
@@ -134,19 +134,19 @@ public class AddGroupActivity extends AppCompatActivity {
         if (nameStr.isEmpty()) {
             nameTil.setError(getString(R.string.error_empty));
             error = true;
-        } else if (nameStr.length() > Limits.GROUP_NAME_MAX_LENGTH) {
+        } else if (nameStr.length() >= Limits.GROUP_NAME_MAX_LENGTH) {
             nameTil.setError(getString(R.string.error_too_long));
             error = true;
         } else { nameTil.setError(null); }
-        if (placeStr.length() > Limits.GROUP_PLACE_MAX_LENGTH) {
+        if (placeStr.length() >= Limits.GROUP_PLACE_MAX_LENGTH) {
             placeTil.setError(getString(R.string.error_too_long));
             error = true;
         } else { placeTil.setError(null); }
         if (!error) {
             if (editing) {
-                group.edit(nameStr, placeStr, imageFile);
+                group.edit(this, nameStr, placeStr, imageFile);
             } else {
-                Adder.addGroup(nameStr, placeStr, imageFile);
+                DataManager.addGroup(this, nameStr, placeStr, imageFile);
             }
             this.onBackPressed();
         }

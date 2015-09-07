@@ -11,10 +11,11 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,15 +43,21 @@ public class LessonActivity extends AppCompatActivity
     public static final String EXTRA_CURRENT_COURSE     = CourseActivity.EXTRA_COURSE;
     public static final String EXTRA_SELECTED_NOTES     = "selNotes";
     public static final String EXTRA_SELECTED_QUESTIONS = "selQuestions";
+    public static final String EXTRA_LESSON = CourseActivity.EXTRA_LESSON_NAME;
+
+    private static final int REQUEST_ADD_NOTE      = 0;
+    private static final int REQUEST_ADD_QUESTION  = 1;
+    private static final int REQUEST_EDIT_NOTE     = 8;
+    private static final int REQUEST_EDIT_QUESTION = 9;
 
     private int numOfTabs = 2;
     private Course course;
     private String lessonName;
 
-    private Toolbar          toolbar;
-    private ViewPager        pager;
-    private ViewPagerAdapter adapter;
-    private SlidingTabLayout tabs;
+    private Toolbar             toolbar;
+    private ViewPager           pager;
+    private NoteQuestionAdapter adapter;
+    private SlidingTabLayout    tabs;
     private FloatingActionButton fab;
 
     @Override
@@ -65,12 +72,12 @@ public class LessonActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         if (NavUtils.getParentActivityIntent(this) != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        adapter = new ViewPagerAdapter(getSupportFragmentManager(),
-                                       new String[]{getString(R.string.notes),
-                                                    getString(R.string.questions)}, numOfTabs);
+        adapter = new NoteQuestionAdapter(getSupportFragmentManager(),
+                                          new String[]{getString(R.string.notes),
+                                                       getString(R.string.questions)}, numOfTabs);
 
         // Assigning ViewPager View and setting the adapter
         pager = (ViewPager) findViewById(R.id.tab_pager);
@@ -100,18 +107,37 @@ public class LessonActivity extends AppCompatActivity
                     i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
                     i.putExtra(EXTRA_CURRENT_COURSE,
                                getIntent().getParcelableExtra(CourseActivity.EXTRA_COURSE));
-                    startActivity(i);
+                    startActivityForResult(i, REQUEST_ADD_NOTE);
                 } else {
                     Intent i = new Intent(This, AddQuestionActivity.class);
                     i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
                     i.putExtra(EXTRA_CURRENT_COURSE,
                                getIntent().getParcelableExtra(CourseActivity.EXTRA_COURSE));
-                    startActivity(i);
+                    startActivityForResult(i, REQUEST_ADD_QUESTION);
                 }
             }
         });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_ADD_NOTE:
+            case REQUEST_EDIT_NOTE:
+                NoteListFragment noteListFragment = ((NoteListFragment) ((NoteQuestionAdapter) (pager.getAdapter()))
+                        .getRegisteredFragment(0));
+                noteListFragment.setLessonNameIfEmpty(data.getStringExtra(EXTRA_LESSON));
+                noteListFragment.refresh();
+                break;
+            case REQUEST_ADD_QUESTION:
+            case REQUEST_EDIT_QUESTION:
+                QuestionListFragment questionListFragment
+                        = ((QuestionListFragment) ((NoteQuestionAdapter) (pager.getAdapter())).getRegisteredFragment(
+                        1));
+                questionListFragment.setLessonNameIfEmpty(data.getStringExtra(EXTRA_LESSON));
+                questionListFragment.refresh();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -124,20 +150,22 @@ public class LessonActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                //NavUtils.navigateUpFromSameTask(this);
-                //TODO: vidi zasto NavUtils.NavigateUpFromSameTask ne radi
-                if (course.getNumberOfLessons() == 1) {//nervira me animacija na Lollipopu, nije prirodna
-                    Intent i = new Intent(this, CourseActivity.class); //pa je izbegavam kad nije needed
-                    i.putExtra(GroupActivity.EXTRA_COURSE,
-                               getIntent().getSerializableExtra(CourseActivity.EXTRA_COURSE));
-                    startActivity(i);
-                    Log.i("test", "starting activity on id.home");
-                } else {
-                    NavUtils.navigateUpFromSameTask(this);
-                }
+                startActivity(new Intent(this,
+                                         CourseActivity.class).putExtra(CourseActivity.EXTRA_GO_BACKWARD,
+                                                                        false)
+                                                              .putExtra(GroupActivity.EXTRA_COURSE,
+                                                                        course));
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(this, CourseActivity.class).putExtra(CourseActivity.EXTRA_GO_BACKWARD,
+                                                                      true)
+                                                            .putExtra(GroupActivity.EXTRA_COURSE,
+                                                                      course));
     }
 
     @Override
@@ -157,7 +185,7 @@ public class LessonActivity extends AppCompatActivity
         i.putParcelableArrayListExtra(EXTRA_SELECTED_NOTES, l);
         i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
         i.putExtra(EXTRA_CURRENT_COURSE, course);
-        startActivity(i);
+        startActivityForResult(i, REQUEST_EDIT_NOTE);
     }
 
     @Override
@@ -177,15 +205,20 @@ public class LessonActivity extends AppCompatActivity
         i.putParcelableArrayListExtra(EXTRA_SELECTED_QUESTIONS, l);
         i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
         i.putExtra(EXTRA_CURRENT_COURSE, course);
-        startActivity(i);
+        startActivityForResult(i, REQUEST_EDIT_QUESTION);
     }
 
-    private class ViewPagerAdapter extends FragmentStatePagerAdapter {
+    protected FloatingActionButton getFab() {
+        return fab;
+    }
+
+    private class NoteQuestionAdapter extends FragmentStatePagerAdapter {
+        SparseArray<Fragment> registeredFragments = new SparseArray<>();
 
         CharSequence[] titles;
         int            numOfTabs;
 
-        public ViewPagerAdapter(FragmentManager fm, CharSequence[] mTitles, int numofTabs) {
+        public NoteQuestionAdapter(FragmentManager fm, CharSequence[] mTitles, int numofTabs) {
             super(fm);
 
             this.titles = mTitles;
@@ -196,8 +229,16 @@ public class LessonActivity extends AppCompatActivity
         @Override
         public Fragment getItem(int position) {
             if (position == 0) {
+                QuestionListFragment qlf = (QuestionListFragment) registeredFragments.get(1);
+                if (qlf != null) {
+                    qlf.dismissSnackbar(); // TODO: 5.9.15. fix
+                }
                 return NoteListFragment.newInstance(course, lessonName);
             } else {
+                NoteListFragment nlf = (NoteListFragment) registeredFragments.get(0);
+                if (registeredFragments.size() > 0) {
+                    nlf.dismissSnackbar(); // TODO: 5.9.15. fix
+                }
                 return QuestionListFragment.newInstance(course, lessonName);
             }
 
@@ -211,6 +252,23 @@ public class LessonActivity extends AppCompatActivity
         @Override
         public int getCount() {
             return numOfTabs;
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            Fragment fragment = (Fragment) super.instantiateItem(container, position);
+            registeredFragments.put(position, fragment);
+            return fragment;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            registeredFragments.remove(position);
+            super.destroyItem(container, position, object);
+        }
+
+        public Fragment getRegisteredFragment(int position) {
+            return registeredFragments.get(position);
         }
     }
 }

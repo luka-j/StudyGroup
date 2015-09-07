@@ -12,7 +12,7 @@
                 android:layout_height="match_parent"
                 android:fillViewport="false">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -60,6 +60,6 @@
             <include
                 style="@style/small_button_position"
                 layout="@layout/button_add"/>
-        </RelativeLayout>
+        </LinearLayout>
     </ScrollView>
 </LinearLayout>

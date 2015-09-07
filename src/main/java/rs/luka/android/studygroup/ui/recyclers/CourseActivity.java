@@ -3,7 +3,6 @@ package rs.luka.android.studygroup.ui.recyclers;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
-import android.util.Log;
 
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
@@ -19,39 +18,25 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
     protected static final String EXTRA_COURSE      = GroupActivity.EXTRA_COURSE;
     protected static final String EXTRA_GO_FORWARD  = "forwardToLesson";
     protected static final String EXTRA_GO_BACKWARD = "backToCourses";
+    private CourseFragment fragment;
+    private String         oldLessonName;
 
     @Override
     protected Fragment createFragment() {
-        Log.i("test", "creating fragment...");
-        return CourseFragment.newInstance((Course) getIntent().getParcelableExtra(GroupActivity.EXTRA_COURSE));
+        fragment = CourseFragment.newInstance((Course) getIntent().getParcelableExtra(GroupActivity.EXTRA_COURSE));
+        return fragment;
     }
 
-    /*@Override
-    protected boolean shouldCreateFragment() {
-        Bundle extras = getIntent().getExtras();
-        if(extras == null) {
-            Log.i("test", "extras == null, creating fragment");
-            return true;
+    protected void skip(String lesson) {
+        if (getIntent().getBooleanExtra(EXTRA_GO_BACKWARD, false)) {
+            onBackPressed();
+        } else if (getIntent().getBooleanExtra(EXTRA_GO_FORWARD, false)) {
+            startActivity(new Intent(this, LessonActivity.class).putExtra(EXTRA_LESSON_NAME, lesson)
+                                                                .putExtra(EXTRA_COURSE,
+                                                                          getIntent().getParcelableExtra(
+                                                                                  GroupActivity.EXTRA_COURSE)));
         }
-        if(Retriever.getNumberOfLessons((UUID) extras.getSerializable(GroupActivity.EXTRA_COURSE_ID)) == 1) {
-            if(extras.getBoolean(EXTRA_GO_FORWARD, false)) {
-                Intent i = new Intent(this, LessonActivity.class);
-                i.putExtra(EXTRA_COURSE_ID, extras.getSerializable(GroupActivity.EXTRA_COURSE_ID));
-                i.putExtra(EXTRA_COURSE_NAME, extras.getString(GroupActivity.EXTRA_COURSE_NAME));
-                i.putExtra(EXTRA_LESSON_NAME, Retriever.getLessons((UUID) extras.getSerializable(GroupActivity.EXTRA_COURSE_ID)).get(0));
-                startActivity(i);
-                Log.i("test", "going forward...");
-                return false;
-            }
-            if(extras.getBoolean(EXTRA_GO_BACKWARD, false)) {
-                Log.i("test", "...going backward");
-                NavUtils.navigateUpFromSameTask(this);
-                return false;
-            }
-        }
-        Log.i("test", "not going anywhere. create fragment");
-        return true;
-    }*/
+    }
 
     @Override
     public void onLessonSelected(String title) {
@@ -63,16 +48,18 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
 
     @Override
     public void onEdit(String title) {
+        oldLessonName = title;
         RenameLessonDialog.newInstance(title).show(getSupportFragmentManager(), "debug");
     }
 
     @Override
     public void onBackPressed() {
-        NavUtils.navigateUpFromSameTask(this);
+        NavUtils.navigateUpTo(this, new Intent(this, GroupActivity.class));
     }
 
     @Override
     public void onRenamed(String s) {
-        Log.i("test", "wanna rename lesson to " + s);
+        ((Course) getIntent().getParcelableExtra(GroupActivity.EXTRA_COURSE)).renameLesson(this, oldLessonName, s);
+        fragment.refresh();
     }
 }

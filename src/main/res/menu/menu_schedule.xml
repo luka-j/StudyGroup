@@ -5,4 +5,8 @@
           android:icon="@drawable/filter"
           android:title="@string/filter"
           app:showAsAction="ifRoom|withText"/>
+    <item
+        android:id="@+id/show_all"
+        android:title="@string/show_all"
+        app:showAsAction="never"/>
 </menu>

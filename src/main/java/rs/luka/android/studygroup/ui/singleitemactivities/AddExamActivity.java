@@ -8,8 +8,10 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -21,7 +23,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.recyclers.RootActivity;
 import rs.luka.android.studygroup.ui.recyclers.ScheduleActivity;
@@ -34,9 +38,9 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
     private static final String DATA_SELECTED_DATE    = "dDate";
     private static final int    REQUEST_SELECT_COURSE = 0;
 
-    private Group           group;
-    private Course          course;
-    private Calendar        selectedDate;
+    private Group    group;
+    private Course   course;
+    private Calendar selectedDate;
 
     private Toolbar         toolbar;
     private EditText        courseEdit;
@@ -51,20 +55,28 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
     private TextView        dateText;
     private CardView        submit;
 
-    private boolean         goBack;
+    private boolean goBack;
+    private boolean editing;
+    private Exam    exam;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_exam);
-        if(savedInstanceState == null || savedInstanceState.getParcelable(DATA_SELECTED_COURSE) == null) {
+        exam = getIntent().getParcelableExtra(ScheduleActivity.EXTRA_EXAM);
+        editing = exam != null;
+        if (editing) {
+            course = exam.getCourse();
+            selectedDate = exam.getCalendar();
+            initViews();
+        } else if (savedInstanceState == null || savedInstanceState.getParcelable(DATA_SELECTED_COURSE) == null) {
             group = getIntent().getParcelableExtra(ScheduleActivity.EXTRA_GROUP);
             startActivityForResult(new Intent(this, SelectCourseActivity.class).putExtra(EXTRA_GROUP,
                                                                                          group),
                                    REQUEST_SELECT_COURSE);
         } else {
-            course=savedInstanceState.getParcelable(DATA_SELECTED_COURSE);
-            if(savedInstanceState.getLong(DATA_SELECTED_DATE) != 0) {
+            course = savedInstanceState.getParcelable(DATA_SELECTED_COURSE);
+            if (savedInstanceState.getLong(DATA_SELECTED_DATE) != 0) {
                 selectedDate = Calendar.getInstance();
                 selectedDate.setTimeInMillis(savedInstanceState.getLong(DATA_SELECTED_DATE));
             }
@@ -124,9 +136,30 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
                                                                                   : new Date(selectedDate.getTimeInMillis())));
         courseEdit = (EditText) findViewById(R.id.add_exam_course_input);
         lessonEdit = (EditText) findViewById(R.id.add_exam_lesson_input);
+        lessonEdit.requestFocus();
         courseEdit.setText(course.getSubject());
         classEdit.setText(course.getYear() == null ? "" : course.getYear().toString());
         classEdit.setSelection(classEdit.length());
+
+        if (editing) {
+            lessonEdit.setText(exam.getLesson());
+            lessonEdit.setSelection(lessonEdit.length());
+            classEdit.setText(exam.getKlassName());
+            classEdit.setSelection(classEdit.length());
+            typeEdit.setText(exam.getType());
+            typeEdit.setSelection(typeEdit.length());
+        }
+
+        typeEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    submit();
+                    return true;
+                }
+                return false;
+            }
+        });
 
         date.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -146,13 +179,40 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                course.addExam(classEdit.getText().toString(),
-                               lessonEdit.getText().toString(),
-                               typeEdit.getText().toString(),
-                               selectedDate);
-                onBackPressed();
+                submit();
             }
         });
+    }
+
+    private void submit() {
+        String  classText  = classEdit.getText().toString();
+        String  lessonText = lessonEdit.getText().toString();
+        String  typeText   = typeEdit.getText().toString();
+        boolean error      = false;
+        if (classText.length() >= Limits.EXAM_CLASS_MAX_LENGTH) {
+            classTil.setError(getString(R.string.error_too_long));
+            error = true;
+        } else { classTil.setError(null); }
+        if (lessonText.length() >= Limits.EXAM_LESSON_MAX_LENGTH) {
+            lessonTil.setError(getString(R.string.error_too_long));
+            error = true;
+        } else { lessonTil.setError(null); }
+        if (typeText.length() >= Limits.EXAM_TYPE_MAX_LENGTH) {
+            typeTil.setError(getString(R.string.error_too_long));
+            error = true;
+        } else { typeTil.setError(null); }
+        if (!error) {
+            if (editing) {
+                exam.edit(this, classText, lessonText, typeText, selectedDate.getTime());
+            } else {
+                course.addExam(this,
+                               classEdit.getText().toString(),
+                               lessonEdit.getText().toString(),
+                               typeEdit.getText().toString(),
+                               selectedDate == null ? new GregorianCalendar() : selectedDate);
+            }
+            onBackPressed();
+        }
     }
 
     @Override

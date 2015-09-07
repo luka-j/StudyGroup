@@ -1,9 +1,11 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
-import android.app.Activity;
+import android.app.LoaderManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -19,25 +21,30 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.Loaders;
 import rs.luka.android.studygroup.model.Group;
-import rs.luka.android.studygroup.model.ID;
-import rs.luka.android.studygroup.model.User;
+import rs.luka.android.studygroup.ui.CursorAdapter;
+import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddGroupActivity;
 
 /**
  * Created by luka on 17.7.15..
  */
-public class GroupListFragment extends Fragment {
+public class GroupListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private static final int REQUEST_ADD_GROUP  = 0;
+    private static final int REQUEST_EDIT_GROUP = 1;
+
     private RecyclerView       recycler;
     private Callbacks          callbacks;
     private GroupAdapter       adapter;
     private FloatingActionButton fab;
-    private SwipeRefreshLayout swipe;
+    private PoliteSwipeRefreshLayout swipe;
+    private CircularProgressView     progress;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,7 +53,7 @@ public class GroupListFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
+    public void onAttach(Context activity) {
         super.onAttach(activity);
         callbacks = (Callbacks) activity;
     }
@@ -56,19 +63,28 @@ public class GroupListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_group_list, container, false);
 
+        progress = (CircularProgressView) view.findViewById(R.id.progress_view);
+
         recycler = (RecyclerView) view.findViewById(R.id.group_recycler_view);
         fab = (FloatingActionButton) view.findViewById(R.id.fab_add_group);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getActivity(), AddGroupActivity.class));
+                startActivityForResult(new Intent(getActivity(), AddGroupActivity.class), REQUEST_ADD_GROUP);
             }
         });
-        recycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+        final LinearLayoutManager lm = new LinearLayoutManager(getContext());
+        recycler.setLayoutManager(lm);
         registerForContextMenu(recycler);
-        updateUI();
+        setData();
 
-        swipe = (SwipeRefreshLayout) view.findViewById(R.id.group_list_swipe);
+        swipe = (PoliteSwipeRefreshLayout) view.findViewById(R.id.group_list_swipe);
+        swipe.setOnChildScrollUpListener(new PoliteSwipeRefreshLayout.OnChildScrollUpListener() {
+            @Override
+            public boolean canChildScrollUp() {
+                return lm.findFirstCompletelyVisibleItemPosition() != 0;
+            }
+        });
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -82,30 +98,23 @@ public class GroupListFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_ADD_GROUP:
+            case REQUEST_EDIT_GROUP:
+                refresh();
+                break;
+        }
+    }
+
+    protected void refresh() {
+        swipe.setRefreshing(true);
+        DataManager.refreshGroups(this, getActivity().getLoaderManager());
+    }
+
     public void stopRefreshing() {
         swipe.setRefreshing(false);
-    }
-
-    private void refresh() {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                List<Group> newGroups = new LinkedList<>();
-                newGroups.add(new Group(new ID(System.currentTimeMillis(),
-                                               (short) new Random().nextInt(65535)), "MG", "BG"));
-                newGroups.add(new Group(new ID(System.currentTimeMillis(),
-                                               (short) new Random().nextInt(65535)), "MG - OS", "BG"));
-                adapter.setGroups(newGroups);
-                adapter.notifyDataSetChanged();
-                stopRefreshing();
-            }
-        }, 800);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        updateUI();
     }
 
     @Override
@@ -125,28 +134,44 @@ public class GroupListFragment extends Fragment {
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.context_edit:
-                callbacks.onEditGroup(adapter.selectedGroup);
+                callbacks.onEditGroup(adapter.selectedGroup, REQUEST_EDIT_GROUP);
                 return true;
         }
         return onContextItemSelected(item);
     }
 
-    public void updateUI() {
-        List<Group> groups = User.getInstance().getGroups();
-
+    public void setData() {
         if (adapter == null) {
-            adapter = new GroupAdapter(groups);
+            adapter = new GroupAdapter(getActivity(), null);
             recycler.setAdapter(adapter);
-        } else {
-            adapter.setGroups(groups);
-            adapter.notifyDataSetChanged();
         }
+        DataManager.getGroups(this, getActivity().getLoaderManager());
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        progress.setVisibility(View.VISIBLE);
+        return new Loaders.GroupLoader(getActivity());
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        adapter.changeCursor(data);
+        if (progress != null) {
+            progress.setVisibility(View.GONE);
+        }
+        stopRefreshing();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        adapter.swapCursor(null);
     }
 
     public interface Callbacks {
         void onGroupSelected(Group group);
 
-        void onEditGroup(Group group);
+        void onEditGroup(Group group, int requestCode);
     }
 
     private class GroupHolder extends RecyclerView.ViewHolder
@@ -173,7 +198,7 @@ public class GroupListFragment extends Fragment {
             this.group = group;
             name.setText(group.getName());
             place.setText(group.getPlace());
-            if (group.hasImage()) { image.setImageBitmap(group.getImage()); }
+            if (group.hasImage()) { image.setImageBitmap(group.getImage(getContext())); }
         }
 
         @Override
@@ -194,13 +219,16 @@ public class GroupListFragment extends Fragment {
         }
     }
 
-    private class GroupAdapter extends RecyclerView.Adapter<GroupHolder> {
-        private Group selectedGroup = null;
+    private class GroupAdapter extends CursorAdapter<GroupHolder> {
+        private Group selectedGroup;
 
-        private List<Group> groups;
+        public GroupAdapter(Context context, Cursor cursor) {
+            super(context, cursor);
+        }
 
-        public GroupAdapter(List<Group> groups) {
-            this.groups = groups;
+        @Override
+        public void onBindViewHolder(GroupHolder viewHolder, Cursor cursor) {
+            viewHolder.bindGroup(((Database.GroupCursor) cursor).getGroup());
         }
 
         @Override
@@ -210,21 +238,6 @@ public class GroupListFragment extends Fragment {
                                                parent,
                                                false);
             return new GroupHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(GroupHolder holder, int position) {
-            Group group = groups.get(position);
-            holder.bindGroup(group);
-        }
-
-        @Override
-        public int getItemCount() {
-            return groups.size();
-        }
-
-        public void setGroups(List<Group> groups) {
-            this.groups = groups;
         }
     }
 }

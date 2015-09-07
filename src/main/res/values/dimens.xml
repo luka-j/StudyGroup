@@ -6,6 +6,7 @@
 
     <dimen name="login_margin_horizontal">20dp</dimen>
 
+    <dimen name="progress_bar_diameter">50dp</dimen>
     <dimen name="fab_margin_right">30dp</dimen>
     <dimen name="fab_margin_bottom">30dp</dimen>
     <dimen name="fab_elevation">6dp</dimen>

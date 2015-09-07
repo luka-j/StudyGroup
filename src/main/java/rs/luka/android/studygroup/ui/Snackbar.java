@@ -1,5 +1,6 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.ui;
 
+import android.animation.Animator;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
@@ -36,6 +37,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.ref.WeakReference;
 
+import rs.luka.android.studygroup.R;
+
 /**
  * Created by luka on 19.7.15..
  */
@@ -44,7 +47,6 @@ public class Snackbar {
     public static final  int LENGTH_SHORT       = -1;
     public static final  int LENGTH_LONG        = 0;
     private static final int ANIMATION_DURATION = 250;
-
     private static final int ANIMATION_FADE_DURATION = 180;
     private static final int MSG_SHOW                = 0;
     private static final int MSG_DISMISS             = 1;
@@ -60,7 +62,10 @@ public class Snackbar {
             Snackbar.sHandler.sendMessage(Snackbar.sHandler.obtainMessage(1, Snackbar.this));
         }
     };
+    private boolean isActionPressed = false;
     private FloatingActionButton fab;
+    private int            mDuration;
+    private OnHideListener hideListener;
     private static final Handler sHandler = new Handler(Looper.getMainLooper(),
                                                         new Handler.Callback() {
                                                             public boolean handleMessage(
@@ -77,7 +82,6 @@ public class Snackbar {
                                                                 }
                                                             }
                                                         });
-    private int mDuration;
 
     Snackbar(ViewGroup parent) {
         this.mParent = parent;
@@ -139,6 +143,11 @@ public class Snackbar {
         return this;
     }
 
+    public Snackbar setOnHideListener(OnHideListener l) {
+        hideListener = l;
+        return this;
+    }
+
     public Snackbar setAction(@StringRes int resId, View.OnClickListener listener) {
         return this.setAction(this.mContext.getText(resId), listener);
     }
@@ -146,10 +155,12 @@ public class Snackbar {
     public Snackbar setAction(CharSequence text, final View.OnClickListener listener) {
         TextView tv = this.mView.getActionView();
         if (!TextUtils.isEmpty(text) && listener != null) {
+            isActionPressed = false;
             tv.setVisibility(View.VISIBLE /*aka 0*/);
             tv.setText(text);
             tv.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View view) {
+                    isActionPressed = true;
                     listener.onClick(view);
                     Snackbar.this.dismiss();
                 }
@@ -245,35 +256,45 @@ public class Snackbar {
             this.mView.setOnLayoutChangeListener(new Snackbar.SnackbarLayout.OnLayoutChangeListener() {
                 public void onLayoutChange(View view, int left, int top, int right, int bottom) {
                     Snackbar.this.animateViewIn();
-                    Snackbar.this.mView.setOnLayoutChangeListener((Snackbar.SnackbarLayout.OnLayoutChangeListener) null);
+                    Snackbar.this.mView.setOnLayoutChangeListener(null);
                 }
             });
         }
 
     }
 
-
     private void animateViewIn() {
         //if(Build.VERSION.SDK_INT >= 14) {
 
-        ViewCompat.setTranslationY(mView, (float) this.mView.getHeight());
-        ViewPropertyAnimatorCompat viewAnim = ViewCompat.animate(mView)
-                                                        .translationY(0.0F)
-                                                        .setInterpolator(AnimationUtils.FAST_OUT_SLOW_IN_INTERPOLATOR)
-                                                        .setDuration(ANIMATION_DURATION)
-                                                        .setListener(new ViewPropertyAnimatorListenerAdapter() {
-                                                            public void onAnimationStart(
-                                                                    View view) {
-                                                                Snackbar.this.mView.animateChildrenIn(
-                                                                        70,
-                                                                        180);
-                                                            }
+        mView.setTranslationY(this.mView.getHeight());
+        ViewPropertyAnimator viewAnim = mView.animate()
+                                             .translationY(0.0F)
+                                             .setInterpolator(AnimationUtils.FAST_OUT_SLOW_IN_INTERPOLATOR)
+                                             .setDuration(ANIMATION_DURATION)
+                                             .setListener(new Animator.AnimatorListener() {
 
-                                                            public void onAnimationEnd(View view) {
-                                                                SnackbarManager.getInstance()
-                                                                               .onShown(Snackbar.this.mManagerCallback);
-                                                            }
-                                                        });
+                                                 public void onAnimationStart(
+                                                         Animator anim) {
+                                                     Snackbar.this.mView.animateChildrenIn(
+                                                             70,
+                                                             180);
+                                                 }
+
+                                                 public void onAnimationEnd(Animator anim) {
+                                                     SnackbarManager.getInstance()
+                                                                    .onShown(Snackbar.this.mManagerCallback);
+                                                 }
+
+                                                 @Override
+                                                 public void onAnimationCancel(Animator animation) {
+                                                     //do nothing?
+                                                 }
+
+                                                 @Override
+                                                 public void onAnimationRepeat(Animator animation) {
+                                                     //do nothing?
+                                                 }
+                                             });
         if (fab != null) {
             ViewPropertyAnimator fabAnim = fab.animate()
                                               .translationY(-mView.getHeight())
@@ -300,10 +321,9 @@ public class Snackbar {
                 }
             });
             this.mView.startAnimation(anim);
-        }*/ //ne radi out-of-the-box i nepotrebno (minSdk je ICS)
+        }*/ //ne radi (fale mi neke klase) i nepotrebno, minSdk je ICS
 
     }
-
 
     private void animateViewOut() {
         //if(Build.VERSION.SDK_INT >= 14) {
@@ -364,6 +384,7 @@ public class Snackbar {
 
     private void onViewHidden() {
         this.mParent.removeView(this.mView);
+        if (!isActionPressed && hideListener != null) hideListener.onHide();
         SnackbarManager.getInstance().onDismissed(this.mManagerCallback);
     }
 
@@ -379,6 +400,10 @@ public class Snackbar {
         }
 
         return false;
+    }
+
+    public interface OnHideListener {
+        void onHide();
     }
 
     @Retention(RetentionPolicy.SOURCE)
@@ -453,7 +478,8 @@ public class Snackbar {
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             if (this.mMaxWidth > 0 && this.getMeasuredWidth() > this.mMaxWidth) {
-                widthMeasureSpec = MeasureSpec.makeMeasureSpec(this.mMaxWidth, 1073741824);
+                widthMeasureSpec = MeasureSpec.makeMeasureSpec(this.mMaxWidth,
+                                                               MeasureSpec.EXACTLY /*aka 1073741824*/);
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             }
 
@@ -695,8 +721,7 @@ class SnackbarManager {
         if (this.mNextSnackbar != null) {
             this.mCurrentSnackbar = this.mNextSnackbar;
             this.mNextSnackbar = null;
-            SnackbarManager.Callback callback
-                    = (SnackbarManager.Callback) this.mCurrentSnackbar.callback.get();
+            SnackbarManager.Callback callback = this.mCurrentSnackbar.callback.get();
             if (callback != null) {
                 callback.show();
             } else {
@@ -707,7 +732,7 @@ class SnackbarManager {
     }
 
     private boolean cancelSnackbarLocked(SnackbarManager.SnackbarRecord record) {
-        SnackbarManager.Callback callback = (SnackbarManager.Callback) record.callback.get();
+        SnackbarManager.Callback callback = record.callback.get();
         if (callback != null) {
             callback.dismiss();
             return true;

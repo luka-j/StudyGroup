@@ -2,7 +2,6 @@ package rs.luka.android.studygroup.ui.recyclers;
 
 import android.content.Intent;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -15,15 +14,17 @@ import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.dialogs.ExamDetailsDialog;
 import rs.luka.android.studygroup.ui.dialogs.FilterDialog;
+import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
 
 /**
- * Created by luka on 29.7.15..
+ * Created by luka on 29.7.15.
  */
 public class ScheduleActivity extends SingleFragmentActivity implements ScheduleFragment.Callbacks,
                                                                         FilterDialog.Callbacks,
                                                                         ExamDetailsDialog.Callbacks {
     public static final String EXTRA_COURSE             = "course";
     public static final String EXTRA_LESSON             = "lesson";
+    public static final String EXTRA_EXAM = "exam";
     public static final String EXTRA_GROUP              = GroupActivity.EXTRA_GROUP;
     public static final  String EXTRA_CURRENT_COURSE     = LessonActivity.EXTRA_CURRENT_COURSE;
     public static final  String EXTRA_CURRENT_QUESTION   = LessonActivity.EXTRA_CURRENT_QUESTION;
@@ -43,7 +44,9 @@ public class ScheduleActivity extends SingleFragmentActivity implements Schedule
 
     @Override
     public void onEditSelected(Exam exam) {
-        Log.i("debug", "Edit selected!");
+        Intent i = new Intent(this, AddExamActivity.class);
+        i.putExtra(EXTRA_EXAM, exam);
+        startActivity(i);
     }
 
     @Override

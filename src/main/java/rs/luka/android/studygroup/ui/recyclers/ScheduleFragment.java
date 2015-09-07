@@ -1,9 +1,12 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
-import android.app.Activity;
+import android.app.LoaderManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -23,25 +26,32 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.List;
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.Snackbar;
+import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.ui.CursorAdapter;
+import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
+import rs.luka.android.studygroup.ui.Snackbar;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
 
 /**
  * Created by luka on 29.7.15..
  */
-public class ScheduleFragment extends Fragment {
-    private Group                group;
-    private RecyclerView         recycler;
-    private Callbacks            callbacks;
-    private ExamAdapter          adapter;
-    private FloatingActionButton fab;
-    private SwipeRefreshLayout   swipe;
-    private CoordinatorLayout    coordinator;
+public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private static final int REQUEST_ADD_EXAM = 0;
+
+    private Group                    group;
+    private RecyclerView             recycler;
+    private Callbacks                callbacks;
+    private ExamAdapter              adapter;
+    private FloatingActionButton     fab;
+    private PoliteSwipeRefreshLayout swipe;
+    private CoordinatorLayout        coordinator;
+    private CircularProgressView     progress;
 
     public static ScheduleFragment newInstance(Group g) {
         ScheduleFragment f    = new ScheduleFragment();
@@ -61,7 +71,7 @@ public class ScheduleFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
+    public void onAttach(Context activity) {
         super.onAttach(activity);
         callbacks = (Callbacks) activity;
     }
@@ -74,6 +84,7 @@ public class ScheduleFragment extends Fragment {
         AppCompatActivity ac = (AppCompatActivity) getActivity();
         ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        progress = (CircularProgressView) view.findViewById(R.id.progress_view);
         recycler = (RecyclerView) view.findViewById(R.id.schedule_recycler_view);
         fab = (FloatingActionButton) view.findViewById(R.id.fab_add_exam);
         coordinator = (CoordinatorLayout) view.findViewById(R.id.coordinator);
@@ -82,18 +93,24 @@ public class ScheduleFragment extends Fragment {
             public void onClick(View v) {
                 Intent i = new Intent(getActivity(), AddExamActivity.class);
                 i.putExtra(RootActivity.EXTRA_GROUP, group);
-                startActivity(i);
+                startActivityForResult(i, REQUEST_ADD_EXAM);
             }
         });
-        recycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+        final LinearLayoutManager lm = new LinearLayoutManager(getActivity());
+        recycler.setLayoutManager(lm);
         registerForContextMenu(recycler);
-        updateUI();
-
+        setData();
 
         new ItemTouchHelper(new TouchHelperCallbacks(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT))
                 .attachToRecyclerView(recycler);
 
-        swipe = (SwipeRefreshLayout) view.findViewById(R.id.schedule_swipe);
+        swipe = (PoliteSwipeRefreshLayout) view.findViewById(R.id.schedule_swipe);
+        swipe.setOnChildScrollUpListener(new PoliteSwipeRefreshLayout.OnChildScrollUpListener() {
+            @Override
+            public boolean canChildScrollUp() {
+                return lm.findFirstCompletelyVisibleItemPosition() != 0;
+            }
+        });
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -107,24 +124,26 @@ public class ScheduleFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_ADD_EXAM:
+                refresh();
+                break;
+        }
+    }
+
     public void stopRefreshing() {
         swipe.setRefreshing(false);
     }
 
     private void refresh() {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                ;
-                stopRefreshing();
-            }
-        }, 2000);
+        DataManager.refreshExams(this, getActivity().getLoaderManager());
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        updateUI();
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName());
     }
 
@@ -159,23 +178,39 @@ public class ScheduleFragment extends Fragment {
             case R.id.filter_exams:
                 callbacks.onFilterSelected();
                 return true;
-            /*case R.id.raspored_kontrolnih:
-                callbacks.onScheduleSelected();
-                return true;*/
+            case R.id.show_all:
+                //TODO
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    public void updateUI() {
-        List<Exam> exams = group.getExamList();
-
+    public void setData() {
         if (adapter == null) {
-            adapter = new ExamAdapter(exams);
+            adapter = new ExamAdapter(getActivity(), null);
             recycler.setAdapter(adapter);
-        } else {
-            adapter.setExams(exams);
-            adapter.notifyDataSetChanged();
         }
+        DataManager.getExams(this, getActivity().getLoaderManager());
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        progress.setVisibility(View.VISIBLE);
+        return group.getExamLoader(getActivity());
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        adapter.changeCursor(data);
+        if (progress != null) {
+            progress.setVisibility(View.GONE);
+        }
+        stopRefreshing();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        adapter.swapCursor(null);
     }
 
     public interface Callbacks {
@@ -199,24 +234,34 @@ public class ScheduleFragment extends Fragment {
         @Override
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             final Exam exam   = ((ExamHolder) viewHolder).exam;
-            final int  position = viewHolder.getAdapterPosition();
-            adapter.removeExam(position);
+            exam.hide(getActivity());
+            refresh();
             Snackbar.make(coordinator, R.string.exam_hidden, Snackbar.LENGTH_LONG)
+                    .setOnHideListener(new Snackbar.OnHideListener() {
+                        @Override
+                        public void onHide() {
+                            new RemoveExamTask().doInBackground(exam);
+                        }
+                    })
                     .setAction(R.string.undo, new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            adapter.addExam(exam, position);
-                            exam.show();
+                            exam.show(getActivity());
+                            refresh();
                         }
                     })
                     .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
                     .colorTheFuckingTextToWhite(getActivity())
                     .doStuffThatGoogleDidntFuckingDoProperly(getActivity(), fab)
                     .show();
-            // ((TextView)(coordinator.findViewById(android.support.design.R.id.snackbar_text)))
-            //       .setTextColor(getActivity().getResources().getColor(R.color.white)); //fuck you Google
-            // doesn't actually work
-            exam.hide();
+        }
+    }
+
+    private class RemoveExamTask extends AsyncTask<Exam, Void, Void> {
+        @Override
+        protected Void doInBackground(Exam... params) {
+            params[0].remove(getActivity());
+            return null;
         }
     }
 
@@ -271,13 +316,11 @@ public class ScheduleFragment extends Fragment {
         }
     }
 
-    private class ExamAdapter extends RecyclerView.Adapter<ExamHolder> {
+    private class ExamAdapter extends CursorAdapter<ExamHolder> {
         private Exam selectedExam;
 
-        private List<Exam> exams;
-
-        public ExamAdapter(List<Exam> exams) {
-            this.exams = exams;
+        public ExamAdapter(Context context, Cursor cursor) {
+            super(context, cursor);
         }
 
         @Override
@@ -288,30 +331,8 @@ public class ScheduleFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(ExamHolder holder, int position) {
-            Exam exam = exams.get(position);
-            holder.bindExam(exam);
-        }
-
-        @Override
-        public int getItemCount() {
-            return exams.size();
-        }
-
-        public void setExams(List<Exam> exams) {
-            this.exams = exams;
-        }
-
-        public void removeExam(int position) {
-            exams.remove(position);
-            this.notifyItemRemoved(position);
-            this.notifyItemRangeChanged(position, exams.size());
-        }
-
-        public void addExam(Exam exam, int position) {
-            exams.add(position, exam);
-            this.notifyItemInserted(position);
-            this.notifyItemRangeChanged(position, exams.size());
+        public void onBindViewHolder(ExamHolder viewHolder, Cursor cursor) {
+            viewHolder.bindExam(((Database.ExamCursor) cursor).getExam());
         }
     }
 }

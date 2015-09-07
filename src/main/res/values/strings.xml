@@ -43,12 +43,13 @@
     <string name="undo">Undo</string>
     <string name="course_hidden">Course hidden</string>
     <string name="lesson_hidden">Lesson hidden</string>
-    <string name="note_hidden">Note hidden</string>
-    <string name="question_hidden">Question hidden</string>
+    <string name="notes_hidden">Notes hidden</string>
+    <string name="questions_hidden">Questions hidden</string>
     <string name="exam_hidden">Exam hidden</string>
 
     <string name="edit">Edit</string>
     <string name="rename">Rename</string>
+    <string name="hide">Hide</string>
     <string name="rename_lesson">Rename lesson: </string>
     <string name="cancel">Cancel</string>
 
@@ -71,4 +72,5 @@
     <string name="course">Course</string>
     <string name="klass">Class</string> <!--Odeljenje-->
     <string name="type">Type</string>
+    <string name="show_all">Show all</string>
 </resources>
