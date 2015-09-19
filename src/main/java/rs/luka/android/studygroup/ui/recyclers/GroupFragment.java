@@ -58,7 +58,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     public static GroupFragment newInstance(Group group) {
         GroupFragment f    = new GroupFragment();
         Bundle        args = new Bundle();
-        args.putParcelable(RootActivity.EXTRA_GROUP, group);
+        args.putParcelable(GroupActivity.EXTRA_GROUP, group);
         f.setArguments(args);
         return f;
     }
@@ -68,7 +68,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        group = getArguments().getParcelable(RootActivity.EXTRA_GROUP);
+        group = getArguments().getParcelable(GroupActivity.EXTRA_GROUP);
         //setRetainInstance(true);
     }
 
@@ -96,7 +96,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(getActivity(), AddCourseActivity.class);
-                i.putExtra(RootActivity.EXTRA_GROUP, group);
+                i.putExtra(AddCourseActivity.EXTRA_GROUP, group);
                 startActivityForResult(i, REQUEST_ADD_COURSE);
             }
         });
@@ -175,7 +175,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         switch (item.getItemId()) {
             case android.R.id.home:
                 Intent i = new Intent(getActivity(), RootActivity.class);
-                i.putExtra(RootActivity.EXTRA_SHOW_LIST, true);
+                i.putExtra(GroupActivity.EXTRA_SHOW_LIST, true);
                 startActivity(i);
                 return true;
         }
@@ -298,7 +298,9 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                 yearTextView.setText(getResources().getString(R.string.year_no,
                                                               course.getYear().toString()));
             } else { yearTextView.setText(""); }
-            if (course.hasImage()) { imageView.setImageBitmap(course.getImage(getContext())); } else {
+            if (course.hasImage()) {
+                imageView.setImageBitmap(course.getImage(getResources().getDimensionPixelSize(R.dimen.card_image_size)));
+            } else {
                 imageView.setImageResource(R.drawable.placeholder);
             }
         }

@@ -19,10 +19,30 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/siview_text_size" />
 
+        <TextView
+            android:id="@+id/play_audio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/siview_play_margin_top"
+            android:drawableLeft="@drawable/ic_play_arrow"
+            android:drawablePadding="@dimen/siview_play_button_padding"
+            android:drawableStart="@drawable/ic_play_arrow"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:lines="1"
+            android:text="@string/play_audio"
+            android:textSize="@dimen/siview_play_text_size"
+            android:visibility="gone"/>
+
         <ImageView
             android:id="@+id/note_image"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/siview_image_margin_vertical"
+            android:layout_marginTop="@dimen/siview_image_margin_vertical"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/note_image_desc"
+            android:scaleType="centerInside"/>
 
         <TextView
             android:id="@+id/note_history"

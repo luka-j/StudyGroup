@@ -12,11 +12,14 @@ import java.text.DateFormat;
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.LocalImages;
 
 /**
  * Created by luka on 2.7.15..
  */
 public class Question implements Parcelable, Comparable<Question> {
+    public static final String EXAM_PREFIX = "-exam-";
+
     public static final Parcelable.Creator<Question> CREATOR
             = new Parcelable.Creator<Question>() {
         public Question createFromParcel(Parcel in) {
@@ -54,12 +57,16 @@ public class Question implements Parcelable, Comparable<Question> {
         return answer;
     }
 
-    public boolean hasImage() {
-        return false;
+    public boolean hasImage(String courseName) {
+        return DataManager.imageExists(id, courseName, lesson);
     }
 
-    public Bitmap getImage(Context c) {
-        return DataManager.getImage(c, id);
+    public Bitmap getImage(String courseName, int idealDimension) {
+        return DataManager.getImage(id, courseName, lesson, idealDimension);
+    }
+
+    public String getImagePath(String courseName) {
+        return LocalImages.getItemImagePath(courseName, lesson, id);
     }
 
     public String getHistory(Context c) {
@@ -77,7 +84,9 @@ public class Question implements Parcelable, Comparable<Question> {
     }
 
     public void edit(Context c, String lesson, String question, String answer, File image) {
-        DataManager.editQuestion(c, id, lesson, question, answer, image);
+        if (lesson.startsWith(EXAM_PREFIX)) {
+            DataManager.editQuestion(c, id, lesson.substring(EXAM_PREFIX.length()), question, answer, image);
+        } else { DataManager.editQuestion(c, id, lesson, question, answer, image); }
     }
 
     @Override

@@ -1,16 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical"
+    android:paddingBottom="@dimen/list_item_padding_vertical"
     android:paddingLeft="@dimen/list_item_padding_horizontal"
     android:paddingRight="@dimen/list_item_padding_horizontal"
     android:paddingTop="@dimen/list_item_padding_vertical">
+
+    <ImageView
+        android:id="@+id/item_question_thumbnail"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="@dimen/list_item_thumbnail_margin_right"
+        android:layout_marginRight="@dimen/list_item_thumbnail_margin_right"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/question_image_desc"
+        android:scaleType="centerInside"/>
 
     <TextView
         android:id="@+id/item_question_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/item_question_thumbnail"
+        android:layout_toRightOf="@id/item_question_thumbnail"
         android:ellipsize="end"
         android:lines="1"
         android:paddingBottom="@dimen/question_text_padding_bottom"
@@ -21,7 +35,10 @@
         android:id="@+id/item_answer_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/item_question_text"
+        android:layout_toEndOf="@id/item_question_thumbnail"
+        android:layout_toRightOf="@id/item_question_thumbnail"
         android:ellipsize="end"
         android:lines="1"
         android:textSize="@dimen/list_item_text_size"/>
-</LinearLayout>
+</RelativeLayout>

@@ -2,11 +2,10 @@ package rs.luka.android.studygroup.ui.singleitemactivities;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -25,12 +24,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.File;
-import java.util.Date;
 import java.util.List;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.Utils;
 import rs.luka.android.studygroup.io.Limits;
+import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.ui.recyclers.ExamQuestionsActivity;
@@ -41,10 +40,8 @@ import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
  */
 public class AddQuestionActivity extends AppCompatActivity {
 
-    private static final int  IDEAL_IMAGE_DIMENSION = 300;
+    public static final String STATE_IMAGE_FILE_PATH = "stateimg";
     private static final int  INTENT_IMAGE          = 0;
-    private static final File imageDir              = new File(
-            Environment.getExternalStorageDirectory().toString() + "/DCIM/StudyGroup/");
     private LinearLayout content;
     private EditText        lesson;
     private EditText        answer;
@@ -86,7 +83,7 @@ public class AddQuestionActivity extends AppCompatActivity {
         questionTil = (TextInputLayout) findViewById(R.id.add_question_text_til);
         add = (CardView) findViewById(R.id.button_add);
         image = (ImageView) findViewById(R.id.add_question_image);
-        if (editing) {
+        if (editing && questions.size() > 1) { //kreiranje dva dugmeta
             LayoutInflater inflater = LayoutInflater.from(this);
             buttonsLayout = (LinearLayout) inflater.inflate(R.layout.buttons_next_done, null, false);
             LinearLayout.LayoutParams params
@@ -112,8 +109,8 @@ public class AddQuestionActivity extends AppCompatActivity {
                     done();
                 }
             });
-            setFieldsForEditing();
         }
+        if (editing) setFieldsForEditing(); //sorry for being ugly
 
         String lessonText = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         lesson.setText(lessonText);
@@ -142,13 +139,10 @@ public class AddQuestionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (!imageDir.isDirectory()) { imageDir.mkdir(); }
-                imageFile = new File(imageDir,
-                                     course.getSubject()
-                                     + " - "
-                                     + getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON)
-                                     + " "
-                                     + new Date().getTime() + ".jpg");
+                File courseImageDir = new File(LocalImages.APP_IMAGE_DIR, course.getSubject());
+                if (!LocalImages.APP_IMAGE_DIR.isDirectory()) { LocalImages.APP_IMAGE_DIR.mkdir(); }
+                if (!courseImageDir.isDirectory()) courseImageDir.mkdir();
+                imageFile = new File(courseImageDir, lesson.getText().toString() + ".temp");
                 Intent gallery = new Intent(Intent.ACTION_PICK);
                 gallery.setType("image/*");
                 camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
@@ -164,18 +158,11 @@ public class AddQuestionActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != Activity.RESULT_CANCELED) {
             if (requestCode == INTENT_IMAGE) {
-                if (data
-                    != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
-                    imageFile = new File(Utils.getRealPathFromURI(this, data.getData()));
+                if (data != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
+                    imageFile = new File(Utils.getRealPathFromUri(this, data.getData()));
                 }
-                BitmapFactory.Options opts = new BitmapFactory.Options();
-                opts.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(imageFile.getAbsolutePath(), opts);
-                opts.inJustDecodeBounds = false;
-                int larger = opts.outHeight > opts.outWidth ? opts.outHeight : opts.outWidth;
-                opts.inSampleSize = larger / IDEAL_IMAGE_DIMENSION;
-                opts.inPreferQualityOverSpeed = false;
-                image.setImageBitmap(BitmapFactory.decodeFile(imageFile.getAbsolutePath(), opts));
+                image.setImageBitmap(LocalImages.loadImage(imageFile,
+                                                           getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
             }
         }
     }
@@ -184,15 +171,22 @@ public class AddQuestionActivity extends AppCompatActivity {
         question.setText(questions.get(currentQuestion).getQuestion());
         question.setSelection(question.getText().length());
         answer.setText(questions.get(currentQuestion).getAnswer());
-        if (questions.get(currentQuestion).hasImage()) {
-            image.setImageBitmap(questions.get(currentQuestion).getImage(this));
+        if (questions.get(currentQuestion).hasImage(course.getSubject())) {
+            image.setImageBitmap(questions.get(currentQuestion)
+                                          .getImage(course.getSubject(),
+                                                    getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
         }
     }
 
     private void doSubmit() {
         boolean error = false;
-        String lessonStr = lesson.getText().toString(),
-                questionStr = question.getText().toString(),
+        String lessonStr;
+        if (getIntent().getStringExtra(ExamQuestionsActivity.EXTRA_LESSON_REAL_NAME) != null) {
+            lessonStr = getIntent().getStringExtra(ExamQuestionsActivity.EXTRA_LESSON_REAL_NAME);
+        } else {
+            lessonStr = lesson.getText().toString();
+        }
+        String questionStr = question.getText().toString(),
                 answerStr = answer.getText().toString();
         if (lessonStr.isEmpty()) {
             lessonTil.setError(getString(R.string.error_empty));
@@ -214,15 +208,38 @@ public class AddQuestionActivity extends AppCompatActivity {
                              .edit(this, lessonStr, questionStr, answerStr, imageFile);
                 }
                 if (currentQuestion == questions.size() - 1) { mergeButtons(); }
-                if (currentQuestion == questions.size()) { onBackPressed(); }
+                if (currentQuestion == questions.size()) {
+                    setResultData(lessonStr);
+                    onBackPressed();
+                }
             } else {
                 course.addQuestion(this, lessonStr, questionStr, answerStr, imageFile);
-                Intent lessonData = new Intent();
-                lessonData.putExtra(LessonActivity.EXTRA_LESSON, lessonStr);
-                setResult(RESULT_OK, lessonData);
+                setResultData(lessonStr);
                 onBackPressed();
             }
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(STATE_IMAGE_FILE_PATH, imageFile.getAbsolutePath());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState.getString(STATE_IMAGE_FILE_PATH) != null) {
+            imageFile = new File(savedInstanceState.getString(STATE_IMAGE_FILE_PATH));
+            image.setImageBitmap(LocalImages.loadImage(imageFile,
+                                                       getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
+        }
+    }
+
+    private void setResultData(String lessonStr) {
+        Intent lessonData = new Intent();
+        lessonData.putExtra(LessonActivity.EXTRA_LESSON, lessonStr);
+        setResult(RESULT_OK, lessonData);
     }
 
     private void mergeButtons() {
@@ -233,7 +250,10 @@ public class AddQuestionActivity extends AppCompatActivity {
 
     private void done() {
         doSubmit();
-        if (currentQuestion < questions.size()) { onBackPressed(); }
+        if (currentQuestion < questions.size()) {
+            setResultData(lesson.getText().toString());
+            onBackPressed();
+        }
     }
 
     @Override

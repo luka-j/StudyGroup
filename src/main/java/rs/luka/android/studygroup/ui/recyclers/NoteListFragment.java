@@ -17,12 +17,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
@@ -98,11 +96,12 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         return f;
     }
 
-    protected void setLessonNameIfEmpty(String lessonName) {
-        if (this.lessonName == null || this.lessonName.isEmpty()) {
+    protected void refreshForLesson(String lessonName) {
+        if (this.lessonName == null || !this.lessonName.equals(lessonName)) {
             this.lessonName = lessonName;
             ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(lessonName);
         }
+        refresh();
     }
 
     @Override
@@ -198,13 +197,6 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         snackbar = null;
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        //TODO
-        //inflater.inflate(R.menu.fragment_group, menu);
-    }
-
     public void setData() {
         if (adapter == null) {
             adapter = new NotesAdapter(getActivity(), null);
@@ -235,16 +227,16 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     public interface NoteCallbacks {
-        void onNoteSelected(Note note);
+        void onNoteSelected(int position);
 
         void onNotesEdit(Set<Note> notes);
     }
 
     private class NoteHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener, View.OnLongClickListener {
-        private TextView titleTextView;
-        private LinearLayout layout;
-        private View     container;
+        private TextView  titleTextView;
+        private ImageView thumbnail;
+        private View      container;
 
         private Note note;
 
@@ -255,16 +247,17 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
 
             container = itemView;
             titleTextView = (TextView) itemView.findViewById(R.id.item_note_text);
-            layout = (LinearLayout) itemView.findViewById(R.id.item_note_layout);
+            thumbnail = (ImageView) itemView.findViewById(R.id.item_note_thumbnail);
         }
 
         public void bindNote(Note note) {
             this.note = note;
             titleTextView.setText(note.getText());
-            if (note.hasImage()) {
-                ImageView imgView = new ImageView(getActivity());
-                imgView.setImageBitmap(note.getImage(getContext()));
-                layout.addView(imgView, 0);
+            if (note.hasImage(course.getSubject())) {
+                thumbnail.setImageBitmap(note.getImage(course.getSubject(),
+                                                       getResources().getDimensionPixelSize(R.dimen.list_item_thumbnail_size)));
+            } else {
+                thumbnail.setImageBitmap(null);
             }
             if (selected.contains(note)) {
                 select(container);
@@ -275,7 +268,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
 
         @Override
         public void onClick(View v) {
-            if (selected.isEmpty()) { callbacks.onNoteSelected(note); } else {
+            if (selected.isEmpty()) { callbacks.onNoteSelected(getAdapterPosition()); } else {
                 if (selected.contains(note)) {
                     selected.remove(note);
                     deselect(v);
@@ -293,7 +286,6 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
             }
             select(v);
             return true;
-            //return false;
         }
 
         private void select(View v) {
@@ -335,14 +327,6 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         @Override
         public void onBindViewHolder(NoteHolder holder, Cursor data) {
             holder.bindNote(((Database.NoteCursor) data).getNote());
-        }
-
-        public void removeNote(int position) {
-            //todo
-        }
-
-        public void addNote(Note note, int position) {
-            //todo
         }
     }
 }

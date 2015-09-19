@@ -54,11 +54,11 @@ public class Group implements Parcelable, Comparable<Group> {
     }
 
     public boolean hasImage() {
-        return false;
+        return DataManager.imageExists(id, name, null);
     }
 
-    public Bitmap getImage(Context c) {
-        return DataManager.getImage(c, id);
+    public Bitmap getImage(int scaleTo) {
+        return DataManager.getImage(id, name, null, scaleTo);
     }
 
     public String getPlace() {

@@ -12,10 +12,10 @@ import android.support.annotation.Nullable;
 import java.io.File;
 import java.util.Calendar;
 
-import rs.luka.android.studygroup.Utils;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.Loaders;
+import rs.luka.android.studygroup.misc.Utils;
 
 /**
  * Created by Luka on 7/1/2015.
@@ -77,11 +77,11 @@ public class Course implements Parcelable, Comparable<Course> {
     }
 
     public boolean hasImage() {
-        return false;
+        return DataManager.imageExists(id, subject, null);
     }
 
-    public Bitmap getImage(Context c) {
-        return DataManager.getImage(c, id);
+    public Bitmap getImage(int minDimension) {
+        return DataManager.getImage(id, subject, null, minDimension);
     }
 
     public Loader<Cursor> getLessonLoader(Context c) {
@@ -121,11 +121,11 @@ public class Course implements Parcelable, Comparable<Course> {
     }
 
     public void addNote(Context c, String lesson, String text, File image, File audio) {
-        DataManager.addNote(c, id, lesson, text); //todo image/audio
+        DataManager.addNote(c, id, subject, lesson, text, image, audio);
     }
 
     public void addQuestion(Context c, String lesson, String question, String answer, File image) {
-        DataManager.addQuestion(c, id, lesson, question, answer); //todo image
+        DataManager.addQuestion(c, id, subject, lesson, question, answer, image);
     }
 
     public void addExam(Context c, String klass, String lesson, String type, Calendar date) {

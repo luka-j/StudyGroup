@@ -15,7 +15,6 @@ import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
-import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.ui.CursorFragmentStatePagerAdapter;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
 
@@ -27,7 +26,7 @@ public class QuestionPagerActivity extends AppCompatActivity implements LoaderMa
     private CursorFragmentStatePagerAdapter adapter;
     private Course                          course;
     private String                          lesson;
-    private Question  callingQuestion;
+    private int position;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,13 +37,11 @@ public class QuestionPagerActivity extends AppCompatActivity implements LoaderMa
 
         course = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE);
         lesson = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
-        callingQuestion = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_QUESTION);
-
+        position = getIntent().getIntExtra(LessonActivity.EXTRA_CURRENT_QUESTION_POSITION, 0);
         adapter = new QuestionAdapter(this, this.getSupportFragmentManager(), null);
         DataManager.getNotes(this, this.getLoaderManager());
 
         viewPager.setAdapter(adapter);
-        //todo set current item
     }
 
     @Override
@@ -55,6 +52,7 @@ public class QuestionPagerActivity extends AppCompatActivity implements LoaderMa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         adapter.changeCursor(data);
+        viewPager.setCurrentItem(position);
     }
 
     @Override
@@ -62,7 +60,7 @@ public class QuestionPagerActivity extends AppCompatActivity implements LoaderMa
         adapter.swapCursor(null);
     }
 
-    private static class QuestionAdapter extends CursorFragmentStatePagerAdapter {
+    private class QuestionAdapter extends CursorFragmentStatePagerAdapter {
 
         public QuestionAdapter(Context context, FragmentManager fm,
                                Cursor cursor) {
@@ -71,7 +69,8 @@ public class QuestionPagerActivity extends AppCompatActivity implements LoaderMa
 
         @Override
         public Fragment getItem(Context context, Cursor cursor) {
-            return QuestionFragment.newInstance(((Database.QuestionCursor) cursor).getQuestion());
+            return QuestionFragment.newInstance(course.getSubject(),
+                                                ((Database.QuestionCursor) cursor).getQuestion());
         }
     }
 }

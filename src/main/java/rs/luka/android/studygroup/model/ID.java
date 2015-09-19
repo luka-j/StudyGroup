@@ -3,6 +3,7 @@ package rs.luka.android.studygroup.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.util.Base64;
 import android.util.Log;
 
 import java.nio.ByteBuffer;
@@ -103,6 +104,18 @@ public class ID implements Parcelable, Comparable<ID> {
         return new ID(groupId, salt);
     }
 
+    public boolean isGroupId() {
+        return courseId == 0 && itemId == 0;
+    }
+
+    public boolean isCourseId() {
+        return courseId != 0 && itemId == 0;
+    }
+
+    public boolean isItemId() {
+        return courseId != 0 && itemId != 0;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -158,5 +171,15 @@ public class ID implements Parcelable, Comparable<ID> {
 
     public int getLow4() {
         return itemId;
+    }
+
+    @Override
+    public String toString() {
+        ByteBuffer bytes = ByteBuffer.allocate(16);
+        bytes.putLong(groupId);
+        bytes.putShort(salt);
+        bytes.putShort(courseId);
+        bytes.putInt(itemId);
+        return Base64.encodeToString(bytes.array(), Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING);
     }
 }

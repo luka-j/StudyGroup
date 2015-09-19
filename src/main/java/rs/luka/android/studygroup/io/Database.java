@@ -455,6 +455,7 @@ public class Database extends SQLiteOpenHelper {
     }
 
     public void editLessonCounts(ID courseId, String lesson, int noteCount, int questionCount) {
+        if (lesson.startsWith(Question.EXAM_PREFIX)) return; //belezim samo one lekcije koje pripadaju premetu
         ContentValues cv = new ContentValues(5);
         cv.put(Lessons.LessonEntry.COLUMN_NAME_NOTE_NO, noteCount);
         cv.put(Lessons.LessonEntry.COLUMN_NAME_QUESTION_NO, questionCount);

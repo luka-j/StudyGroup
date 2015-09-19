@@ -145,6 +145,9 @@
             android:name=".ui.recyclers.SelectCourseActivity"
             android:label="@string/select_course"
             android:launchMode="singleTop"/>
+        <activity
+            android:name=".ui.singleitemactivities.FullscreenImageActivity"
+            android:launchMode="singleTop"/>
     </application>
 
 </manifest>

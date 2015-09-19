@@ -18,6 +18,8 @@ package rs.luka.android.studygroup.ui;
  */
 /*
  * Changed name of the class.
+ * Fixed swapCursor bug
+ * Added #getCurrentPosition()
  */
 
 import android.content.Context;
@@ -99,6 +101,10 @@ public abstract class CursorAdapter<VH extends RecyclerView.ViewHolder> extends 
         if (old != null) {
             old.close();
         }
+    }
+
+    public int getCurrentPosition() {
+        return mCursor.getPosition();
     }
 
     /**

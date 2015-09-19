@@ -30,7 +30,12 @@
         <ImageView
             android:id="@+id/question_image"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/siview_image_margin_vertical"
+            android:layout_marginTop="@dimen/siview_image_margin_vertical"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/question_image_desc"
+            android:scaleType="centerInside"/>
 
         <TextView
             android:id="@+id/question_history"

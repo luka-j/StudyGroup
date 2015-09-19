@@ -20,13 +20,20 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddQuestionActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.QuestionPagerActivity;
 
 /**
- * Created by luka on 31.7.15..
+ * Created by luka on 31.7.15.
  */
 public class ExamQuestionsActivity extends SingleFragmentActivity
         implements QuestionListFragment.QuestionCallbacks {
 
     public static final String EXTRA_IMMUTABLE_LESSON = "canEditLessonName";
-    public static final String EXAM_LESSON_PREFIX     = "-exam-";
+    public static final  String EXTRA_LESSON_REAL_NAME = "realLesson";
+    public static final  String EXTRA_COURSE           = "course";
+    public static final  String EXTRA_LESSON           = "lesson";
+    private static final int    REQUEST_ADD_QUESTION   = 0;
+    private static final int    REQUEST_EDIT_QUESTION  = 1;
+    private String               lesson;
+    private Course               course;
+    private QuestionListFragment fragment;
 
     @Override
     protected int getLayoutResId() {
@@ -35,30 +42,41 @@ public class ExamQuestionsActivity extends SingleFragmentActivity
 
     @Override
     protected Fragment createFragment() {
-        return QuestionListFragment.newInstance((Course) getIntent().getParcelableExtra(ScheduleActivity.EXTRA_COURSE),
-                                                getIntent().getStringExtra(ScheduleActivity.EXTRA_LESSON));
+        fragment = QuestionListFragment.newInstance((Course) getIntent().getParcelableExtra(EXTRA_COURSE),
+                                                    getIntent().getStringExtra(EXTRA_LESSON));
+        return fragment;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        course = getIntent().getParcelableExtra(EXTRA_COURSE);
+        lesson = getIntent().getStringExtra(EXTRA_LESSON);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(getIntent().getStringExtra(ScheduleActivity.EXTRA_LESSON)
-                                                  .substring(EXAM_LESSON_PREFIX.length()));
+        getSupportActionBar().setTitle(lesson.substring(Question.EXAM_PREFIX.length()));
         final Activity This = this;
         findViewById(R.id.fab_add_exam_question).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(This, AddQuestionActivity.class);
-                i.putExtra(ScheduleActivity.EXTRA_CURRENT_COURSE,
-                           getIntent().getParcelableExtra(ScheduleActivity.EXTRA_COURSE));
-                i.putExtra(ScheduleActivity.EXTRA_CURRENT_LESSON,
-                           getIntent().getStringExtra(ScheduleActivity.EXTRA_LESSON)
-                                      .substring(EXAM_LESSON_PREFIX.length()));
+                i.putExtra(ScheduleActivity.EXTRA_CURRENT_COURSE, course);
+                i.putExtra(ScheduleActivity.EXTRA_CURRENT_LESSON, lesson.substring(Question.EXAM_PREFIX.length()));
+                i.putExtra(EXTRA_LESSON_REAL_NAME, lesson);
                 i.putExtra(EXTRA_IMMUTABLE_LESSON, true);
-                startActivity(i);
+                startActivityForResult(i, REQUEST_ADD_QUESTION);
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_ADD_QUESTION:
+                case REQUEST_EDIT_QUESTION:
+                    fragment.refresh();
+            }
+        }
     }
 
     @Override
@@ -71,13 +89,13 @@ public class ExamQuestionsActivity extends SingleFragmentActivity
     }
 
     @Override
-    public void onQuestionSelected(Question question) {
+    public void onQuestionSelected(int questionIndex) {
         Intent i = new Intent(this, QuestionPagerActivity.class);
         i.putExtra(ScheduleActivity.EXTRA_CURRENT_COURSE,
-                   getIntent().getParcelableExtra(ScheduleActivity.EXTRA_COURSE));
+                   getIntent().getParcelableExtra(EXTRA_COURSE));
         i.putExtra(ScheduleActivity.EXTRA_CURRENT_LESSON,
-                   getIntent().getStringExtra(ScheduleActivity.EXTRA_LESSON));
-        i.putExtra(ScheduleActivity.EXTRA_CURRENT_QUESTION, question);
+                   getIntent().getStringExtra(EXTRA_LESSON));
+        i.putExtra(ScheduleActivity.EXTRA_CURRENT_QUESTION_POSITION, questionIndex);
         startActivity(i);
     }
 
@@ -88,11 +106,10 @@ public class ExamQuestionsActivity extends SingleFragmentActivity
         Intent i = new Intent(this, AddQuestionActivity.class);
         i.putParcelableArrayListExtra(ScheduleActivity.EXTRA_SELECTED_QUESTIONS, l);
         i.putExtra(ScheduleActivity.EXTRA_CURRENT_COURSE,
-                   getIntent().getParcelableExtra(ScheduleActivity.EXTRA_COURSE));
-        i.putExtra(ScheduleActivity.EXTRA_CURRENT_LESSON,
-                   getIntent().getStringExtra(ScheduleActivity.EXTRA_LESSON)
-                              .substring(EXAM_LESSON_PREFIX.length()));
+                   getIntent().getParcelableExtra(EXTRA_COURSE));
+        i.putExtra(ScheduleActivity.EXTRA_CURRENT_LESSON, lesson.substring(Question.EXAM_PREFIX.length()));
+        i.putExtra(EXTRA_LESSON_REAL_NAME, lesson);
         i.putExtra(EXTRA_IMMUTABLE_LESSON, true);
-        startActivity(i);
+        startActivityForResult(i, REQUEST_EDIT_QUESTION);
     }
 }

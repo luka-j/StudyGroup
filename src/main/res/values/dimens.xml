@@ -22,10 +22,11 @@
     <dimen name="card_margin_horizontal">@dimen/layout_padding_horizontal</dimen>
     <dimen name="card_margin_vertical">14dp</dimen>
 
+    <dimen name="card_image_size">96dp</dimen>
     <dimen name="card_image_width">96dp</dimen>
     <dimen name="card_image_height">96dp</dimen>
     <dimen name="card_image_right_margin">8dp</dimen>
-    <dimen name="card_image_left_margin">4dp</dimen>
+    <dimen name="card_image_left_margin">6dp</dimen>
     <dimen name="card_image_vertical_margin">3dp</dimen>
 
     <dimen name="card_title_text_size">22sp</dimen>
@@ -38,9 +39,13 @@
     <dimen name="card_subtitle1_padding_vertical">4dp</dimen>
     <dimen name="card_subtitle2_padding_vertical">3dp</dimen>
 
-    <dimen name="list_item_padding_vertical">16dp</dimen>
+    <dimen name="list_item_padding_vertical">8dp</dimen>
     <dimen name="list_item_padding_horizontal">@dimen/layout_padding_horizontal</dimen>
     <dimen name="list_item_text_size">16sp</dimen>
+    <dimen name="list_item_thumbnail_size">58dp</dimen>
+    <dimen name="list_item_thumbnail_width">58dp</dimen>
+    <dimen name="list_item_thumbnail_height">58dp</dimen>
+    <dimen name="list_item_thumbnail_margin_right">12dp</dimen>
     <dimen name="question_text_padding_bottom">3dp</dimen>
 
     <!--single item view -->
@@ -50,7 +55,12 @@
     <dimen name="siview_margin_vertical">@dimen/card_margin_horizontal</dimen>
     <dimen name="siview_margin_horizontal">16dp</dimen>
     <dimen name="siview_question_text_padding_bottom">10dp</dimen>
+    <dimen name="siview_image_margin_vertical">22dp</dimen>
+    <dimen name="siview_play_margin_top">20dp</dimen>
+    <dimen name="siview_play_text_size">17sp</dimen>
+    <dimen name="siview_play_button_padding">4dp</dimen>
 
+    <dimen name="addview_image_size">110dp</dimen>
     <dimen name="addview_image_width">110dp</dimen>
     <dimen name="addview_image_height">110dp</dimen>
     <dimen name="addview_image_margin_top">16dp</dimen>

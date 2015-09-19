@@ -1,32 +1,26 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.misc;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
-import android.provider.MediaStore;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collection;
 
 /**
  * Created by luka on 16.7.15..
  */
 public class Utils {
+    private static final int COPY_BUFFER_SIZE = 1024;
 
-
-    public static String getRealPathFromURI(Context context, Uri contentUri) {
-        Cursor cursor = null;
-        try {
-            String[] proj = {MediaStore.Images.Media.DATA};
-            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
+    public static String getRealPathFromUri(Context c, Uri uri) {
+        return FilePathUtils.getPath(c, uri);
     }
+
 
     public static Integer intPrimitiveToObj(int val, int invalidValue) {
         return val == invalidValue ? null : val;
@@ -90,5 +84,31 @@ public class Utils {
             l |= (long) b[i] << (b.length - i) * 8;
         }
         return l;
+    }
+
+    public static void copyFile(File src, File dst) throws IOException {
+        InputStream  in  = new FileInputStream(src);
+        OutputStream out = new FileOutputStream(dst);
+
+        byte[] buf = new byte[COPY_BUFFER_SIZE];
+        int    len;
+        while ((len = in.read(buf)) > 0) {
+            out.write(buf, 0, len);
+        }
+        in.close();
+        out.close();
+    }
+
+    public static String removeSpaces(String str) {
+        boolean       camelCase = false;
+        StringBuilder newStr    = new StringBuilder(str.length());
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) == ' ') {
+                camelCase = true;
+            } else {
+                newStr.append(camelCase ? Character.toUpperCase(str.charAt(i)) : str.charAt(i));
+            }
+        }
+        return newStr.toString();
     }
 }

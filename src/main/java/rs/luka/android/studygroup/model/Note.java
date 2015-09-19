@@ -2,6 +2,7 @@ package rs.luka.android.studygroup.model;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -12,6 +13,7 @@ import java.text.DateFormat;
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.LocalImages;
 
 /**
  * Created by luka on 2.7.15..
@@ -47,12 +49,30 @@ public class Note implements Parcelable, Comparable<Note> {
         return text;
     }
 
-    public boolean hasImage() {
-        return false;
+    public boolean hasImage(String courseName) {
+        return DataManager.imageExists(id, courseName, lesson);
     }
 
-    public Bitmap getImage(Context c) {
-        return DataManager.getImage(c, id);
+    public boolean hasAudio(String courseName) {
+        return DataManager.audioExists(id, courseName, lesson);
+    }
+
+    public Uri getAudioPath(String courseName) {
+        return Uri.fromFile(DataManager.getAudio(id, courseName, lesson));
+    }
+
+    /**
+     * Vraća gde <em>bi trebalo</em> da se nalazi slika (ne proverava da li ona zaista postoji)
+     *
+     * @param courseName ime predmeta (potrebno za folder)
+     * @return putanju do slike
+     */
+    public String getImagePath(String courseName) {
+        return LocalImages.getItemImagePath(courseName, lesson, id);
+    }
+
+    public Bitmap getImage(String courseName, int widerDimension) {
+        return DataManager.getImage(id, courseName, lesson, widerDimension);
     }
 
     public void hide(Context c) {

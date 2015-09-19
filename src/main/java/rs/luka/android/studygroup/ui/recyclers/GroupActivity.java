@@ -20,22 +20,22 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 public class GroupActivity extends SingleFragmentActivity implements GroupFragment.Callbacks,
                                                                      FilterDialog.Callbacks {
 
-    public static final  String EXTRA_COURSE = "exCourse";
-    public static final  String EXTRA_GROUP  = RootActivity.EXTRA_GROUP;
-    private static final String TAG          = "GroupActivity";
+    public static final  String EXTRA_GROUP     = "exGroup";
+    public static final  String EXTRA_SHOW_LIST = "showList";
+    private static final String TAG             = "GroupActivity";
     private List<Integer> filterYears;
-    private GroupFragment fragment; // TODO: 7.9.15. fix REQUEST_EDIT_COURSE i sl. za fragmente (refresh)
+    private GroupFragment fragment;
 
     @Override
     protected Fragment createFragment() {
-        fragment = GroupFragment.newInstance((Group) getIntent().getParcelableExtra(RootActivity.EXTRA_GROUP));
+        fragment = GroupFragment.newInstance((Group) getIntent().getParcelableExtra(EXTRA_GROUP));
         return fragment;
     }
 
     @Override
     public void onCourseSelected(Course course) {
         Intent i = new Intent(this, CourseActivity.class);
-        i.putExtra(EXTRA_COURSE, course);
+        i.putExtra(CourseActivity.EXTRA_COURSE, course);
         i.putExtra(CourseActivity.EXTRA_GO_FORWARD, true);
         startActivity(i);
     }
@@ -53,9 +53,9 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                 FilterDialog.newInstance(getItems()).show(getSupportFragmentManager(), null);
                 return true;
             case R.id.raspored_kontrolnih:
-                startActivity(new Intent(this, ScheduleActivity.class).putExtra(EXTRA_GROUP,
+                startActivity(new Intent(this, ScheduleActivity.class).putExtra(ScheduleActivity.EXTRA_GROUP,
                                                                                 getIntent().getParcelableExtra(
-                                                                                        RootActivity.EXTRA_GROUP)));
+                                                                                        EXTRA_GROUP)));
                 return true;
             case R.id.show_all:
                 //TODO
@@ -67,7 +67,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     @Override
     public void onEditSelected(Course course, int requestCode) {
         Intent i = new Intent(this, AddCourseActivity.class);
-        i.putExtra(EXTRA_COURSE, course);
+        i.putExtra(CourseActivity.EXTRA_COURSE, course);
         startActivityForResult(i, requestCode);
     }
 
@@ -77,7 +77,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     }
 
     public String[] getItems() {
-        filterYears = ((Group)getIntent().getParcelableExtra(RootActivity.EXTRA_GROUP)).getCourseYears();
+        filterYears = ((Group) getIntent().getParcelableExtra(EXTRA_GROUP)).getCourseYears();
         Collections.sort(filterYears);
         String[] items = new String[filterYears.size()];
         for(int i=0; i<items.length; i++) {
@@ -88,11 +88,16 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
 
     @Override
     public void onFiltered(Integer[] selected) {
-        Group g = getIntent().getParcelableExtra(RootActivity.EXTRA_GROUP);
+        Group g = getIntent().getParcelableExtra(EXTRA_GROUP);
         Set<Integer> selectedYears = new HashSet<>(selected.length);
         for(Integer item : selected) {
             selectedYears.add(filterYears.get(item));
         }
         g.filter(selectedYears);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        fragment.onActivityResult(requestCode, resultCode, data); // TODO: 10.9.15. fix
     }
 }

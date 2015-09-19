@@ -34,7 +34,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/lesson"
-                    android:inputType="text"/>
+                    android:inputType="text|textCapSentences"/>
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
@@ -47,7 +47,8 @@
                     android:id="@+id/add_question_text_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/question"/>
+                    android:hint="@string/question"
+                    android:inputType="textMultiLine|textCapSentences"/>
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
@@ -60,7 +61,8 @@
                     android:id="@+id/add_question_answer_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/answer"/>
+                    android:hint="@string/answer"
+                    android:inputType="textMultiLine|textCapSentences"/>
             </android.support.design.widget.TextInputLayout>
 
             <ImageView

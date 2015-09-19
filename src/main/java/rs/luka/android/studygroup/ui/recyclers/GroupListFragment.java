@@ -126,8 +126,20 @@ public class GroupListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        //TODO
-        //inflater.inflate(R.menu.fragment_group, menu);
+        inflater.inflate(R.menu.menu_group_list, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.join_group:
+                // TODO: 9.9.15.
+                return true;
+            case R.id.settings:
+                // TODO: 9.9.15.
+                return true;
+        }
+        return false;
     }
 
     @Override
@@ -198,7 +210,9 @@ public class GroupListFragment extends Fragment implements LoaderManager.LoaderC
             this.group = group;
             name.setText(group.getName());
             place.setText(group.getPlace());
-            if (group.hasImage()) { image.setImageBitmap(group.getImage(getContext())); }
+            if (group.hasImage()) {
+                image.setImageBitmap(group.getImage(getResources().getDimensionPixelSize(R.dimen.card_image_size)));
+            }
         }
 
         @Override

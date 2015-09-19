@@ -2,11 +2,10 @@ package rs.luka.android.studygroup.ui.singleitemactivities;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -23,36 +22,35 @@ import android.widget.TextView;
 import java.io.File;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.Utils;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Limits;
+import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Group;
-import rs.luka.android.studygroup.ui.recyclers.RootActivity;
+import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 
 /**
  * Created by luka on 18.7.15..
  */
 public class AddGroupActivity extends AppCompatActivity {
-    private static final int  IDEAL_IMAGE_DIMENSION = 300;
-    private static final int  INTENT_IMAGE          = 0;
-    private static final File imageDir              = new File(
-            Environment.getExternalStorageDirectory().toString() + "/DCIM/StudyGroup/");
+    private static final int    INTENT_IMAGE          = 0;
+    private static final String STATE_IMAGE_FILE_PATH = "stImage";
     private EditText        name;
     private EditText        place;
     private TextInputLayout nameTil;
     private TextInputLayout placeTil;
     private CardView        add;
     private ImageView       image;
-    private File            imageFile;
-    private Group           group;
-    private boolean         editing;
+    private File imageFile = new File(LocalImages.APP_IMAGE_DIR, "groupimage.temp");
+    private Group   group;
+    private boolean editing;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_group);
 
-        group = getIntent().getParcelableExtra(RootActivity.EXTRA_GROUP);
+        group = getIntent().getParcelableExtra(GroupActivity.EXTRA_GROUP);
         editing = group != null;
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -70,7 +68,9 @@ public class AddGroupActivity extends AppCompatActivity {
         if (editing) {
             name.setText(group.getName());
             place.setText(group.getPlace());
-            if (group.hasImage()) { image.setImageBitmap(group.getImage(this)); }
+            if (group.hasImage()) {
+                image.setImageBitmap(group.getImage(getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
+            }
             name.setSelection(name.getText().length());
         }
 
@@ -94,8 +94,6 @@ public class AddGroupActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (!imageDir.isDirectory()) { imageDir.mkdir(); }
-                imageFile = new File(imageDir, "group_image.jpg");
                 Intent gallery = new Intent(Intent.ACTION_PICK);
                 gallery.setType("image/*");
                 camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
@@ -113,17 +111,27 @@ public class AddGroupActivity extends AppCompatActivity {
             if (requestCode == INTENT_IMAGE) {
                 if (data
                     != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
-                    imageFile = new File(Utils.getRealPathFromURI(this, data.getData()));
+                    imageFile = new File(Utils.getRealPathFromUri(this, data.getData()));
                 }
-                BitmapFactory.Options opts = new BitmapFactory.Options();
-                opts.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(imageFile.getAbsolutePath(), opts);
-                opts.inJustDecodeBounds = false;
-                int larger = opts.outHeight > opts.outWidth ? opts.outHeight : opts.outWidth;
-                opts.inSampleSize = larger / IDEAL_IMAGE_DIMENSION;
-                opts.inPreferQualityOverSpeed = false;
-                image.setImageBitmap(BitmapFactory.decodeFile(imageFile.getAbsolutePath(), opts));
+                image.setImageBitmap(LocalImages.loadImage(imageFile,
+                                                           getResources().getDimensionPixelSize(R.dimen.addview_image_size)));
             }
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(STATE_IMAGE_FILE_PATH, imageFile.getAbsolutePath());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState.getString(STATE_IMAGE_FILE_PATH) != null) {
+            imageFile = new File(savedInstanceState.getString(STATE_IMAGE_FILE_PATH));
+            image.setImageBitmap(LocalImages.loadImage(imageFile,
+                                                       getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
         }
     }
 

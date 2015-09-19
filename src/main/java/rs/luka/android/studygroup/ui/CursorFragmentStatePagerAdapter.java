@@ -9,13 +9,13 @@ import android.database.Cursor;
 import android.provider.BaseColumns;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.SparseIntArray;
 import android.view.ViewGroup;
 
 import java.util.HashMap;
 
-public abstract class CursorFragmentStatePagerAdapter extends FragmentPagerAdapter {
+public abstract class CursorFragmentStatePagerAdapter extends FragmentStatePagerAdapter {
 
     protected boolean                  mDataValid;
     protected Cursor                   mCursor;
@@ -136,15 +136,6 @@ public abstract class CursorFragmentStatePagerAdapter extends FragmentPagerAdapt
         setItemPositions();
 
         return oldCursor;
-    }
-
-    @Override
-    public long getItemId(int position) {
-        if (!mDataValid || !mCursor.moveToPosition(position)) {
-            return super.getItemId(position);
-        }
-        int rowId = mCursor.getInt(mRowIDColumn);
-        return rowId;
     }
 
 }

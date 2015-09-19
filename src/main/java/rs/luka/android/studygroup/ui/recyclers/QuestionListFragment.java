@@ -16,10 +16,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
@@ -94,11 +94,12 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
         return f;
     }
 
-    protected void setLessonNameIfEmpty(String lessonName) {
-        if (this.lessonName == null || this.lessonName.isEmpty()) {
+    protected void refreshForLesson(String lessonName) {
+        if (this.lessonName == null || !this.lessonName.equals(lessonName)) {
             this.lessonName = lessonName;
             ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(lessonName);
         }
+        refresh();
     }
 
     @Override
@@ -163,22 +164,9 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        setData();
-    }
-
-    @Override
     public void onDetach() {
         super.onDetach();
         callbacks = null;
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        //TODO
-        //inflater.inflate(R.menu.fragment_group, menu);
     }
 
     private void hide() {
@@ -233,7 +221,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
     }
 
     public interface QuestionCallbacks {
-        void onQuestionSelected(Question question);
+        void onQuestionSelected(int questionPosition);
 
         void onQuestionsEdit(Set<Question> questions);
     }
@@ -242,6 +230,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
             implements View.OnClickListener, View.OnLongClickListener {
         private TextView questionTextView;
         private TextView answerTextView;
+        private ImageView thumbnail;
         private View container;
 
         private Question question;
@@ -254,12 +243,19 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
 
             questionTextView = (TextView) itemView.findViewById(R.id.item_question_text);
             answerTextView = (TextView) itemView.findViewById(R.id.item_answer_text);
+            thumbnail = (ImageView) itemView.findViewById(R.id.item_question_thumbnail);
         }
 
         public void bindQuestion(Question question) {
             this.question = question;
             questionTextView.setText(question.getQuestion());
             answerTextView.setText(question.getAnswer());
+            if (this.question.hasImage(course.getSubject())) {
+                thumbnail.setImageBitmap(question.getImage(course.getSubject(),
+                                                           getResources().getDimensionPixelSize(R.dimen.list_item_thumbnail_size)));
+            } else {
+                thumbnail.setImageBitmap(null);
+            }
             if (selected.contains(question)) {
                 select(container);
             } else {
@@ -269,7 +265,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
 
         @Override
         public void onClick(View v) {
-            if (selected.isEmpty()) { callbacks.onQuestionSelected(question); } else {
+            if (selected.isEmpty()) { callbacks.onQuestionSelected(getAdapterPosition()); } else {
                 if (selected.contains(question)) {
                     selected.remove(question);
                     deselect(v);

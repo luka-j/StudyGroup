@@ -13,11 +13,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,7 +47,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
 
     protected static CourseFragment newInstance(Course course) {
         Bundle args = new Bundle();
-        args.putParcelable(GroupActivity.EXTRA_COURSE, course);
+        args.putParcelable(CourseActivity.EXTRA_COURSE, course);
 
         CourseFragment f = new CourseFragment();
         f.setArguments(args);
@@ -62,7 +59,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        course = getArguments().getParcelable(GroupActivity.EXTRA_COURSE);
+        course = getArguments().getParcelable(CourseActivity.EXTRA_COURSE);
     }
 
     @Override
@@ -123,7 +120,6 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume; setting actionbar title");
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(course.getSubject());
     }
 
@@ -141,13 +137,6 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                 return true;
         }
         return onContextItemSelected(item);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        //TODO
-        //inflater.inflate(R.menu.fragment_group, menu);
     }
 
     @Override
@@ -180,16 +169,13 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             progress.setVisibility(View.GONE);
         }
         data.moveToNext();
-        if (data.getCount() > 1) {
-            data.moveToFirst();
-            data.moveToPrevious();
-            adapter.changeCursor(data);
-            stopRefreshing();
-        } else if (data.getCount() == 1) {
-            ((CourseActivity) getActivity()).skip(((Database.LessonCursor) data).getLessonTitle());
-        } else {
-            ((CourseActivity) getActivity()).skip("");
+        if (data.getCount() == 0 && callbacks.handleLessonSkipping(0, "")) { return; }
+        if (callbacks.handleLessonSkipping(data.getCount(), ((Database.LessonCursor) data).getLessonTitle())) {
+            return;
         }
+        data.moveToFirst();
+        adapter.changeCursor(data);
+        stopRefreshing();
     }
 
     @Override
@@ -201,6 +187,8 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         void onLessonSelected(String title);
 
         void onEdit(String title);
+
+        boolean handleLessonSkipping(int lessonNumber, String first);
     }
 
     private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
@@ -230,7 +218,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                     .setOnHideListener(new Snackbar.OnHideListener() {
                         @Override
                         public void onHide() {
-                            new RemoveLessonTask().doInBackground(course, swipedHolder.title);
+                            new RemoveLessonTask().execute(course, swipedHolder.title);
                         }
                     })
                     .setAction(R.string.undo,

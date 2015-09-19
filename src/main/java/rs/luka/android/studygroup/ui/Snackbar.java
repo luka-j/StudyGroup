@@ -440,7 +440,8 @@ public class Snackbar {
             a.recycle();
             this.setClickable(true);
             LayoutInflater.from(context)
-                          .inflate(android.support.design.R.layout.layout_snackbar_include, this);
+                          .inflate(android.support.design.R.layout.layout_snackbar_include,
+                                   this); //namechange @ API 23, todo check
         }
 
         private static void updateTopBottomPadding(View view, int topPadding, int bottomPadding) {
@@ -484,9 +485,9 @@ public class Snackbar {
             }
 
             int multiLineVPadding = this.getResources()
-                                        .getDimensionPixelSize(android.support.design.R.dimen.snackbar_padding_vertical_2lines);
+                                        .getDimensionPixelSize(android.support.design.R.dimen.snackbar_padding_vertical_2lines); //namechange
             int singleLineVPadding = this.getResources()
-                                         .getDimensionPixelSize(android.support.design.R.dimen.snackbar_padding_vertical);
+                                         .getDimensionPixelSize(android.support.design.R.dimen.snackbar_padding_vertical); //namechange
             boolean isMultiLine = this.mMessageView.getLayout().getLineCount() > 1;
             boolean remeasure   = false;
             if (isMultiLine && this.mMaxInlineActionWidth > 0

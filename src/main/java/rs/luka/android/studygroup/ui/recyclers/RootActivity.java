@@ -1,3 +1,4 @@
+// TODO: 11.9.15. Finish EXTRA_ Strings cleanup (od LessonActivity pa nadalje)
 package rs.luka.android.studygroup.ui.recyclers;
 
 import android.content.Intent;
@@ -16,9 +17,7 @@ import rs.luka.android.studygroup.ui.singleitemactivities.LoginActivity;
  * Created by luka on 17.7.15.
  */
 public class RootActivity extends SingleFragmentActivity implements GroupListFragment.Callbacks {
-    public static final  String EXTRA_GROUP     = "exGroup";
-    public static final  String EXTRA_SHOW_LIST = "showList";
-    private static final String TAG             = "studygroup.RootActivity";
+    private static final String TAG = "studygroup.RootActivity";
 
     @Override
     protected Fragment createFragment() {
@@ -27,7 +26,7 @@ public class RootActivity extends SingleFragmentActivity implements GroupListFra
 
     @Override
     protected boolean shouldCreateFragment() {
-        if (getIntent().getBooleanExtra(EXTRA_SHOW_LIST, false)) {
+        if (getIntent().getBooleanExtra(GroupActivity.EXTRA_SHOW_LIST, false)) {
             Log.i(TAG, "showing list, extra supplied");
             return true;
         }
@@ -40,7 +39,7 @@ public class RootActivity extends SingleFragmentActivity implements GroupListFra
                 Intent i = new Intent(this, GroupActivity.class);
                 Database.GroupCursor c = Database.getInstance(this).queryGroups();
                 c.moveToNext();
-                i.putExtra(EXTRA_GROUP, c.getGroup());
+                i.putExtra(GroupActivity.EXTRA_GROUP, c.getGroup());
                 Log.i(TAG, "one group, starting it");
                 startActivity(i);
                 return false;
@@ -54,14 +53,14 @@ public class RootActivity extends SingleFragmentActivity implements GroupListFra
     @Override
     public void onGroupSelected(Group group) {
         Intent i = new Intent(this, GroupActivity.class);
-        i.putExtra(EXTRA_GROUP, group);
+        i.putExtra(GroupActivity.EXTRA_GROUP, group);
         startActivity(i);
     }
 
     @Override
     public void onEditGroup(Group group, int requestCode) {
         Intent i = new Intent(this, AddGroupActivity.class);
-        i.putExtra(EXTRA_GROUP, group);
+        i.putExtra(GroupActivity.EXTRA_GROUP, group);
         startActivityForResult(i, requestCode);
     }
 

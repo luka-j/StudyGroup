@@ -27,13 +27,13 @@ import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
-import rs.luka.android.studygroup.ui.recyclers.RootActivity;
-import rs.luka.android.studygroup.ui.recyclers.ScheduleActivity;
+import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 import rs.luka.android.studygroup.ui.recyclers.SelectCourseActivity;
 
 public class AddExamActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
-    public static final  String EXTRA_GROUP           = RootActivity.EXTRA_GROUP;
+    public static final String EXTRA_GROUP = GroupActivity.EXTRA_GROUP;
+    public static final String EXTRA_EXAM  = "exam";
     private static final String DATA_SELECTED_COURSE  = "dCourse";
     private static final String DATA_SELECTED_DATE    = "dDate";
     private static final int    REQUEST_SELECT_COURSE = 0;
@@ -63,16 +63,17 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_exam);
-        exam = getIntent().getParcelableExtra(ScheduleActivity.EXTRA_EXAM);
+        exam = getIntent().getParcelableExtra(EXTRA_EXAM);
         editing = exam != null;
         if (editing) {
             course = exam.getCourse();
             selectedDate = exam.getCalendar();
             initViews();
         } else if (savedInstanceState == null || savedInstanceState.getParcelable(DATA_SELECTED_COURSE) == null) {
-            group = getIntent().getParcelableExtra(ScheduleActivity.EXTRA_GROUP);
-            startActivityForResult(new Intent(this, SelectCourseActivity.class).putExtra(EXTRA_GROUP,
-                                                                                         group),
+            group = getIntent().getParcelableExtra(EXTRA_GROUP);
+            startActivityForResult(new Intent(this,
+                                              SelectCourseActivity.class).putExtra(SelectCourseActivity.EXTRA_GROUP,
+                                                                                   group),
                                    REQUEST_SELECT_COURSE);
         } else {
             course = savedInstanceState.getParcelable(DATA_SELECTED_COURSE);

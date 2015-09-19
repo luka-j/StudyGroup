@@ -31,6 +31,7 @@ import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.CursorAdapter;
@@ -43,6 +44,7 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
  */
 public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final int REQUEST_ADD_EXAM = 0;
+    private static final String ARG_GROUP = "agroup";
 
     private Group                    group;
     private RecyclerView             recycler;
@@ -56,7 +58,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
     public static ScheduleFragment newInstance(Group g) {
         ScheduleFragment f    = new ScheduleFragment();
         Bundle           args = new Bundle(1);
-        args.putParcelable(GroupActivity.EXTRA_GROUP, g);
+        args.putParcelable(ARG_GROUP, g);
         f.setArguments(args);
         return f;
     }
@@ -66,7 +68,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        group = getArguments().getParcelable(GroupActivity.EXTRA_GROUP);
+        group = getArguments().getParcelable(ARG_GROUP);
         //setRetainInstance(true);
     }
 
@@ -92,7 +94,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(getActivity(), AddExamActivity.class);
-                i.putExtra(RootActivity.EXTRA_GROUP, group);
+                i.putExtra(AddExamActivity.EXTRA_GROUP, group);
                 startActivityForResult(i, REQUEST_ADD_EXAM);
             }
         });
@@ -240,7 +242,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
                     .setOnHideListener(new Snackbar.OnHideListener() {
                         @Override
                         public void onHide() {
-                            new RemoveExamTask().doInBackground(exam);
+                            new RemoveExamTask().execute(exam);
                         }
                     })
                     .setAction(R.string.undo, new View.OnClickListener() {
@@ -293,7 +295,10 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             subjectTextView.setText(exam.getTitle());
             dateTextView.setText(exam.getDate(getActivity()));
             yearTextView.setText(exam.getKlass());
-            if (exam.hasImage()) { imageView.setImageBitmap(exam.getImage()); } else {
+            Course examCourse = exam.getCourse();
+            if (examCourse.hasImage()) {
+                imageView.setImageBitmap(examCourse.getImage(getResources().getDimensionPixelSize(R.dimen.card_image_size)));
+            } else {
                 imageView.setImageResource(R.drawable.placeholder);
             }
         }

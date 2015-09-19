@@ -2,6 +2,7 @@ package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -37,20 +38,20 @@ import rs.luka.android.studygroup.ui.singleitemactivities.QuestionPagerActivity;
 public class LessonActivity extends AppCompatActivity
         implements NoteListFragment.NoteCallbacks, QuestionListFragment.QuestionCallbacks {
 
-    public static final String EXTRA_CURRENT_NOTE       = "noteIndex";
-    public static final String EXTRA_CURRENT_QUESTION   = "questionIndex";
+    public static final  String EXTRA_CURRENT_NOTE_POSITION     = "noteIndex";
+    public static final  String EXTRA_CURRENT_QUESTION_POSITION = "questionIndex";
     public static final String EXTRA_CURRENT_LESSON     = CourseActivity.EXTRA_LESSON_NAME;
     public static final String EXTRA_CURRENT_COURSE     = CourseActivity.EXTRA_COURSE;
     public static final String EXTRA_SELECTED_NOTES     = "selNotes";
     public static final String EXTRA_SELECTED_QUESTIONS = "selQuestions";
-    public static final String EXTRA_LESSON = CourseActivity.EXTRA_LESSON_NAME;
-
+    public static final  String EXTRA_LESSON                    = CourseActivity.EXTRA_LESSON_NAME;
+    private static final String TAG                             = "studygroup.LessonActivity";
     private static final int REQUEST_ADD_NOTE      = 0;
     private static final int REQUEST_ADD_QUESTION  = 1;
-    private static final int REQUEST_EDIT_NOTE     = 8;
-    private static final int REQUEST_EDIT_QUESTION = 9;
+    private static final int    REQUEST_EDIT_NOTE               = 2;
+    private static final int    REQUEST_EDIT_QUESTION           = 3;
 
-    private int numOfTabs = 2;
+    private static final int TABS_COUNT = 2;
     private Course course;
     private String lessonName;
 
@@ -77,24 +78,18 @@ public class LessonActivity extends AppCompatActivity
 
         adapter = new NoteQuestionAdapter(getSupportFragmentManager(),
                                           new String[]{getString(R.string.notes),
-                                                       getString(R.string.questions)}, numOfTabs);
-
-        // Assigning ViewPager View and setting the adapter
+                                                       getString(R.string.questions)}, TABS_COUNT);
         pager = (ViewPager) findViewById(R.id.tab_pager);
         pager.setAdapter(adapter);
 
-        // Assigning the Sliding Tab Layout View
         tabs = (SlidingTabLayout) findViewById(R.id.tabs);
-        tabs.setDistributeEvenly(true); // To make the Tabs Fixed set this true, This makes the tabs Space Evenly in Available width
-
-        // Setting Custom Color for the Scroll bar indicator of the Tab View
+        tabs.setDistributeEvenly(true);
         tabs.setCustomTabColorizer(new SlidingTabLayout.TabColorizer() {
             @Override
             public int getIndicatorColor(int position) {
                 return getResources().getColor(R.color.white);
             }
         });
-        // Setting the ViewPager For the SlidingTabsLayout
         tabs.setViewPager(pager);
 
         fab = (FloatingActionButton) findViewById(R.id.fab_add_noqu);
@@ -120,29 +115,41 @@ public class LessonActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         switch (requestCode) {
             case REQUEST_ADD_NOTE:
             case REQUEST_EDIT_NOTE:
-                NoteListFragment noteListFragment = ((NoteListFragment) ((NoteQuestionAdapter) (pager.getAdapter()))
-                        .getRegisteredFragment(0));
-                noteListFragment.setLessonNameIfEmpty(data.getStringExtra(EXTRA_LESSON));
-                noteListFragment.refresh();
+                updateNote(data);
+                updateQuestion(data); // TODO: 10.9.15. optimize (note to self: getAdapter() mora sa UI thread-a)
                 break;
             case REQUEST_ADD_QUESTION:
             case REQUEST_EDIT_QUESTION:
-                QuestionListFragment questionListFragment
-                        = ((QuestionListFragment) ((NoteQuestionAdapter) (pager.getAdapter())).getRegisteredFragment(
-                        1));
-                questionListFragment.setLessonNameIfEmpty(data.getStringExtra(EXTRA_LESSON));
-                questionListFragment.refresh();
+                updateQuestion(data);
+                updateNote(data);
+        }
+    }
+
+    private void updateNote(Intent data) {
+        NoteListFragment noteListFragment = ((NoteListFragment) ((NoteQuestionAdapter) (pager.getAdapter()))
+                .getRegisteredFragment(0));
+        if (noteListFragment != null && data != null) {
+            lessonName = data.getStringExtra(EXTRA_LESSON);
+            noteListFragment.refreshForLesson(lessonName);
+        }
+    }
+
+    private void updateQuestion(Intent data) {
+        QuestionListFragment questionListFragment
+                = ((QuestionListFragment) ((NoteQuestionAdapter) (pager.getAdapter())).getRegisteredFragment(1));
+        if (questionListFragment != null && data != null) {
+            lessonName = data.getStringExtra(EXTRA_LESSON);
+            questionListFragment.refreshForLesson(lessonName);
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_lesson, menu);
         return true;
     }
 
@@ -153,8 +160,11 @@ public class LessonActivity extends AppCompatActivity
                 startActivity(new Intent(this,
                                          CourseActivity.class).putExtra(CourseActivity.EXTRA_GO_BACKWARD,
                                                                         false)
-                                                              .putExtra(GroupActivity.EXTRA_COURSE,
+                                                              .putExtra(CourseActivity.EXTRA_COURSE,
                                                                         course));
+                return true;
+            case R.id.show_all:
+                // TODO: 9.9.15.
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -164,16 +174,16 @@ public class LessonActivity extends AppCompatActivity
     public void onBackPressed() {
         startActivity(new Intent(this, CourseActivity.class).putExtra(CourseActivity.EXTRA_GO_BACKWARD,
                                                                       true)
-                                                            .putExtra(GroupActivity.EXTRA_COURSE,
+                                                            .putExtra(CourseActivity.EXTRA_COURSE,
                                                                       course));
     }
 
     @Override
-    public void onNoteSelected(Note note) {
+    public void onNoteSelected(int position) {
         Intent i = new Intent(this, NotePagerActivity.class);
         i.putExtra(EXTRA_CURRENT_COURSE, course);
         i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
-        i.putExtra(EXTRA_CURRENT_NOTE, note);
+        i.putExtra(EXTRA_CURRENT_NOTE_POSITION, position);
         startActivity(i);
     }
 
@@ -189,11 +199,11 @@ public class LessonActivity extends AppCompatActivity
     }
 
     @Override
-    public void onQuestionSelected(Question question) {
+    public void onQuestionSelected(int questionPosition) {
         Intent i = new Intent(this, QuestionPagerActivity.class);
         i.putExtra(EXTRA_CURRENT_COURSE, course);
         i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
-        i.putExtra(EXTRA_CURRENT_QUESTION, question);
+        i.putExtra(EXTRA_CURRENT_QUESTION_POSITION, questionPosition);
         startActivity(i);
     }
 
@@ -210,6 +220,23 @@ public class LessonActivity extends AppCompatActivity
 
     protected FloatingActionButton getFab() {
         return fab;
+    }
+
+    /**
+     * Verovatno nije thread-safe. Nije testirano.
+     */
+    private class UpdateNoteTask extends AsyncTask<Object, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Object... params) {
+            NoteListFragment noteListFragment = (NoteListFragment) params[0];
+            Intent           data             = (Intent) params[1];
+            if (noteListFragment != null && data != null) {
+                String lessonName = data.getStringExtra(EXTRA_LESSON);
+                noteListFragment.refreshForLesson(lessonName);
+            }
+            return null;
+        }
     }
 
     private class NoteQuestionAdapter extends FragmentStatePagerAdapter {

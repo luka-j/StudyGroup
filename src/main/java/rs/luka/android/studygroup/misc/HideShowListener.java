@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup;
+package rs.luka.android.studygroup.misc;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;

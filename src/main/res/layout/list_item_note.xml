@@ -5,10 +5,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
+    android:paddingBottom="@dimen/list_item_padding_vertical"
     android:paddingLeft="@dimen/list_item_padding_horizontal"
     android:paddingRight="@dimen/list_item_padding_horizontal"
     android:paddingTop="@dimen/list_item_padding_vertical">
 
+    <ImageView
+        android:id="@+id/item_note_thumbnail"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="@dimen/list_item_thumbnail_margin_right"
+        android:layout_marginRight="@dimen/list_item_thumbnail_margin_right"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/note_image_desc"
+        android:scaleType="centerInside"/>
     <TextView
         android:id="@+id/item_note_text"
         android:layout_width="match_parent"

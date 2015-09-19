@@ -33,7 +33,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/lesson"
-                    android:inputType="text"/>
+                    android:inputType="text|textCapSentences"/>
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
@@ -46,7 +46,8 @@
                     android:id="@+id/add_note_text_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/note"/>
+                    android:hint="@string/note"
+                    android:inputType="textMultiLine|textCapSentences"/>
             </android.support.design.widget.TextInputLayout>
 
             <ImageView

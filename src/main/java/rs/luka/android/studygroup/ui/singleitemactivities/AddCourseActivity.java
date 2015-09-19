@@ -2,11 +2,10 @@ package rs.luka.android.studygroup.ui.singleitemactivities;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -23,10 +22,12 @@ import android.widget.TextView;
 import java.io.File;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.Utils;
 import rs.luka.android.studygroup.io.Limits;
+import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.ui.recyclers.CourseActivity;
 import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 
 /**
@@ -34,10 +35,10 @@ import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
  */
 public class AddCourseActivity extends AppCompatActivity {
 
-    private static final int  IDEAL_IMAGE_DIMENSION = 300;
+    public static final  String EXTRA_COURSE          = CourseActivity.EXTRA_COURSE;
+    public static final  String EXTRA_GROUP           = GroupActivity.EXTRA_GROUP;
+    private static final String STATE_IMAGE_FILE_PATH = "stImage";
     private static final int  INTENT_IMAGE          = 0;
-    private static final File imageDir              = new File(
-            Environment.getExternalStorageDirectory(), "DCIM/StudyGroup/");
 
     private EditText        subject;
     private TextInputLayout subjectTil;
@@ -47,7 +48,7 @@ public class AddCourseActivity extends AppCompatActivity {
     private TextInputLayout yearTil;
     private CardView        add;
     private ImageView       image;
-    private File            imageFile;
+    private File imageFile = new File(LocalImages.APP_IMAGE_DIR, "courseimg.temp");
     private Group           group;
     private Course          course;
     private boolean         editing;
@@ -57,8 +58,8 @@ public class AddCourseActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        group = getIntent().getParcelableExtra(GroupActivity.EXTRA_GROUP);
-        course = getIntent().getParcelableExtra(GroupActivity.EXTRA_COURSE);
+        group = getIntent().getParcelableExtra(EXTRA_GROUP);
+        course = getIntent().getParcelableExtra(EXTRA_COURSE);
         editing = course != null;
 
         setContentView(R.layout.activity_add_course);
@@ -84,7 +85,7 @@ public class AddCourseActivity extends AppCompatActivity {
                 year.setText(course.getYear().toString());
             }
             if (course.hasImage()) {
-                image.setImageBitmap(course.getImage(this));
+                image.setImageBitmap(course.getImage(getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
             }
             subject.setSelection(subject.getText().length());
         }
@@ -109,9 +110,6 @@ public class AddCourseActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (!imageDir.isDirectory()) { imageDir.mkdir(); }
-                imageFile = new File(imageDir, subject + " image.jpg");
-                if (imageFile.exists()) { imageFile.delete(); }
                 Intent gallery = new Intent(Intent.ACTION_PICK);
                 gallery.setType("image/*");
                 camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
@@ -125,21 +123,31 @@ public class AddCourseActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(STATE_IMAGE_FILE_PATH, imageFile.getAbsolutePath());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState.getString(STATE_IMAGE_FILE_PATH) != null) {
+            imageFile = new File(savedInstanceState.getString(STATE_IMAGE_FILE_PATH));
+            image.setImageBitmap(LocalImages.loadImage(imageFile,
+                                                       getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
+        }
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != Activity.RESULT_CANCELED) {
             if (requestCode == INTENT_IMAGE) {
                 if (data
                     != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
-                    imageFile = new File(Utils.getRealPathFromURI(this, data.getData()));
+                    imageFile = new File(Utils.getRealPathFromUri(this, data.getData()));
                 }
-                BitmapFactory.Options opts = new BitmapFactory.Options();
-                opts.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(imageFile.getAbsolutePath(), opts);
-                opts.inJustDecodeBounds = false;
-                int larger = opts.outHeight > opts.outWidth ? opts.outHeight : opts.outWidth;
-                opts.inSampleSize = larger / IDEAL_IMAGE_DIMENSION;
-                opts.inPreferQualityOverSpeed = false;
-                image.setImageBitmap(BitmapFactory.decodeFile(imageFile.getAbsolutePath(), opts));
+                image.setImageBitmap(LocalImages.loadImage(imageFile,
+                                                           getResources().getDimensionPixelSize(R.dimen.addview_image_size)));
             }
         }
     }

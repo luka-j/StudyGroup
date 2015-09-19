@@ -18,6 +18,7 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
  */
 public class SelectCourseActivity extends SingleFragmentActivity implements GroupFragment.Callbacks {
     public static final String EXTRA_COURSE = "resCourse";
+    public static final String EXTRA_GROUP = ScheduleActivity.EXTRA_GROUP;
 
     @Override
     public void onCourseSelected(Course course) {
@@ -34,7 +35,7 @@ public class SelectCourseActivity extends SingleFragmentActivity implements Grou
     @Override
     public void onEditSelected(Course course, int requestCode) {
         Intent i = new Intent(this, AddCourseActivity.class);
-        i.putExtra(GroupActivity.EXTRA_COURSE, course);
+        i.putExtra(CourseActivity.EXTRA_COURSE, course);
         startActivityForResult(i, requestCode);
     }
 
