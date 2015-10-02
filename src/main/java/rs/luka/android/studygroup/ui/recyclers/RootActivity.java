@@ -1,4 +1,5 @@
 // TODO: 11.9.15. Finish EXTRA_ Strings cleanup (od LessonActivity pa nadalje)
+// TODO: 20.9.15. clean history mess (u Cursoru je type, u History je prev; pogledaj strings). Vidi kako za PastEvents
 package rs.luka.android.studygroup.ui.recyclers;
 
 import android.content.Intent;
@@ -12,6 +13,24 @@ import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddGroupActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.LoginActivity;
+
+/*
+ * Struktura:
+ * RootActivity (GroupListFragment), fragment se ne prikazuje ako postoji samo jedna grupa, postoje Search i Create (AddGroupActivity), ne postoji hiding
+ * (0) LoginActivity, uvek se vraca u root
+ * (1) GroupActivity (GroupFragment, courseList), postoji Add (AddCourseActivity)
+ * (2) ScheduleActivity (ScheduleFragment), postoji Add (AddExamActivity)
+ * (3) MemberListActivity (MemberListFragment), todo
+ * (1) * CourseActivity (CourseFragment, lessonList), preskače se ako nema ili postoji samo jedna lekcija, ne postoji History
+ * (1) * * LessonActivity (LessonPager: NoteListFragment (1), QuestionListFragment (2)), postoji Add za svaki fragment
+ * (1) * * (1) NotePagerActivity (NoteFragment), postoji FullscreenImage, Add: AddNoteActivity
+ * (1) * * (2) QuestionPagerActivity (QuestionFragment), postoji FullScreenImage, Add: AddQuestionActivity
+ * (2) (1) AddCourseActivity, sastoji se iz dva koraka (drugi je 'klasicni' unos podataka)
+ * (2) (1) * SelectCourseActivity (GroupFragment), odabir predmeta na koji se kontrolni odnosi
+ * (2) (2) ExamQuestionsActivity (QuestionListFragment), postoji Add (AddQuestionActivity)
+ *
+ * Svuda postoji history i hiding (uklj. "show all"), osim ako nije drugacije naznaceno
+ */
 
 /**
  * Created by luka on 17.7.15.

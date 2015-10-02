@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.Random;
 
 import rs.luka.android.studygroup.model.Course;
-import rs.luka.android.studygroup.model.History;
 import rs.luka.android.studygroup.model.ID;
 
 /**
@@ -221,9 +220,11 @@ public class DataManager {
         return LocalAudio.noteHasAudio(noteId, courseName, lessonName);
     }
 
-    public static History getHistory(Context c, ID id) {
-        History h = new History();
-        h.add(new History.HistoryEntry("Pera", new Date(), ""));
-        return h;
+    public static Bitmap getUserImage(long id) {
+        return null;
+    }
+
+    public static boolean userImageExists(long id) {
+        return false;
     }
 }

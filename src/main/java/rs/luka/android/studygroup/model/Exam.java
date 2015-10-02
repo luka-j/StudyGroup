@@ -16,7 +16,7 @@ import rs.luka.android.studygroup.io.Database;
 /**
  * Created by luka on 29.7.15..
  */
-public class Exam implements Parcelable, Comparable<Exam> {
+public class Exam implements Parcelable, Comparable<Exam>, PastEvents {
 
     public static final  Parcelable.Creator<Exam> CREATOR
             = new Parcelable.Creator<Exam>() {

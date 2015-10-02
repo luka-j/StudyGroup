@@ -60,6 +60,14 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
             case R.id.show_all:
                 //TODO
                 return true;
+            case R.id.settings:
+                // TODO: 19.9.15.
+                return true;
+            case R.id.member_list:
+                startActivity(new Intent(this, MemberListActivity.class).putExtra(MemberListActivity.EXTRA_GROUP,
+                                                                                  getIntent().getParcelableExtra(
+                                                                                          EXTRA_GROUP)));
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }

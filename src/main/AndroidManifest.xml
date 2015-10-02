@@ -148,6 +148,14 @@
         <activity
             android:name=".ui.singleitemactivities.FullscreenImageActivity"
             android:launchMode="singleTop"/>
+        <activity
+            android:name=".ui.recyclers.MemberListActivity"
+            android:label="@string/title_activity_member_list"
+            android:parentActivityName=".ui.recyclers.GroupActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="rs.luka.android.studygroup.ui.recyclers.GroupActivity"/>
+        </activity>
     </application>
 
 </manifest>

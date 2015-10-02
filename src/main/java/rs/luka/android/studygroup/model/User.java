@@ -1,7 +1,10 @@
 package rs.luka.android.studygroup.model;
 
+import android.graphics.Bitmap;
+
 import java.util.UUID;
 
+import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.UserManager;
 
 /**
@@ -11,7 +14,12 @@ public class User {
     private static User   instance;
     private final  String name;
     private        UUID   token;
+    private long id;
 
+    public User(long id, String name) {
+        this.name = name;
+        this.id = id;
+    }
     private User(String username, String password) {
         token = UserManager.login(username, password);
         name = UserManager.requestName(token);
@@ -22,7 +30,7 @@ public class User {
         return instance;
     }
 
-    public static User getInstance() {
+    public static User getLoggedInUser() {
         return instance;
     }
 
@@ -36,4 +44,11 @@ public class User {
 
     public String getName() {return name;}
 
+    public Bitmap getImage() {
+        return DataManager.getUserImage(id);
+    }
+
+    public boolean hasImage() {
+        return DataManager.userImageExists(id);
+    }
 }

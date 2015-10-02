@@ -1,6 +1,5 @@
 package rs.luka.android.studygroup.ui.singleitemactivities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -30,13 +29,12 @@ public class LoginActivity extends AppCompatActivity {
         username = (EditText) findViewById(R.id.login_username_input);
         password = (EditText) findViewById(R.id.login_password_input);
 
-        final Context This = this;
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 login();
                 //finish();
-                startActivity(new Intent(This, RootActivity.class));
+                startActivity(new Intent(LoginActivity.this, RootActivity.class)); //samo zbog animacije
             }
         });
     }

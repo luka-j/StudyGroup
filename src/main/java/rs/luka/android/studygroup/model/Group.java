@@ -20,7 +20,7 @@ import rs.luka.android.studygroup.io.Loaders;
 /**
  * Created by Luka on 7/1/2015.
  */
-public class Group implements Parcelable, Comparable<Group> {
+public class Group implements Parcelable, Comparable<Group>, PastEvents {
     public static final  Parcelable.Creator<Group> CREATOR
                                                        = new Parcelable.Creator<Group>() {
         public Group createFromParcel(Parcel in) {

@@ -20,7 +20,7 @@ import rs.luka.android.studygroup.misc.Utils;
 /**
  * Created by Luka on 7/1/2015.
  */
-public class Course implements Parcelable, Comparable<Course> {
+public class Course implements Parcelable, Comparable<Course>, PastEvents {
 
     public static final Parcelable.Creator<Course> CREATOR
             = new Parcelable.Creator<Course>() {

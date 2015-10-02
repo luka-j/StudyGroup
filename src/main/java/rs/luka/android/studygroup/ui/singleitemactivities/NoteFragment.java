@@ -51,8 +51,8 @@ public class NoteFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_note, container, false);
-        AppCompatActivity ac = (AppCompatActivity) getActivity();
+        View              view = inflater.inflate(R.layout.fragment_note, container, false);
+        AppCompatActivity ac   = (AppCompatActivity) getActivity();
         if (NavUtils.getParentActivityIntent(ac) != null) {
             ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }

@@ -8,9 +8,7 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import java.io.File;
-import java.text.DateFormat;
 
-import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.LocalImages;
@@ -18,7 +16,7 @@ import rs.luka.android.studygroup.io.LocalImages;
 /**
  * Created by luka on 2.7.15..
  */
-public class Note implements Parcelable, Comparable<Note> {
+public class Note implements Parcelable, Comparable<Note>, PastEvents {
     public static final Parcelable.Creator<Note> CREATOR
             = new Parcelable.Creator<Note>() {
         public Note createFromParcel(Parcel in) {
@@ -88,9 +86,8 @@ public class Note implements Parcelable, Comparable<Note> {
     }
 
     public String getHistory(Context c) {
-        History h = DataManager.getHistory(c, id);
-        return c.getString(R.string.note_history, h.get(0).getAuthor(),
-                           DateFormat.getDateTimeInstance().format(h.get(0).getDate()));
+        // TODO: 20.9.15.
+        return null;
     }
 
     @Override
