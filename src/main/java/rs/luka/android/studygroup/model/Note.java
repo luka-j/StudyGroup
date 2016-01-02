@@ -30,29 +30,35 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
     private final ID id;
     private final String text;
     private final String lesson;
+    private final boolean imageExists;
+    private final boolean audioExists;
 
-    public Note(ID id, String lesson, String text) {
+    public Note(ID id, String lesson, String text, boolean imageExists, boolean audioExists) {
         this.id = id;
         this.text = text;
         this.lesson = lesson;
+        this.imageExists = imageExists;
+        this.audioExists = audioExists;
     }
 
     private Note(Parcel in) {
         id = in.readParcelable(Note.class.getClassLoader());
         lesson = in.readString();
         text = in.readString();
+        imageExists = in.readInt()!=0;
+        audioExists = in.readInt()!=0;
     }
 
     public String getText() {
         return text;
     }
 
-    public boolean hasImage(String courseName) {
-        return DataManager.imageExists(id, courseName, lesson);
+    public boolean hasImage() {
+        return imageExists;
     }
 
-    public boolean hasAudio(String courseName) {
-        return DataManager.audioExists(id, courseName, lesson);
+    public boolean hasAudio() {
+        return audioExists;
     }
 
     public Uri getAudioPath(String courseName) {
@@ -78,7 +84,7 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
     }
 
     public void show(Context c) {
-        Database.getInstance(c).insertNote(id, lesson, text);
+        Database.getInstance(c).insertNote(id, lesson, text, imageExists, audioExists);
     }
 
     public void edit(Context c, String lesson, String text, File imageFile, File audioFile) {
@@ -100,6 +106,8 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
         dest.writeParcelable(id, 0);
         dest.writeString(lesson);
         dest.writeString(text);
+        dest.writeInt(imageExists?1:0);
+        dest.writeInt(audioExists?1:0);
     }
 
     @Override

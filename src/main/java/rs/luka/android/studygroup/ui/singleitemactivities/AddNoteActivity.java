@@ -207,7 +207,7 @@ public class AddNoteActivity extends AppCompatActivity {
     private void setFieldsForEditing() {
         text.setText(notes.get(currentNote).getText());
         text.setSelection(text.getText().length());
-        if (notes.get(currentNote).hasImage(course.getSubject())) {
+        if (notes.get(currentNote).hasImage()) {
             image.setImageBitmap(notes.get(currentNote)
                                       .getImage(course.getSubject(),
                                                 getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));

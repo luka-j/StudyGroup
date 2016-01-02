@@ -39,7 +39,7 @@ public class QuestionPagerActivity extends AppCompatActivity implements LoaderMa
         lesson = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         position = getIntent().getIntExtra(LessonActivity.EXTRA_CURRENT_QUESTION_POSITION, 0);
         adapter = new QuestionAdapter(this, this.getSupportFragmentManager(), null);
-        DataManager.getNotes(this, this.getLoaderManager());
+        DataManager.getNotes(this, this, this.getLoaderManager());
 
         viewPager.setAdapter(adapter);
     }

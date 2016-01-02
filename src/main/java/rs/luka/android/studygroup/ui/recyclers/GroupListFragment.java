@@ -157,7 +157,7 @@ public class GroupListFragment extends Fragment implements LoaderManager.LoaderC
             adapter = new GroupAdapter(getActivity(), null);
             recycler.setAdapter(adapter);
         }
-        DataManager.getGroups(this, getActivity().getLoaderManager());
+        DataManager.getGroups(getContext(), this, getActivity().getLoaderManager());
     }
 
     @Override

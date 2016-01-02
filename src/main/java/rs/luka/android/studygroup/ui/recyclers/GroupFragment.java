@@ -187,7 +187,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             adapter = new CourseAdapter(getActivity(), null);
             courseRecyclerView.setAdapter(adapter);
         }
-        DataManager.getCourses(this, getActivity().getLoaderManager());
+        DataManager.getCourses(getContext(), this, getActivity().getLoaderManager());
     }
 
     @Override

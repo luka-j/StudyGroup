@@ -32,12 +32,14 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
     private final String lesson;
     private final String question;
     private final String answer;
+    private final boolean imageExists;
 
-    public Question(ID id, String lesson, String question, String answer) {
+    public Question(ID id, String lesson, String question, String answer, boolean imageExists) {
         this.id = id;
         this.lesson = lesson;
         this.question = question;
         this.answer = answer;
+        this.imageExists = imageExists;
     }
 
     private Question(Parcel in) {
@@ -45,6 +47,7 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
         lesson = in.readString();
         question = in.readString();
         answer = in.readString();
+        imageExists = in.readInt()!=0;
     }
 
     public String getQuestion() {
@@ -55,8 +58,8 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
         return answer;
     }
 
-    public boolean hasImage(String courseName) {
-        return DataManager.imageExists(id, courseName, lesson);
+    public boolean hasImage() {
+        return imageExists;
     }
 
     public Bitmap getImage(String courseName, int idealDimension) {
@@ -77,7 +80,7 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
     }
 
     public void show(Context c) {
-        Database.getInstance(c).insertQuestion(id, lesson, question, answer);
+        Database.getInstance(c).insertQuestion(id, lesson, question, answer, imageExists);
     }
 
     public void edit(Context c, String lesson, String question, String answer, File image) {
@@ -97,6 +100,7 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
         dest.writeString(lesson);
         dest.writeString(question);
         dest.writeString(answer);
+        dest.writeInt(imageExists?1:0);
     }
 
     @Override

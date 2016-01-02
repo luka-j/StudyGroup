@@ -20,7 +20,7 @@ import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import java.text.DateFormat;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.io.Network;
+import rs.luka.android.studygroup.network.AdditionalCursors;
 import rs.luka.android.studygroup.model.History;
 import rs.luka.android.studygroup.model.PastEvents;
 import rs.luka.android.studygroup.ui.CursorAdapter;
@@ -125,7 +125,7 @@ public class HistoryFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(HistoryHolder holder, Cursor data) {
-            holder.bindItem(((Network.HistoryCursor) data).getHistory());
+            holder.bindItem(((AdditionalCursors.HistoryCursor) data).getHistory());
         }
     }
 }

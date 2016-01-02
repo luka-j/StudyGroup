@@ -202,7 +202,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
             adapter = new NotesAdapter(getActivity(), null);
             notesRecycler.setAdapter(adapter);
         }
-        DataManager.getNotes(this, getActivity().getLoaderManager());
+        DataManager.getNotes(getContext(), this, getActivity().getLoaderManager());
     }
 
     @Override
@@ -253,7 +253,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         public void bindNote(Note note) {
             this.note = note;
             titleTextView.setText(note.getText());
-            if (note.hasImage(course.getSubject())) {
+            if (note.hasImage()) {
                 thumbnail.setImageBitmap(note.getImage(course.getSubject(),
                                                        getResources().getDimensionPixelSize(R.dimen.list_item_thumbnail_size)));
             } else {

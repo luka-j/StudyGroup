@@ -184,7 +184,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
                            .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
                            .colorTheFuckingTextToWhite(getActivity())
                            .doStuffThatGoogleDidntFuckingDoProperly(getActivity(),
-                                                                    ((LessonActivity) getActivity()).getFab());
+                                                                    ((LessonActivity) getActivity()).getFab()); //TODO FIX !! (ExamQuestionsActivity != LessonActivity)
         snackbar.show();
     }
 
@@ -197,7 +197,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
             adapter = new QuestionsAdapter(getActivity(), null);
             questionsRecycler.setAdapter(adapter);
         }
-        DataManager.getQuestions(this, getActivity().getLoaderManager());
+        DataManager.getQuestions(getContext(), this, getActivity().getLoaderManager());
     }
 
     @Override
@@ -250,7 +250,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
             this.question = question;
             questionTextView.setText(question.getQuestion());
             answerTextView.setText(question.getAnswer());
-            if (this.question.hasImage(course.getSubject())) {
+            if (this.question.hasImage()) {
                 thumbnail.setImageBitmap(question.getImage(course.getSubject(),
                                                            getResources().getDimensionPixelSize(R.dimen.list_item_thumbnail_size)));
             } else {

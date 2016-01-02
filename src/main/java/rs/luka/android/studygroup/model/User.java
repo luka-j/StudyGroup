@@ -1,33 +1,50 @@
 package rs.luka.android.studygroup.model;
 
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.util.Log;
 
-import java.util.UUID;
+import java.io.IOException;
+import java.util.Arrays;
 
 import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.UserManager;
+import rs.luka.android.studygroup.io.Network;
+import rs.luka.android.studygroup.network.UserManager;
 
 /**
  * Created by luka on 25.7.15..
  */
 public class User {
+    public static final String PREFS_NAME = "userdata";
+    public static final String PREFS_KEY_TOKEN = "User.token";
+
     private static User   instance;
-    private final  String name;
-    private        UUID   token;
+    private String name;
+    private String   token;
     private long id;
+
+    public User(String token) {
+        this.token = token;
+    }
 
     public User(long id, String name) {
         this.name = name;
         this.id = id;
     }
-    private User(String username, String password) {
-        token = UserManager.login(username, password);
-        name = UserManager.requestName(token);
+
+    public static boolean hasSavedToken(SharedPreferences prefs) {
+        return prefs.contains(PREFS_KEY_TOKEN);
     }
 
-    public static User login(String username, String password) {
-        instance = new User(username, password);
-        return instance;
+    public static void instantiateUser(String token, SharedPreferences prefs) {
+        SharedPreferences.Editor prefsEditor = prefs.edit();
+        prefsEditor.putString(PREFS_KEY_TOKEN, token);
+        prefsEditor.apply();
+        instance = new User(token);
+    }
+
+    public static String getToken() {
+        return instance.token;
     }
 
     public static User getLoggedInUser() {
@@ -38,7 +55,7 @@ public class User {
         return instance != null;
     }
 
-    public void refreshToken(UUID token) {
+    public void refreshToken(String token) {
         this.token = token;
     }
 

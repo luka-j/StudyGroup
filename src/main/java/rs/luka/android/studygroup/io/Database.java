@@ -25,7 +25,7 @@ import rs.luka.android.studygroup.model.Question;
 public class Database extends SQLiteOpenHelper {
     private static final String TAG           = "studygroup.Database";
     private static final String DB_NAME       = "base.sqlite";
-    private static final int    VERSION       = 7;
+    private static final int    VERSION       = 8;
     private static final String DROP          = "DROP TABLE IF EXISTS ";
     private static final String CREATE        = "CREATE TABLE ";
     private static final String TYPE_VARCHAR  = " VARCHAR";
@@ -85,32 +85,32 @@ public class Database extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void insertGroup(ID id, String name, String place) {
+    public void insertGroup(ID id, String name, String place, boolean hasImage) {
         ContentValues cv = new ContentValues(4);
-        cv.put(Groups.GroupEntry.COLUMN_NAME_ID, id.getHigh8());
-        cv.put(Groups.GroupEntry.COLUMN_NAME_SALT, id.getSalt());
+        cv.put(Groups.GroupEntry.COLUMN_NAME_ID, id.getGroupIdValue());
         cv.put(Groups.GroupEntry.COLUMN_NAME_SCHOOL, name);
         cv.put(Groups.GroupEntry.COLUMN_NAME_PLACE, place);
+        cv.put(Groups.GroupEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db   = getWritableDatabase();
         long           code = db.insert(Groups.TABLE_NAME, null, cv);
     }
 
-    public void updateGroup(ID id, String name, String place) {
+    public void updateGroup(ID id, String name, String place, boolean hasImage) {
         ContentValues cv = new ContentValues(2);
         cv.put(Groups.GroupEntry.COLUMN_NAME_SCHOOL, name);
         cv.put(Groups.GroupEntry.COLUMN_NAME_PLACE, place);
+        cv.put(Groups.GroupEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db = getWritableDatabase();
         long code = db.update(Groups.TABLE_NAME,
                               cv,
-                              Groups.GroupEntry.COLUMN_NAME_ID + "=" + id.getHigh8() + " AND "
-                              + Groups.GroupEntry.COLUMN_NAME_SALT + "=" + id.getSalt(),
+                              Groups.GroupEntry.COLUMN_NAME_ID + "=" + id.getGroupIdValue(),
                               null);
     }
 
     public void removeGroup(ID id) {
         SQLiteDatabase db = getWritableDatabase();
         long code = db.delete(Groups.TABLE_NAME,
-                              Groups.GroupEntry.COLUMN_NAME_ID + "=" + id.getHigh8(),
+                              Groups.GroupEntry.COLUMN_NAME_ID + "=" + id.getGroupIdValue(),
                               null);
     }
 
@@ -130,27 +130,29 @@ public class Database extends SQLiteOpenHelper {
         return DatabaseUtils.queryNumEntries(getReadableDatabase(), Groups.TABLE_NAME);
     }
 
-    public void insertCourse(ID id, String subject, String teacher, Integer year) {
+    public void insertCourse(ID id, String subject, String teacher, Integer year, boolean hasImage) {
         ContentValues cv = new ContentValues(5);
-        cv.put(Courses.CourseEntry.COLUMN_NAME_GROUP_ID, id.getHigh8());
-        cv.put(Courses.CourseEntry.COLUMN_NAME_ID, id.getMid4());
+        cv.put(Courses.CourseEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
+        cv.put(Courses.CourseEntry.COLUMN_NAME_ID, id.getCourseIdValue());
         cv.put(Courses.CourseEntry.COLUMN_NAME_SUBJECT, subject);
         cv.put(Courses.CourseEntry.COLUMN_NAME_TEACHER, teacher);
         cv.put(Courses.CourseEntry.COLUMN_NAME_YEAR, year);
+        cv.put(Courses.CourseEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db   = getWritableDatabase();
         long           code = db.insert(Courses.TABLE_NAME, null, cv);
     }
 
-    public void updateCourse(ID id, String subject, String teacher, Integer year) {
+    public void updateCourse(ID id, String subject, String teacher, Integer year, boolean hasImage) {
         ContentValues cv = new ContentValues(3);
         cv.put(Courses.CourseEntry.COLUMN_NAME_SUBJECT, subject);
         cv.put(Courses.CourseEntry.COLUMN_NAME_TEACHER, teacher);
         cv.put(Courses.CourseEntry.COLUMN_NAME_YEAR, year);
+        cv.put(Courses.CourseEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db = getWritableDatabase();
         long code = db.update(Courses.TABLE_NAME,
                               cv,
-                              Courses.CourseEntry.COLUMN_NAME_GROUP_ID + "=" + id.getHigh8() +
-                              " AND " + Courses.CourseEntry.COLUMN_NAME_ID + "=" + id.getMid4(),
+                              Courses.CourseEntry.COLUMN_NAME_GROUP_ID + "=" + id.getGroupIdValue() +
+                              " AND " + Courses.CourseEntry.COLUMN_NAME_ID + "=" + id.getCourseIdValue(),
                               null);
     }
 
@@ -162,10 +164,8 @@ public class Database extends SQLiteOpenHelper {
     public void hideCourse(ID id) {
         SQLiteDatabase db = getWritableDatabase();
         long code = db.delete(Courses.TABLE_NAME,
-                              Courses.CourseEntry.COLUMN_NAME_GROUP_ID + "="
-                              + id.getHigh8() +
-                              " AND " + Courses.CourseEntry.COLUMN_NAME_ID + "="
-                              + id.getMid4(),
+                               Courses.CourseEntry.COLUMN_NAME_ID + "="
+                              + id.getCourseIdValue(),
                               null);
     }
 
@@ -174,7 +174,7 @@ public class Database extends SQLiteOpenHelper {
         CourseCursor c = new CourseCursor(getReadableDatabase().query(Courses.TABLE_NAME,
                                                                       null,
                                                                       Courses.CourseEntry.COLUMN_NAME_GROUP_ID
-                                                                      + "=" + groupId.getHigh8(),
+                                                                      + "=" + groupId.getGroupIdValue(),
                                                                       null,
                                                                       null,
                                                                       null,
@@ -187,12 +187,8 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         CourseCursor c = new CourseCursor(db.query(Courses.TABLE_NAME,
                                                    null,
-                                                   Courses.CourseEntry.COLUMN_NAME_GROUP_ID
-                                                   + "=" + courseId.getHigh8()
-                                                   + " AND " +
                                                    Courses.CourseEntry.COLUMN_NAME_ID
-                                                   + "=" +
-                                                   courseId.getMid4(),
+                                                   + "=" + courseId.getCourseIdValue(),
                                                    null,
                                                    null,
                                                    null,
@@ -210,10 +206,8 @@ public class Database extends SQLiteOpenHelper {
                                                           Lessons.LessonEntry.COLUMN_NAME_LESSON,
                                                           Lessons.LessonEntry.COLUMN_NAME_NOTE_NO,
                                                           Lessons.LessonEntry.COLUMN_NAME_QUESTION_NO},
-                                             Lessons.LessonEntry.COLUMN_NAME_GROUP_ID
-                                             + "=" + courseId.getHigh8() + " AND "
-                                             + Lessons.LessonEntry.COLUMN_NAME_COURSE_ID + "="
-                                             + courseId.getMid4(),
+                                             Lessons.LessonEntry.COLUMN_NAME_COURSE_ID + "="
+                                             + courseId.getCourseIdValue(),
                                              null,
                                              null,
                                              null,
@@ -226,13 +220,11 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         hideLesson(courseId, lesson);
         db.delete(Notes.TABLE_NAME,
-                  Notes.NoteEntry.COLUMN_NAME_GROUP_ID + "=" + courseId.getHigh8() + " AND " +
-                  Notes.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getMid4() +
+                  Notes.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() +
                   (lesson != null ? " AND " + Notes.NoteEntry.COLUMN_NAME_LESSON + "='" + lesson + "'" : ""),
                   null);
         db.delete(Questions.TABLE_NAME,
-                  Questions.QuestionEntry.COLUMN_NAME_GROUP_ID + "=" + courseId.getHigh8() + " AND " +
-                  Questions.QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getMid4() +
+                  Questions.QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() +
                   (lesson != null ?
                    " AND " + Questions.QuestionEntry.COLUMN_NAME_LESSON + "='" + lesson + "'" :
                    ""),
@@ -242,19 +234,16 @@ public class Database extends SQLiteOpenHelper {
     public void hideLesson(ID courseId, String lesson) {
         SQLiteDatabase db = getWritableDatabase();
         db.delete(Lessons.TABLE_NAME,
-                  Lessons.LessonEntry.COLUMN_NAME_GROUP_ID + "=" + courseId.getHigh8() + " AND "
-                  +
-                  Lessons.LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getMid4() + " AND "
-                  +
-                  Lessons.LessonEntry.COLUMN_NAME_LESSON + "='" + lesson + "'",
+                  Lessons.LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() + " AND "
+                  + Lessons.LessonEntry.COLUMN_NAME_LESSON + "='" + lesson + "'",
                   null);
     }
 
     public void showLesson(ID courseId, int _id, String lesson, int noteCount, int questionCount) {
         ContentValues cv = new ContentValues(6);
         cv.put(Lessons.LessonEntry._ID, _id);
-        cv.put(Lessons.LessonEntry.COLUMN_NAME_GROUP_ID, courseId.getHigh8());
-        cv.put(Lessons.LessonEntry.COLUMN_NAME_COURSE_ID, courseId.getMid4());
+        cv.put(Lessons.LessonEntry.COLUMN_NAME_GROUP_ID, courseId.getGroupIdValue());
+        cv.put(Lessons.LessonEntry.COLUMN_NAME_COURSE_ID, courseId.getCourseIdValue());
         cv.put(Lessons.LessonEntry.COLUMN_NAME_LESSON, lesson);
         cv.put(Lessons.LessonEntry.COLUMN_NAME_NOTE_NO, noteCount);
         cv.put(Lessons.LessonEntry.COLUMN_NAME_QUESTION_NO, questionCount);
@@ -268,28 +257,27 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.update(Lessons.TABLE_NAME,
                   cv,
-                  Lessons.LessonEntry.COLUMN_NAME_GROUP_ID + "=" + courseId.getHigh8() + " AND "
-                  + Lessons.LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getMid4() + " AND "
+                  Lessons.LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() + " AND "
                   + Lessons.LessonEntry.COLUMN_NAME_LESSON + "='" + oldName + "'",
                   null);
-        db.update(Notes.TABLE_NAME, cv, Notes.NoteEntry.COLUMN_NAME_GROUP_ID + "=" + courseId.getHigh8() + " AND "
-                                        + Notes.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getMid4() + " AND "
-                                        + Notes.NoteEntry.COLUMN_NAME_LESSON + "='" + oldName + "'", null);
+        db.update(Notes.TABLE_NAME, cv, Notes.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() +
+                                        " AND " + Notes.NoteEntry.COLUMN_NAME_LESSON + "='" + oldName + "'", null);
         db.update(Questions.TABLE_NAME,
                   cv,
-                  Questions.QuestionEntry.COLUMN_NAME_GROUP_ID + "=" + courseId.getHigh8() + " AND "
-                  + Questions.QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getMid4() + " AND "
+                  Questions.QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() + " AND "
                   + Questions.QuestionEntry.COLUMN_NAME_LESSON + "='" + oldName + "'",
                   null);
     }
 
-    public void insertNote(ID id, String lesson, String text) {
+    public void insertNote(ID id, String lesson, String text, boolean hasImage, boolean hasAudio) {
         ContentValues cv = new ContentValues(5);
-        cv.put(Notes.NoteEntry.COLUMN_NAME_GROUP_ID, id.getHigh8());
-        cv.put(Notes.NoteEntry.COLUMN_NAME_COURSE_ID, id.getMid4());
-        cv.put(Notes.NoteEntry.COLUMN_NAME_ID, id.getLow4());
+        cv.put(Notes.NoteEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
+        cv.put(Notes.NoteEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
+        cv.put(Notes.NoteEntry.COLUMN_NAME_ID, id.getItemIdValue());
         cv.put(Notes.NoteEntry.COLUMN_NAME_LESSON, lesson);
         cv.put(Notes.NoteEntry.COLUMN_NAME_TEXT, text);
+        cv.put(Notes.NoteEntry.COLUMN_NAME_IMAGE, hasImage);
+        cv.put(Notes.NoteEntry.COLUMN_NAME_AUDIO, hasAudio);
         SQLiteDatabase db   = getWritableDatabase();
         long           code = db.insert(Notes.TABLE_NAME, null, cv);
         if (code != -1) {
@@ -297,25 +285,20 @@ public class Database extends SQLiteOpenHelper {
         }
     }
 
-    public void updateNote(ID id, String lesson, String text) {
+    public void updateNote(ID id, String lesson, String text, boolean hasImage, boolean hasAudio) {
         ContentValues cv = new ContentValues(2);
         cv.put(Notes.NoteEntry.COLUMN_NAME_LESSON, lesson);
         cv.put(Notes.NoteEntry.COLUMN_NAME_TEXT, text);
+        cv.put(Notes.NoteEntry.COLUMN_NAME_IMAGE, hasImage);
+        cv.put(Notes.NoteEntry.COLUMN_NAME_AUDIO, hasAudio);
         SQLiteDatabase db = getWritableDatabase();
-        db.update(Notes.TABLE_NAME, cv, Notes.NoteEntry.COLUMN_NAME_GROUP_ID + "=" + id.getHigh8() + " AND "
-                                        + Notes.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + id.getMid4() + " AND "
-                                        + Notes.NoteEntry.COLUMN_NAME_ID + "=" + id.getLow4(), null);
+        db.update(Notes.TABLE_NAME, cv, Notes.NoteEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
     }
 
     public void removeNote(ID id, String lesson) {
         SQLiteDatabase db = getWritableDatabase();
         long code = db.delete(Notes.TABLE_NAME,
-                              Notes.NoteEntry.COLUMN_NAME_GROUP_ID + "="
-                              + id.getHigh8() + " AND "
-                              + Notes.NoteEntry.COLUMN_NAME_COURSE_ID + "="
-                              + id.getMid4()
-                              + " AND "
-                              + Notes.NoteEntry.COLUMN_NAME_ID + "=" + id.getLow4(),
+                              Notes.NoteEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
                               null);
     }
 
@@ -324,10 +307,8 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         NoteCursor c = new NoteCursor(db.query(Notes.TABLE_NAME,
                                                null,
-                                               Notes.NoteEntry.COLUMN_NAME_GROUP_ID + "="
-                                               + courseId.getHigh8() +
-                                               " AND " + Notes.NoteEntry.COLUMN_NAME_COURSE_ID
-                                               + "=" + courseId.getMid4() +
+                                               Notes.NoteEntry.COLUMN_NAME_COURSE_ID
+                                               + "=" + courseId.getCourseIdValue() +
                                                " AND " + Notes.NoteEntry.COLUMN_NAME_LESSON
                                                + "='" + lesson + "'",
                                                null,
@@ -337,14 +318,15 @@ public class Database extends SQLiteOpenHelper {
         return c;
     }
 
-    public void insertQuestion(ID id, String lesson, String question, String answer) {
+    public void insertQuestion(ID id, String lesson, String question, String answer, boolean hasImage) {
         ContentValues cv = new ContentValues(5);
-        cv.put(Questions.QuestionEntry.COLUMN_NAME_GROUP_ID, id.getHigh8());
-        cv.put(Questions.QuestionEntry.COLUMN_NAME_COURSE_ID, id.getMid4());
-        cv.put(Questions.QuestionEntry.COLUMN_NAME_ID, id.getLow4());
+        cv.put(Questions.QuestionEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
+        cv.put(Questions.QuestionEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
+        cv.put(Questions.QuestionEntry.COLUMN_NAME_ID, id.getItemIdValue());
         cv.put(Questions.QuestionEntry.COLUMN_NAME_LESSON, lesson);
         cv.put(Questions.QuestionEntry.COLUMN_NAME_QUESTION, question);
         cv.put(Questions.QuestionEntry.COLUMN_NAME_ANSWER, answer);
+        cv.put(Questions.QuestionEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db   = getWritableDatabase();
         long           code = db.insert(Questions.TABLE_NAME, null, cv);
         if (code != -1) {
@@ -352,31 +334,23 @@ public class Database extends SQLiteOpenHelper {
         }
     }
 
-    public void updateQuestion(ID id, String lesson, String question, String answer) {
+    public void updateQuestion(ID id, String lesson, String question, String answer, boolean hasImage) {
         ContentValues cv = new ContentValues(3);
         cv.put(Questions.QuestionEntry.COLUMN_NAME_LESSON, lesson);
         cv.put(Questions.QuestionEntry.COLUMN_NAME_QUESTION, question);
         cv.put(Questions.QuestionEntry.COLUMN_NAME_ANSWER, answer);
+        cv.put(Questions.QuestionEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db = getWritableDatabase();
         db.update(Questions.TABLE_NAME,
                   cv,
-                  Questions.QuestionEntry.COLUMN_NAME_GROUP_ID + "=" + id.getHigh8() + " AND "
-                  + Questions.QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + id.getMid4() + " AND "
-                  + Questions.QuestionEntry.COLUMN_NAME_ID + "=" + id.getLow4(),
+                  Questions.QuestionEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
                   null);
     }
 
     public void removeQuestion(ID id, String lesson) {
         SQLiteDatabase db = getWritableDatabase();
         long code = db.delete(Questions.TABLE_NAME,
-                              Questions.QuestionEntry.COLUMN_NAME_GROUP_ID + "="
-                              + id.getHigh8()
-                              + " AND "
-                              + Questions.QuestionEntry.COLUMN_NAME_COURSE_ID + "="
-                              + id.getMid4()
-                              + " AND "
-                              + Questions.QuestionEntry.COLUMN_NAME_ID + "="
-                              + id.getLow4(),
+                              Questions.QuestionEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
                               null);
     }
 
@@ -385,11 +359,8 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         QuestionCursor c = new QuestionCursor(db.query(Questions.TABLE_NAME,
                                                        null,
-                                                       Questions.QuestionEntry.COLUMN_NAME_GROUP_ID
-                                                       + "=" + courseId.getHigh8() +
-                                                       " AND "
-                                                       + Questions.QuestionEntry.COLUMN_NAME_COURSE_ID
-                                                       + "=" + courseId.getMid4() +
+                                                       Questions.QuestionEntry.COLUMN_NAME_COURSE_ID
+                                                       + "=" + courseId.getCourseId() +
                                                        " AND "
                                                        + Notes.NoteEntry.COLUMN_NAME_LESSON + "='"
                                                        + lesson + "'",
@@ -403,9 +374,9 @@ public class Database extends SQLiteOpenHelper {
 
     public void insertExam(ID id, String klass, String lesson, String type, long date) {
         ContentValues cv = new ContentValues(7);
-        cv.put(Exams.ExamEntry.COLUMN_NAME_GROUP_ID, id.getHigh8());
-        cv.put(Exams.ExamEntry.COLUMN_NAME_COURSE_ID, id.getMid4());
-        cv.put(Exams.ExamEntry.COLUMN_NAME_ID, id.getLow4());
+        cv.put(Exams.ExamEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
+        cv.put(Exams.ExamEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
+        cv.put(Exams.ExamEntry.COLUMN_NAME_ID, id.getItemIdValue());
         cv.put(Exams.ExamEntry.COLUMN_NAME_CLASS, klass);
         cv.put(Exams.ExamEntry.COLUMN_NAME_LESSON, lesson);
         cv.put(Exams.ExamEntry.COLUMN_NAME_TYPE, type);
@@ -421,17 +392,17 @@ public class Database extends SQLiteOpenHelper {
         cv.put(Exams.ExamEntry.COLUMN_NAME_TYPE, type);
         cv.put(Exams.ExamEntry.COLUMN_NAME_DATE, date);
         SQLiteDatabase db = getWritableDatabase();
-        db.update(Exams.TABLE_NAME, cv, Exams.ExamEntry.COLUMN_NAME_GROUP_ID + "=" + id.getHigh8() + " AND "
-                                        + Exams.ExamEntry.COLUMN_NAME_COURSE_ID + "=" + id.getMid4() + " AND "
-                                        + Exams.ExamEntry.COLUMN_NAME_ID + "=" + id.getLow4(), null);
+        db.update(Exams.TABLE_NAME, cv, Exams.ExamEntry.COLUMN_NAME_GROUP_ID + "=" + id.getGroupIdValue() + " AND "
+                                        + Exams.ExamEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() + " AND "
+                                        + Exams.ExamEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
     }
 
     public void hideExam(ID id) {
         SQLiteDatabase db = getWritableDatabase();
         long code = db.delete(Exams.TABLE_NAME,
-                              Exams.ExamEntry.COLUMN_NAME_GROUP_ID + "=" + id.getHigh8() + " AND "
-                              + Exams.ExamEntry.COLUMN_NAME_COURSE_ID + "=" + id.getMid4() + " AND "
-                              + Exams.ExamEntry.COLUMN_NAME_ID + "=" + id.getLow4(),
+                              Exams.ExamEntry.COLUMN_NAME_GROUP_ID + "=" + id.getGroupIdValue() + " AND "
+                              + Exams.ExamEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() + " AND "
+                              + Exams.ExamEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
                               null);
     }
 
@@ -445,7 +416,7 @@ public class Database extends SQLiteOpenHelper {
         ExamCursor c = new ExamCursor(context, db.query(Exams.TABLE_NAME,
                                                         null,
                                                         Exams.ExamEntry.COLUMN_NAME_GROUP_ID
-                                                        + "=" + groupId.getHigh8(),
+                                                        + "=" + groupId.getGroupId(),
                                                         null,
                                                         null,
                                                         null,
@@ -463,8 +434,8 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         Cursor existing = db.query(Lessons.TABLE_NAME,
                                    new String[]{Lessons.LessonEntry._ID},
-                                   Lessons.LessonEntry.COLUMN_NAME_GROUP_ID + "=" + courseId.getHigh8() + " AND " +
-                                   Lessons.LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getMid4() + " AND " +
+                                   Lessons.LessonEntry.COLUMN_NAME_GROUP_ID + "=" + courseId.getGroupIdValue() + " AND " +
+                                   Lessons.LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() + " AND " +
                                    Lessons.LessonEntry.COLUMN_NAME_LESSON + "='" + lesson + "'",
                                    null,
                                    null,
@@ -472,8 +443,8 @@ public class Database extends SQLiteOpenHelper {
                                    null);
         existing.moveToFirst();
         if (existing.getCount() == 0) {
-            cv.put(Lessons.LessonEntry.COLUMN_NAME_GROUP_ID, courseId.getHigh8());
-            cv.put(Lessons.LessonEntry.COLUMN_NAME_COURSE_ID, courseId.getMid4());
+            cv.put(Lessons.LessonEntry.COLUMN_NAME_GROUP_ID, courseId.getGroupIdValue());
+            cv.put(Lessons.LessonEntry.COLUMN_NAME_COURSE_ID, courseId.getCourseIdValue());
             cv.put(Lessons.LessonEntry.COLUMN_NAME_LESSON, lesson);
             db.insert(Lessons.TABLE_NAME, null, cv);
         } else {
@@ -493,10 +464,10 @@ public class Database extends SQLiteOpenHelper {
                 CREATE + TABLE_NAME + " (" +
                 GroupEntry._ID + TYPE_INT8 + PRIMARY + COMMA_SEP +
                 GroupEntry.COLUMN_NAME_ID + TYPE_ID + COMMA_SEP +
-                GroupEntry.COLUMN_NAME_SALT + TYPE_ID + COMMA_SEP +
                 GroupEntry.COLUMN_NAME_SCHOOL + TYPE_VARCHAR + "(" + Limits.GROUP_NAME_MAX_LENGTH + ")"
                 + COMMA_SEP +
-                GroupEntry.COLUMN_NAME_PLACE + TYPE_VARCHAR + "(" + Limits.GROUP_PLACE_MAX_LENGTH + ")" +
+                GroupEntry.COLUMN_NAME_PLACE + TYPE_VARCHAR + "(" + Limits.GROUP_PLACE_MAX_LENGTH + ")" + COMMA_SEP +
+                GroupEntry.COLUMN_NAME_IMAGE + TYPE_INT1 +
                 ")";
 
         private static final String SQL_DELETE_TABLE = DROP + TABLE_NAME;
@@ -505,9 +476,9 @@ public class Database extends SQLiteOpenHelper {
 
         public static abstract class GroupEntry implements BaseColumns {
             public static final String COLUMN_NAME_ID     = "id";
-            public static final String COLUMN_NAME_SALT   = "random";
             public static final String COLUMN_NAME_SCHOOL = "name";
             public static final String COLUMN_NAME_PLACE  = "place";
+            public static final String COLUMN_NAME_IMAGE  = "image_exists";
         }
     }
 
@@ -519,10 +490,10 @@ public class Database extends SQLiteOpenHelper {
 
         public Group getGroup() {
             if (isBeforeFirst() || isAfterLast()) { return null; }
-            ID id = new ID(getLong(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_ID)),
-                           getShort(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_SALT)));
+            ID id = new ID(getLong(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_ID)));
             return new Group(id, getString(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_SCHOOL)),
-                             getString(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_PLACE)));
+                             getString(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_PLACE)),
+                             getInt(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_IMAGE))!=0);
         }
     }
 
@@ -538,7 +509,9 @@ public class Database extends SQLiteOpenHelper {
                 + ")" + COMMA_SEP +
                 CourseEntry.COLUMN_NAME_TEACHER + TYPE_VARCHAR + "(" + Limits.COURSE_TEACHER_MAX_LENGTH
                 + ")" + COMMA_SEP +
-                CourseEntry.COLUMN_NAME_YEAR + TYPE_INT1 + ")";
+                CourseEntry.COLUMN_NAME_YEAR + TYPE_INT1 + COMMA_SEP +
+                CourseEntry.COLUMN_NAME_IMAGE + TYPE_INT1 +
+                ")";
 
         private static final String SQL_DELETE_TABLE = DROP + TABLE_NAME;
 
@@ -548,6 +521,7 @@ public class Database extends SQLiteOpenHelper {
             public static final String COLUMN_NAME_SUBJECT  = "subject";
             public static final String COLUMN_NAME_TEACHER  = "teacher";
             public static final String COLUMN_NAME_YEAR     = "year";
+            public static final String COLUMN_NAME_IMAGE    = "image_exists";
         }
     }
 
@@ -562,10 +536,11 @@ public class Database extends SQLiteOpenHelper {
                 return null;
             }
             ID id = new ID(getLong(getColumnIndex(Courses.CourseEntry.COLUMN_NAME_GROUP_ID)),
-                           getInt(getColumnIndex(Courses.CourseEntry.COLUMN_NAME_ID)));
+                           getLong(getColumnIndex(Courses.CourseEntry.COLUMN_NAME_ID)));
             return new Course(id, getString(getColumnIndex(Courses.CourseEntry.COLUMN_NAME_SUBJECT)),
                               getString(getColumnIndex(Courses.CourseEntry.COLUMN_NAME_TEACHER)),
-                              getInt(getColumnIndex(Courses.CourseEntry.COLUMN_NAME_YEAR)));
+                              getInt(getColumnIndex(Courses.CourseEntry.COLUMN_NAME_YEAR)),
+                              getInt(getColumnIndex(Courses.CourseEntry.COLUMN_NAME_IMAGE)) != 0);
         }
     }
 
@@ -608,7 +583,10 @@ public class Database extends SQLiteOpenHelper {
                 + Courses.CourseEntry.COLUMN_NAME_ID + ")" + COMMA_SEP +
                 NoteEntry.COLUMN_NAME_LESSON + TYPE_VARCHAR + "(" + Limits.LESSON_MAX_LENGTH + ")"
                 + TYPE_NONNULL + COMMA_SEP +
-                NoteEntry.COLUMN_NAME_TEXT + TYPE_TEXT + ")";
+                NoteEntry.COLUMN_NAME_TEXT + TYPE_TEXT + COMMA_SEP +
+                NoteEntry.COLUMN_NAME_IMAGE + TYPE_INT1 + COMMA_SEP +
+                NoteEntry.COLUMN_NAME_AUDIO + TYPE_INT1 +
+                ")";
 
         private static final String SQL_DELETE_TABLE = DROP + TABLE_NAME;
 
@@ -618,6 +596,8 @@ public class Database extends SQLiteOpenHelper {
             public static final String COLUMN_NAME_COURSE_ID = "course_id";
             public static final String COLUMN_NAME_LESSON    = "lesson";
             public static final String COLUMN_NAME_TEXT      = "text";
+            public static final String COLUMN_NAME_IMAGE     = "image_exists";
+            public static final String COLUMN_NAME_AUDIO     = "audio_exists";
         }
     }
 
@@ -631,11 +611,13 @@ public class Database extends SQLiteOpenHelper {
                 return null;
             }
             ID id = new ID(getLong(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_GROUP_ID)),
-                           getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_COURSE_ID)),
-                           getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_ID)));
+                           getLong(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_COURSE_ID)),
+                           getLong(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_ID)));
             return new Note(id,
                             getString(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_LESSON)),
-                            getString(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_TEXT)));
+                            getString(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_TEXT)),
+                            getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_IMAGE)) != 0,
+                            getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_IMAGE)) != 0);
         }
     }
 
@@ -652,7 +634,9 @@ public class Database extends SQLiteOpenHelper {
                 QuestionEntry.COLUMN_NAME_LESSON + TYPE_VARCHAR + "(" + Limits.LESSON_MAX_LENGTH + ")"
                 + TYPE_NONNULL + COMMA_SEP +
                 QuestionEntry.COLUMN_NAME_QUESTION + TYPE_TEXT + COMMA_SEP +
-                QuestionEntry.COLUMN_NAME_ANSWER + TYPE_TEXT + ")";
+                QuestionEntry.COLUMN_NAME_ANSWER + TYPE_TEXT + COMMA_SEP +
+                QuestionEntry.COLUMN_NAME_IMAGE + TYPE_INT1 +
+                ")";
         private static final String SQL_DELETE_TABLE = DROP + TABLE_NAME;
 
         public static abstract class QuestionEntry implements BaseColumns {
@@ -662,6 +646,7 @@ public class Database extends SQLiteOpenHelper {
             public static final String COLUMN_NAME_LESSON    = Notes.NoteEntry.COLUMN_NAME_LESSON;
             public static final String COLUMN_NAME_QUESTION  = "question";
             public static final String COLUMN_NAME_ANSWER    = "answer";
+            public static final String COLUMN_NAME_IMAGE     = Notes.NoteEntry.COLUMN_NAME_IMAGE;
         }
     }
 
@@ -675,12 +660,13 @@ public class Database extends SQLiteOpenHelper {
                 return null;
             }
             ID id = new ID(getLong(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_GROUP_ID)),
-                           getInt(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_COURSE_ID)),
-                           getInt(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_ID)));
+                           getLong(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_COURSE_ID)),
+                           getLong(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_ID)));
             return new Question(id,
                                 getString(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_LESSON)),
                                 getString(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_QUESTION)),
-                                getString(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_ANSWER)));
+                                getString(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_ANSWER)),
+                                getInt(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_IMAGE)) != 0);
         }
     }
 
@@ -728,8 +714,8 @@ public class Database extends SQLiteOpenHelper {
                 return null;
             }
             ID id = new ID(getLong(getColumnIndex(Exams.ExamEntry.COLUMN_NAME_GROUP_ID)),
-                           getInt(getColumnIndex(Exams.ExamEntry.COLUMN_NAME_COURSE_ID)),
-                           getInt(getColumnIndex(Exams.ExamEntry.COLUMN_NAME_ID)));
+                           getLong(getColumnIndex(Exams.ExamEntry.COLUMN_NAME_COURSE_ID)),
+                           getLong(getColumnIndex(Exams.ExamEntry.COLUMN_NAME_ID)));
             return new Exam(context,
                             id,
                             getString(getColumnIndex(Exams.ExamEntry.COLUMN_NAME_CLASS)),

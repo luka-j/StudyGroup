@@ -39,7 +39,7 @@ public class NotePagerActivity extends AppCompatActivity implements LoaderManage
         lesson = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         notePosition = getIntent().getIntExtra(LessonActivity.EXTRA_CURRENT_NOTE_POSITION, 0);
         adapter = new NoteAdapter(this, this.getSupportFragmentManager(), null);
-        DataManager.getNotes(this, this.getLoaderManager());
+        DataManager.getNotes(this, this, this.getLoaderManager());
 
         viewPager.setAdapter(adapter);
     }

@@ -17,8 +17,9 @@ import rs.luka.android.studygroup.ui.dialogs.RenameLessonDialog;
 public class CourseActivity extends SingleFragmentActivity implements CourseFragment.Callbacks,
                                                                       RenameLessonDialog.Callbacks {
 
-    public static final String EXTRA_LESSON_NAME = "lessonName";
-    public static final String EXTRA_COURSE      = "exCourse";
+    private static final String   TAG_DIALOG_RENAME = "studygroup.dialog.renamelesson";
+    public static final String    EXTRA_LESSON_NAME = "lessonName";
+    public static final String    EXTRA_COURSE      = "exCourse";
     protected static final String EXTRA_GO_FORWARD  = "forwardToLesson";
     protected static final String EXTRA_GO_BACKWARD = "backToCourses";
     private CourseFragment fragment;
@@ -61,7 +62,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
     @Override
     public void onEdit(String title) {
         oldLessonName = title;
-        RenameLessonDialog.newInstance(title).show(getSupportFragmentManager(), "debug");
+        RenameLessonDialog.newInstance(title).show(getSupportFragmentManager(), TAG_DIALOG_RENAME);
     }
 
     @Override

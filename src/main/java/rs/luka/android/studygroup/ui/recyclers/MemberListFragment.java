@@ -18,7 +18,7 @@ import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.pkmmte.view.CircularImageView;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.io.Network;
+import rs.luka.android.studygroup.network.AdditionalCursors;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.ui.CursorAdapter;
@@ -125,7 +125,7 @@ public class MemberListFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(UserHolder holder, Cursor data) {
-            holder.bindUser(((Network.UserCursor) data).getUser());
+            holder.bindUser(((AdditionalCursors.UserCursor) data).getUser());
         }
     }
 }

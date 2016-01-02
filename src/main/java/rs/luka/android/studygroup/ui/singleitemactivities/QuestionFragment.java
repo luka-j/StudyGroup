@@ -76,7 +76,7 @@ public class QuestionFragment extends Fragment {
     private void updateUI() {
         questionText.setText(question.getQuestion());
         answerText.setText(question.getAnswer());
-        if (question.hasImage(courseName)) {
+        if (question.hasImage()) {
             image.setImageBitmap(question.getImage(courseName, IMAGE_IDEAL_DIMEN));
         }
         history.setText(question.getHistory(getActivity()));

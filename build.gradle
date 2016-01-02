@@ -25,11 +25,14 @@ dependencies {
     compile 'com.android.support:cardview-v7:23.+'
     compile 'com.android.support:recyclerview-v7:23.+'
     compile 'com.android.support:design:22.+' //dok ne napravim Snackbar kako treba, ovo mora da ostane na v22
-    compile 'com.afollestad:material-dialogs:0.7.9.1'
+    compile('com.github.afollestad.material-dialogs:core:0.8.5.2@aar') {
+        transitive = true
+    }
     compile 'com.wdullaer:materialdatetimepicker:1.5.1'
     compile 'com.github.rahatarmanahmed:circularprogressview:2.3.2'
     compile 'com.davemorrissey.labs:subsampling-scale-image-view:3.2.0'
     compile 'com.pkmmte.view:circularimageview:1.1'
+    compile project(':volley')
 }
 
 /*sourceSets {

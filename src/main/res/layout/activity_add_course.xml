@@ -47,9 +47,8 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/teacher"
                     android:imeOptions="actionNext"
-                    android:inputType="text|textPersonName|textCapWords"/>
-                <!--Izgleda da je personName samo
-                                                                                               placeholder (wtf android?)-->
+                    android:inputType="text|textPersonName|textCapWords"/> <!--Izgleda da je personName samo
+                                                                               placeholder (wtf android?)-->
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout

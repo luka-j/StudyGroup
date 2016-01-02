@@ -192,7 +192,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             adapter = new ExamAdapter(getActivity(), null);
             recycler.setAdapter(adapter);
         }
-        DataManager.getExams(this, getActivity().getLoaderManager());
+        DataManager.getExams(getContext(), this, getActivity().getLoaderManager());
     }
 
     @Override

@@ -69,7 +69,7 @@ public class NoteFragment extends Fragment {
                 startActivity(i);
             }
         });
-        if (note.hasAudio(courseName)) {
+        if (note.hasAudio()) {
             audio.setVisibility(View.VISIBLE);
             audio.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -92,7 +92,7 @@ public class NoteFragment extends Fragment {
 
     private void updateUI() {
         text.setText(note.getText());
-        if (note.hasImage(courseName)) {
+        if (note.hasImage()) {
             image.setImageBitmap(note.getImage(courseName, IMAGE_IDEAL_DIMEN));
         }
         history.setText(note.getHistory(getActivity()));

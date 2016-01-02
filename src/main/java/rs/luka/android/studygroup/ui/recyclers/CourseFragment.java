@@ -154,7 +154,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             adapter = new LessonsAdapter(getActivity(), null);
             lessonsRecyclerView.setAdapter(adapter);
         }
-        DataManager.getLessons(this, getActivity().getLoaderManager());
+        DataManager.getLessons(getContext(), this, getActivity().getLoaderManager());
     }
 
     @Override

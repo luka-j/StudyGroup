@@ -171,7 +171,7 @@ public class AddQuestionActivity extends AppCompatActivity {
         question.setText(questions.get(currentQuestion).getQuestion());
         question.setSelection(question.getText().length());
         answer.setText(questions.get(currentQuestion).getAnswer());
-        if (questions.get(currentQuestion).hasImage(course.getSubject())) {
+        if (questions.get(currentQuestion).hasImage()) {
             image.setImageBitmap(questions.get(currentQuestion)
                                           .getImage(course.getSubject(),
                                                     getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));

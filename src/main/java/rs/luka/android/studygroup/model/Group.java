@@ -36,17 +36,20 @@ public class Group implements Parcelable, Comparable<Group>, PastEvents {
     private final ID id; //private by design (iliti nikada ne napusta ovu klasu)
     private final String name;
     private final String place;
+    private final boolean imageExists;
 
-    public Group(ID id, String name, String place) {
+    public Group(ID id, String name, String place, boolean imageExists) {
         this.id = id;
         this.name = name;
         this.place = place;
+        this.imageExists = imageExists;
     }
 
     private Group(Parcel in) {
         id = in.readParcelable(Group.class.getClassLoader());
         name = in.readString();
         place = in.readString();
+        imageExists = in.readInt()!=0;
     }
 
     public String getName() {
@@ -54,7 +57,7 @@ public class Group implements Parcelable, Comparable<Group>, PastEvents {
     }
 
     public boolean hasImage() {
-        return DataManager.imageExists(id, name, null);
+        return imageExists;
     }
 
     public Bitmap getImage(int scaleTo) {

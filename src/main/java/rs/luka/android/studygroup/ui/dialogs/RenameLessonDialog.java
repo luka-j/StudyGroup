@@ -16,7 +16,7 @@ import rs.luka.android.studygroup.ui.recyclers.CourseActivity;
  * Created by luka on 23.7.15.
  */
 public class RenameLessonDialog extends DialogFragment {
-    Callbacks callbacks;
+    private Callbacks callbacks;
 
     public static RenameLessonDialog newInstance(String lesson) {
         RenameLessonDialog f    = new RenameLessonDialog();

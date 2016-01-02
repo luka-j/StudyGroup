@@ -38,17 +38,20 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
     private final
     @Nullable     Integer year;
     private boolean hidden = false;
+    private final boolean imageExists;
 
-    public Course(ID id, String subject, String teacher, @Nullable Integer year) {
-        this(id, subject, teacher, year, false);
+    public Course(ID id, String subject, String teacher, @Nullable Integer year, boolean imageExists) {
+        this(id, subject, teacher, year, false, imageExists);
     }
 
-    public Course(ID id, String subject, String teacher, @Nullable Integer year, boolean hidden) {
+    public Course(ID id, String subject, String teacher, @Nullable Integer year, boolean hidden,
+                  boolean imageExists) {
         this.id = id;
         this.subject = subject;
         this.teacher = teacher;
         this.year = year;
         this.hidden = hidden;
+        this.imageExists = imageExists;
     }
 
     private Course(Parcel in) {
@@ -56,6 +59,7 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
         subject = in.readString();
         teacher = in.readString();
         year = Utils.intPrimitiveToObj(in.readInt(), -1);
+        imageExists = in.readInt()!=0;
     }
 
     public String getSubject() {
@@ -77,7 +81,7 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
     }
 
     public boolean hasImage() {
-        return DataManager.imageExists(id, subject, null);
+        return imageExists;
     }
 
     public Bitmap getImage(int minDimension) {
@@ -101,7 +105,7 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
     }
 
     public void show(Context c) {
-        Database.getInstance(c).insertCourse(id, subject, teacher, year);
+        Database.getInstance(c).insertCourse(id, subject, teacher, year, imageExists);
     }
 
     public void remove(Context c) {
@@ -151,6 +155,7 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
         dest.writeString(subject);
         dest.writeString(teacher);
         dest.writeInt(Utils.integerObjToPrimitive(year, -1));
+        dest.writeInt(imageExists?1:0);
     }
 
     @Override

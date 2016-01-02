@@ -45,12 +45,14 @@ public class RootActivity extends SingleFragmentActivity implements GroupListFra
 
     @Override
     protected boolean shouldCreateFragment() {
+        Log.i(TAG, "shouldCreateFragment for RootActivity?");
         if (getIntent().getBooleanExtra(GroupActivity.EXTRA_SHOW_LIST, false)) {
             Log.i(TAG, "showing list, extra supplied");
             return true;
         }
         //Log.i(TAG, "called from diff activity: " + getIntent().getPackage());
         if (!User.isLoggedIn()) {
+            Log.i(TAG, "User not logged in; showing LoginActivity");
             startActivity(new Intent(this, LoginActivity.class));
             return false;
         } else {
