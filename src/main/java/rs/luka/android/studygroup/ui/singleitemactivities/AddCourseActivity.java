@@ -22,6 +22,7 @@ import android.widget.TextView;
 import java.io.File;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.misc.Utils;
@@ -53,11 +54,18 @@ public class AddCourseActivity extends AppCompatActivity {
     private Course          course;
     private boolean         editing;
 
+    private NetworkExceptionHandler exceptionHandler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
+            @Override
+            public void finishedSuccessfully() {
+                AddCourseActivity.this.onBackPressed();
+            }
+        };
         group = getIntent().getParcelableExtra(EXTRA_GROUP);
         course = getIntent().getParcelableExtra(EXTRA_COURSE);
         editing = course != null;
@@ -67,7 +75,7 @@ public class AddCourseActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         if (NavUtils.getParentActivityIntent(this) != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
         subject = (EditText) findViewById(R.id.add_course_name_input);
@@ -82,7 +90,7 @@ public class AddCourseActivity extends AppCompatActivity {
             subject.setText(course.getSubject());
             teacher.setText(course.getTeacher());
             if (course.getYear() != null) {
-                year.setText(course.getYear().toString());
+                year.setText(String.format("%d", course.getYear()));
             }
             if (course.hasImage()) {
                 image.setImageBitmap(course.getImage(getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
@@ -177,15 +185,14 @@ public class AddCourseActivity extends AppCompatActivity {
         } else { yearTil.setError(null); }
         if (!error) {
             if (editing) {
-                course.edit(this, subjectText, teacherText, yearText, imageFile);
+                course.edit(this, subjectText, teacherText, yearText, imageFile, exceptionHandler);
             } else {
                 if (imageFile != null && imageFile.exists()) {
-                    group.addCourse(this, subjectText, teacherText, yearText, imageFile);
+                    group.addCourse(this, subjectText, teacherText, yearText, imageFile, exceptionHandler);
                 } else {
-                    group.addCourse(this, subjectText, teacherText, yearText, null);
+                    group.addCourse(this, subjectText, teacherText, yearText, null, exceptionHandler);
                 }
             }
-            onBackPressed();
         }
     }
 

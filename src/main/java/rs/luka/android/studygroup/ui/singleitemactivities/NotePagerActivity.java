@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
@@ -22,6 +23,7 @@ import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
  * Created by luka on 12.7.15..
  */
 public class NotePagerActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+    private NetworkExceptionHandler         exceptionHandler;
     private ViewPager                       viewPager;
     private Course                          course;
     private String                          lesson;
@@ -32,6 +34,7 @@ public class NotePagerActivity extends AppCompatActivity implements LoaderManage
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pager_data);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
 
         viewPager = (ViewPager) findViewById(R.id.view_pager);
 
@@ -39,7 +42,7 @@ public class NotePagerActivity extends AppCompatActivity implements LoaderManage
         lesson = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         notePosition = getIntent().getIntExtra(LessonActivity.EXTRA_CURRENT_NOTE_POSITION, 0);
         adapter = new NoteAdapter(this, this.getSupportFragmentManager(), null);
-        DataManager.getNotes(this, this, this.getLoaderManager());
+        DataManager.getNotes(this, course.getIdValue(), lesson, this, this.getLoaderManager(), exceptionHandler);
 
         viewPager.setAdapter(adapter);
     }

@@ -10,6 +10,7 @@ import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 
@@ -62,6 +63,10 @@ public class Exam implements Parcelable, Comparable<Exam>, PastEvents {
         this.date = date;
         this.type = type;
     }
+
+    public long getGroupIdValue() {return id.getGroupIdValue();}
+    public long getCourseIdValue() {return id.getCourseIdValue();}
+    public long getIdValue() {return id.getItemIdValue();}
 
     public String getTitle() {
         return course.getSubject() + " (" + lesson + ")";
@@ -117,8 +122,8 @@ public class Exam implements Parcelable, Comparable<Exam>, PastEvents {
         return null;
     }
 
-    public void edit(Context c, String klass, String lesson, String type, Date date) {
-        DataManager.editExam(c, id, klass, lesson, type, date);
+    public void edit(Context c, String klass, String lesson, String type, Date date, NetworkExceptionHandler handler) {
+        DataManager.editExam(c, id, klass, lesson, type, date, handler);
     }
 
     public void show(Context c) {

@@ -29,6 +29,7 @@ import android.widget.TextView;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
@@ -45,6 +46,8 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
 public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final int REQUEST_ADD_EXAM = 0;
     private static final String ARG_GROUP = "agroup";
+
+    private NetworkExceptionHandler exceptionHandler;
 
     private Group                    group;
     private RecyclerView             recycler;
@@ -76,6 +79,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
     public void onAttach(Context activity) {
         super.onAttach(activity);
         callbacks = (Callbacks) activity;
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)activity);
     }
 
     @Override
@@ -140,7 +144,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void refresh() {
-        DataManager.refreshExams(this, getActivity().getLoaderManager());
+        DataManager.refreshExams(getContext(), group.getIdValue(), this, getActivity().getLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -192,12 +196,17 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             adapter = new ExamAdapter(getActivity(), null);
             recycler.setAdapter(adapter);
         }
-        DataManager.getExams(getContext(), this, getActivity().getLoaderManager());
+        DataManager.getExams(getContext(), group.getIdValue(), this, getActivity().getLoaderManager(), exceptionHandler);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        progress.setVisibility(View.VISIBLE);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progress.setVisibility(View.VISIBLE);
+            }
+        });
         return group.getExamLoader(getActivity());
     }
 

@@ -26,22 +26,26 @@ public class ID implements Parcelable, Comparable<ID> {
             return new ID[size];
         }
     };
-    private long  groupId;
+    private long groupId;
     private long courseId;
     private long itemId;
 
-    public ID(ID groupId, long courseId, boolean course) {
-        this(groupId.groupId, courseId);
-    } //sorry
-
     private ID(Parcel in) {
         groupId = in.readLong();
-        courseId = (short) in.readInt();
-        itemId = in.readInt();
+        courseId = in.readLong();
+        itemId = in.readLong();
     }
 
-    public ID(ID courseId, long itemId) {
-        this(courseId.groupId, courseId.courseId, itemId);
+    public ID(ID parent, long child) {
+        if(parent.courseId == 0) {
+            groupId = parent.groupId;
+            courseId = child;
+            itemId = 0;
+        } else {
+            groupId = parent.groupId;
+            courseId = parent.courseId;
+            itemId = child;
+        }
     }
 
     public ID(long groupId) {
@@ -134,7 +138,7 @@ public class ID implements Parcelable, Comparable<ID> {
 
     @Override
     public String toString() {
-        ByteBuffer bytes = ByteBuffer.allocate(16);
+        ByteBuffer bytes = ByteBuffer.allocate(24);
         bytes.putLong(groupId);
         bytes.putLong(courseId);
         bytes.putLong(itemId);

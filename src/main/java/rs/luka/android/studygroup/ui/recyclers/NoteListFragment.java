@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
@@ -41,6 +42,8 @@ import rs.luka.android.studygroup.ui.Snackbar;
  * Created by luka on 11.7.15..
  */
 public class NoteListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    private NetworkExceptionHandler exceptionHandler;
 
     private int toolbarHeight;
     private Set<Note> selected = new HashSet<>();
@@ -117,6 +120,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
     public void onAttach(Context activity) {
         super.onAttach(activity);
         callbacks = (NoteCallbacks) activity;
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)activity);
     }
 
     @Override
@@ -164,7 +168,8 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
 
     public void refresh() {
         swipe.setRefreshing(true);
-        DataManager.refreshNotes(this, getActivity().getLoaderManager());
+        DataManager.refreshNotes(getContext(), course.getIdValue(), lessonName, this,
+                                 getActivity().getLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -202,13 +207,19 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
             adapter = new NotesAdapter(getActivity(), null);
             notesRecycler.setAdapter(adapter);
         }
-        DataManager.getNotes(getContext(), this, getActivity().getLoaderManager());
+        DataManager.getNotes(getContext(), course.getIdValue(), lessonName, this,
+                             getActivity().getLoaderManager(), exceptionHandler);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        progress.setVisibility(View.VISIBLE);
-        if (course == null) { throw new AssertionError("wtf"); }
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progress.setVisibility(View.VISIBLE);
+            }
+        });
+        if (course == null) { throw new AssertionError("course==null @ NLFrag, wtf"); }
         return course.getNotesLoader(getActivity(), lessonName);
     }
 

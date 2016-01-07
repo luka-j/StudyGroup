@@ -20,7 +20,7 @@ import rs.luka.android.studygroup.ui.recyclers.RootActivity;
 /**
  * Created by luka on 30.12.15..
  */
-public class RegisterActivity extends AppCompatActivity implements Network.NetworkCallback, ErrorDialog.Callbacks {
+public class RegisterActivity extends AppCompatActivity implements Network.NetworkCallbacks, ErrorDialog.Callbacks {
     private static final String TAG_DIALOG_UNEXPECTED_ERROR = "studygroup.dialog.unexpectederror";
     private static final int REQUEST_REGISTER = 0;
     private static final int REQUEST_LOGIN = 1;
@@ -40,7 +40,7 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
         setContentView(R.layout.activity_register);
 
         emailTil = (TextInputLayout) findViewById(R.id.register_email_til);
-        usernameTil = (TextInputLayout) findViewById(R.id.register_email_til);
+        usernameTil = (TextInputLayout) findViewById(R.id.register_username_til);
         passwordTil = (TextInputLayout) findViewById(R.id.register_password_til);
         register = (CardView) findViewById(R.id.button_register);
         email = (EditText) findViewById(R.id.register_email_input);
@@ -99,7 +99,8 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
                         default:
                             ErrorDialog.newInstance(getString(R.string.unexpected_server_error),
                                                     response.getDefaultErrorMessage(RegisterActivity.this))
-                                       .show(RegisterActivity.this.getFragmentManager(), TAG_DIALOG_UNEXPECTED_ERROR);
+                                       .registerCallbacks(RegisterActivity.this)
+                                       .show(RegisterActivity.this.getSupportFragmentManager(), TAG_DIALOG_UNEXPECTED_ERROR);
                     }
                 } else if (id == REQUEST_LOGIN) {
                     if(response.responseCode == Network.Response.RESPONSE_OK) {
@@ -110,7 +111,8 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
                     } else {
                         ErrorDialog.newInstance(getString(R.string.unexpected_server_error),
                                                 response.getDefaultErrorMessage(RegisterActivity.this))
-                                   .show(RegisterActivity.this.getFragmentManager(), TAG_DIALOG_UNEXPECTED_ERROR);
+                                   .registerCallbacks(RegisterActivity.this)
+                                   .show(RegisterActivity.this.getSupportFragmentManager(), TAG_DIALOG_UNEXPECTED_ERROR);
                     }
                 }
             }
@@ -119,7 +121,7 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
     }
 
     @Override
-    public void onExceptionThrown(int id, Exception ex) {
+    public void onExceptionThrown(int id, Throwable ex) {
         //todo generic exception handling
         ex.printStackTrace();
         requestInProgress = false;

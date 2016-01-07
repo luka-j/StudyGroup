@@ -29,6 +29,7 @@ import android.widget.TextView;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
@@ -55,6 +56,8 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     private CoordinatorLayout    coordinator;
     private CircularProgressView     progress;
 
+    private NetworkExceptionHandler exceptionHandler;
+
     public static GroupFragment newInstance(Group group) {
         GroupFragment f    = new GroupFragment();
         Bundle        args = new Bundle();
@@ -76,6 +79,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onAttach(Context activity) {
         super.onAttach(activity);
         callbacks = (Callbacks) activity;
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)activity);
     }
 
     @Override
@@ -146,7 +150,8 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     protected void refresh() {
         Log.i(TAG, "refreshing fragment");
         swipe.setRefreshing(true);
-        DataManager.refreshCourses(this, getActivity().getLoaderManager());
+        DataManager.refreshCourses(getContext(), group.getIdValue(), this, getActivity().getLoaderManager(),
+                                   exceptionHandler);
     }
 
     @Override
@@ -187,12 +192,18 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             adapter = new CourseAdapter(getActivity(), null);
             courseRecyclerView.setAdapter(adapter);
         }
-        DataManager.getCourses(getContext(), this, getActivity().getLoaderManager());
+        DataManager.getCourses(getContext(), group.getIdValue(), this, getActivity().getLoaderManager(),
+                               exceptionHandler);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        progress.setVisibility(View.VISIBLE);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progress.setVisibility(View.VISIBLE);
+            }
+        });
         return group.getCourseLoader(getActivity());
     }
 

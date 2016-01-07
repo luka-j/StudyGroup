@@ -27,6 +27,7 @@ import java.io.File;
 import java.util.List;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.misc.Utils;
@@ -39,6 +40,7 @@ import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
  * Created by luka on 14.7.15..
  */
 public class AddQuestionActivity extends AppCompatActivity {
+    private NetworkExceptionHandler exceptionHandler;
 
     public static final String STATE_IMAGE_FILE_PATH = "stateimg";
     private static final int  INTENT_IMAGE          = 0;
@@ -58,11 +60,19 @@ public class AddQuestionActivity extends AppCompatActivity {
     private Course          course;
     private boolean         editing;
     private List<Question>  questions;
+    private String          lessonStr;
     private int currentQuestion = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
+            @Override
+            public void finishedSuccessfully() {
+                setUpNext();
+            }
+        };
 
         course = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE);
         questions = getIntent().getParcelableArrayListExtra(LessonActivity.EXTRA_SELECTED_QUESTIONS);
@@ -200,30 +210,40 @@ public class AddQuestionActivity extends AppCompatActivity {
             error = true;
         } else { questionTil.setError(null); }
         if (!error) {
+            this.lessonStr = lessonStr;
             if (editing) {
                 currentQuestion++;
-                if (currentQuestion < questions.size()) { setFieldsForEditing(); }
-                if (currentQuestion <= questions.size()) {
-                    questions.get(currentQuestion - 1)
-                             .edit(this, lessonStr, questionStr, answerStr, imageFile);
-                }
-                if (currentQuestion == questions.size() - 1) { mergeButtons(); }
-                if (currentQuestion == questions.size()) {
-                    setResultData(lessonStr);
-                    onBackPressed();
-                }
+                questions.get(currentQuestion - 1)
+                         .edit(this, lessonStr, questionStr, answerStr, imageFile, exceptionHandler);
             } else {
-                course.addQuestion(this, lessonStr, questionStr, answerStr, imageFile);
+                if(!getIntent().getBooleanExtra(ExamQuestionsActivity.EXTRA_EXAM_QUESTION, false)) {
+                    course.addQuestion(this, lessonStr, questionStr, answerStr, imageFile, exceptionHandler);
+                } else {
+                    course.addExamQuestion(this, lessonStr, questionStr, answerStr, imageFile, exceptionHandler);
+                }
+            }
+        }
+    }
+
+    private void setUpNext() {
+        if(editing) {
+            if (currentQuestion < questions.size()) { setFieldsForEditing(); }
+            if (currentQuestion == questions.size() - 1) { mergeButtons(); }
+            if (currentQuestion == questions.size()) {
                 setResultData(lessonStr);
                 onBackPressed();
             }
+        } else {
+            setResultData(lessonStr);
+            onBackPressed();
         }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString(STATE_IMAGE_FILE_PATH, imageFile.getAbsolutePath());
+        if(imageFile != null)
+            outState.putString(STATE_IMAGE_FILE_PATH, imageFile.getAbsolutePath());
     }
 
     @Override

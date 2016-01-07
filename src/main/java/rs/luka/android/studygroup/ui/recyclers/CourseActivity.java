@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.dialogs.RenameLessonDialog;
@@ -16,6 +17,8 @@ import rs.luka.android.studygroup.ui.dialogs.RenameLessonDialog;
  */
 public class CourseActivity extends SingleFragmentActivity implements CourseFragment.Callbacks,
                                                                       RenameLessonDialog.Callbacks {
+
+    private NetworkExceptionHandler exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
 
     private static final String   TAG_DIALOG_RENAME = "studygroup.dialog.renamelesson";
     public static final String    EXTRA_LESSON_NAME = "lessonName";
@@ -72,7 +75,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
 
     @Override
     public void onRenamed(String s) {
-        ((Course) getIntent().getParcelableExtra(EXTRA_COURSE)).renameLesson(this, oldLessonName, s);
+        ((Course) getIntent().getParcelableExtra(EXTRA_COURSE)).renameLesson(this, oldLessonName, s, exceptionHandler);
         fragment.refresh();
     }
 

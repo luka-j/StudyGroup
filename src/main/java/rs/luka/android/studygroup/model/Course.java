@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import java.io.File;
 import java.util.Calendar;
 
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.Loaders;
@@ -62,6 +63,12 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
         imageExists = in.readInt()!=0;
     }
 
+    public long getGroupIdValue() {
+        return id.getGroupIdValue();
+    }
+    public long getIdValue() {
+        return id.getCourseIdValue();
+    }
     public String getSubject() {
         return subject;
     }
@@ -124,24 +131,30 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
         Database.getInstance(c).showLesson(id, _id, lesson, noteCount, questionCount);
     }
 
-    public void addNote(Context c, String lesson, String text, File image, File audio) {
-        DataManager.addNote(c, id, subject, lesson, text, image, audio);
+    public void addNote(Context c, String lesson, String text, File image, File audio, NetworkExceptionHandler handler) {
+        DataManager.addNote(c, id, subject, lesson, text, image, audio, handler);
     }
 
-    public void addQuestion(Context c, String lesson, String question, String answer, File image) {
-        DataManager.addQuestion(c, id, subject, lesson, question, answer, image);
+    public void addQuestion(Context c, String lesson, String question, String answer, File image,
+                            NetworkExceptionHandler handler) {
+        DataManager.addRegularQuestion(c, id, subject, lesson, question, answer, image, handler);
+    }
+    public void addExamQuestion(Context c, String lesson, String question, String answer, File image,
+                                NetworkExceptionHandler handler) {
+        DataManager.addExamQuestion(c, id, subject, lesson, question, answer, image, handler);
     }
 
-    public void addExam(Context c, String klass, String lesson, String type, Calendar date) {
-        DataManager.addExam(c, id, klass, lesson, type, date.getTime());
+    public void addExam(Context c, String klass, String lesson, String type, Calendar date, NetworkExceptionHandler handler) {
+        DataManager.addExam(c, id, klass, lesson, type, date.getTime(), handler);
     }
 
-    public void edit(Context c, String subject, String teacher, String year, File image) {
-        DataManager.editCourse(c, id, subject, teacher, Integer.valueOf(year), image);
+    public void edit(Context c, String subject, String teacher, String year, File image,
+                     NetworkExceptionHandler exceptionHandler) {
+        DataManager.editCourse(c, id, subject, teacher, Integer.valueOf(year), image, exceptionHandler);
     }
 
-    public void renameLesson(Context c, String oldName, String newName) {
-        DataManager.renameLesson(c, id, oldName, newName);
+    public void renameLesson(Context c, String oldName, String newName, NetworkExceptionHandler exceptionHandler) {
+        DataManager.renameLesson(c, id, oldName, newName, exceptionHandler);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.ContextMenu;
@@ -23,14 +25,19 @@ import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
+import java.io.IOException;
+
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.Loaders;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
+import rs.luka.android.studygroup.ui.dialogs.ErrorDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddGroupActivity;
+import rs.luka.android.studygroup.ui.singleitemactivities.LoginActivity;
 
 /**
  * Created by luka on 17.7.15..
@@ -45,6 +52,7 @@ public class GroupListFragment extends Fragment implements LoaderManager.LoaderC
     private FloatingActionButton fab;
     private PoliteSwipeRefreshLayout swipe;
     private CircularProgressView     progress;
+    private NetworkExceptionHandler exceptionHandler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,6 +64,7 @@ public class GroupListFragment extends Fragment implements LoaderManager.LoaderC
     public void onAttach(Context activity) {
         super.onAttach(activity);
         callbacks = (Callbacks) activity;
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)activity); //fixme dangerous ?
     }
 
     @Override
@@ -110,7 +119,7 @@ public class GroupListFragment extends Fragment implements LoaderManager.LoaderC
 
     protected void refresh() {
         swipe.setRefreshing(true);
-        DataManager.refreshGroups(this, getActivity().getLoaderManager());
+        DataManager.refreshGroups(getContext(), this, getActivity().getLoaderManager(), exceptionHandler);
     }
 
     public void stopRefreshing() {
@@ -157,12 +166,17 @@ public class GroupListFragment extends Fragment implements LoaderManager.LoaderC
             adapter = new GroupAdapter(getActivity(), null);
             recycler.setAdapter(adapter);
         }
-        DataManager.getGroups(getContext(), this, getActivity().getLoaderManager());
+        DataManager.getGroups(getActivity(), this, getActivity().getLoaderManager(), exceptionHandler);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        progress.setVisibility(View.VISIBLE);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progress.setVisibility(View.VISIBLE);
+            }
+        });
         return new Loaders.GroupLoader(getActivity());
     }
 
@@ -179,6 +193,8 @@ public class GroupListFragment extends Fragment implements LoaderManager.LoaderC
     public void onLoaderReset(Loader<Cursor> loader) {
         adapter.swapCursor(null);
     }
+
+
 
     public interface Callbacks {
         void onGroupSelected(Group group);

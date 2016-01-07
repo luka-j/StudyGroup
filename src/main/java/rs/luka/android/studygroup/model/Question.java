@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 
 import java.io.File;
 
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.LocalImages;
@@ -50,6 +51,13 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
         imageExists = in.readInt()!=0;
     }
 
+
+    public String getLesson() {return lesson;}
+    public long getGroupIdValue() {return id.getGroupIdValue();}
+    public long getCourseIdValue() {return id.getCourseIdValue();}
+    public long getIdValue() {return id.getItemIdValue();}
+
+
     public String getQuestion() {
         return question;
     }
@@ -83,10 +91,8 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
         Database.getInstance(c).insertQuestion(id, lesson, question, answer, imageExists);
     }
 
-    public void edit(Context c, String lesson, String question, String answer, File image) {
-        if (lesson.startsWith(EXAM_PREFIX)) {
-            DataManager.editQuestion(c, id, lesson.substring(EXAM_PREFIX.length()), question, answer, image);
-        } else { DataManager.editQuestion(c, id, lesson, question, answer, image); }
+    public void edit(Context c, String lesson, String question, String answer, File image, NetworkExceptionHandler handler) {
+        DataManager.editQuestion(c, id, lesson, question, answer, image, handler);
     }
 
     @Override

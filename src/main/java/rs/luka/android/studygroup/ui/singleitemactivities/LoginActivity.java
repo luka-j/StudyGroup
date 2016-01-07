@@ -9,8 +9,6 @@ import android.support.v7.widget.CardView;
 import android.view.View;
 import android.widget.EditText;
 
-import java.io.IOException;
-
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.Network;
@@ -22,7 +20,7 @@ import rs.luka.android.studygroup.ui.recyclers.RootActivity;
 /**
  * Created by luka on 25.7.15..
  */
-public class LoginActivity extends AppCompatActivity implements Network.NetworkCallback, ErrorDialog.Callbacks {
+public class LoginActivity extends AppCompatActivity implements Network.NetworkCallbacks, ErrorDialog.Callbacks {
     public static final int REQUEST_LOGIN = 0;
     public static final int REQUEST_REFRESH = 1;
 
@@ -109,11 +107,14 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
                         case Network.Response.RESPONSE_UNAUTHORIZED:
                             ErrorDialog.newInstance(getString(R.string.wrong_creds_title),
                                                     getString(R.string.wrong_creds))
-                                       .show(getFragmentManager(), TAG_DIALOG_ERROR);
+                                       .registerCallbacks(LoginActivity.this)
+                                       .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
                             break;
                         default:
                             ErrorDialog.newInstance(getString(R.string.unexpected_server_error),
-                                                    response.getDefaultErrorMessage(LoginActivity.this));
+                                                    response.getDefaultErrorMessage(LoginActivity.this))
+                                       .registerCallbacks(LoginActivity.this)
+                                       .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
                     }
                 } else if(id == REQUEST_REFRESH) {
                     switch (response.responseCode) {
@@ -132,7 +133,7 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
     }
 
     @Override
-    public void onExceptionThrown(int id, Exception ex) {
+    public void onExceptionThrown(int id, Throwable ex) {
         //todo generic exception handling
         ex.printStackTrace();
         requestInProgress = false;

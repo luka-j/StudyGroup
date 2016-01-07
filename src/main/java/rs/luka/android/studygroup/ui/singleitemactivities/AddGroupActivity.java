@@ -20,13 +20,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.ui.dialogs.ErrorDialog;
 import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 
 /**
@@ -44,12 +47,19 @@ public class AddGroupActivity extends AppCompatActivity {
     private File imageFile = new File(LocalImages.APP_IMAGE_DIR, "groupimage.temp");
     private Group   group;
     private boolean editing;
+    private NetworkExceptionHandler exceptionHandler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_group);
 
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
+            @Override
+            public void finishedSuccessfully() {
+                AddGroupActivity.this.onBackPressed();
+            }
+        };
         group = getIntent().getParcelableExtra(GroupActivity.EXTRA_GROUP);
         editing = group != null;
 
@@ -152,11 +162,10 @@ public class AddGroupActivity extends AppCompatActivity {
         } else { placeTil.setError(null); }
         if (!error) {
             if (editing) {
-                group.edit(this, nameStr, placeStr, imageFile);
+                group.edit(this, nameStr, placeStr, imageFile, exceptionHandler);
             } else {
-                DataManager.addGroup(this, nameStr, placeStr, imageFile);
+                DataManager.addGroup(this, nameStr, placeStr, imageFile, exceptionHandler);
             }
-            this.onBackPressed();
         }
     }
 

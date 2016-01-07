@@ -2,7 +2,7 @@ package rs.luka.android.studygroup.ui.dialogs;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.DialogFragment;
+import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.widget.EditText;
@@ -21,6 +21,9 @@ public class ErrorDialog extends DialogFragment {
     public static final String ARG_ERROR_MESSAGE = "studygroup.dialog.errormsg";
 
     public static ErrorDialog newInstance(String title, String content) {
+        if(title == null) title = "I've forgotten a title (please tell me!)";
+        if(content == null) content = "I've forgotten to put text here. If I've forgotten the title too, "
+                                      + "something is definitely wrong.";
         ErrorDialog f    = new ErrorDialog();
         Bundle             args = new Bundle();
         args.putString(ARG_ERROR_TITLE, title);
@@ -32,7 +35,11 @@ public class ErrorDialog extends DialogFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        callbacks = (Callbacks) activity;
+    }
+
+    public ErrorDialog registerCallbacks(Callbacks callbacks) {
+        this.callbacks = callbacks;
+        return this;
     }
 
     @Override
@@ -52,7 +59,7 @@ public class ErrorDialog extends DialogFragment {
                           @Override
                           public void onClick(@NonNull MaterialDialog materialDialog,
                                               @NonNull DialogAction dialogAction) {
-                              callbacks.onErrorDialogClosed();
+                              if(callbacks!=null) callbacks.onErrorDialogClosed();
                           }
                       })
                       .show();

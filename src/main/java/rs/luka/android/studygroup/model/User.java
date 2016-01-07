@@ -22,9 +22,11 @@ public class User {
     private String name;
     private String   token;
     private long id;
+    private SharedPreferences prefs;
 
-    public User(String token) {
+    public User(String token, SharedPreferences prefs) {
         this.token = token;
+        this.prefs = prefs;
     }
 
     public User(long id, String name) {
@@ -36,15 +38,21 @@ public class User {
         return prefs.contains(PREFS_KEY_TOKEN);
     }
 
+    public static void clearToken() {
+        instance.prefs.edit().remove(PREFS_KEY_TOKEN).apply();
+        instance.token=null;
+    }
     public static void instantiateUser(String token, SharedPreferences prefs) {
         SharedPreferences.Editor prefsEditor = prefs.edit();
         prefsEditor.putString(PREFS_KEY_TOKEN, token);
         prefsEditor.apply();
-        instance = new User(token);
+        instance = new User(token, prefs);
     }
 
     public static String getToken() {
-        return instance.token;
+        if(instance != null)
+            return instance.token;
+        return null;
     }
 
     public static User getLoggedInUser() {
@@ -56,6 +64,9 @@ public class User {
     }
 
     public void refreshToken(String token) {
+        SharedPreferences.Editor prefsEditor = prefs.edit();
+        prefsEditor.putString(PREFS_KEY_TOKEN, token);
+        prefsEditor.apply();
         this.token = token;
     }
 

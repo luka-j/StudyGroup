@@ -3,6 +3,7 @@ package rs.luka.android.studygroup.ui.recyclers;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
@@ -25,10 +26,11 @@ import rs.luka.android.studygroup.ui.singleitemactivities.QuestionPagerActivity;
 public class ExamQuestionsActivity extends SingleFragmentActivity
         implements QuestionListFragment.QuestionCallbacks {
 
-    public static final String EXTRA_IMMUTABLE_LESSON = "canEditLessonName";
+    public static final  String EXTRA_IMMUTABLE_LESSON = "canEditLessonName";
     public static final  String EXTRA_LESSON_REAL_NAME = "realLesson";
     public static final  String EXTRA_COURSE           = "course";
     public static final  String EXTRA_LESSON           = "lesson";
+    public static final  String EXTRA_EXAM_QUESTION    = "isFromExam";
     private static final int    REQUEST_ADD_QUESTION   = 0;
     private static final int    REQUEST_EDIT_QUESTION  = 1;
     private String               lesson;
@@ -63,6 +65,7 @@ public class ExamQuestionsActivity extends SingleFragmentActivity
                 i.putExtra(ScheduleActivity.EXTRA_CURRENT_LESSON, lesson.substring(Question.EXAM_PREFIX.length()));
                 i.putExtra(EXTRA_LESSON_REAL_NAME, lesson);
                 i.putExtra(EXTRA_IMMUTABLE_LESSON, true);
+                i.putExtra(EXTRA_EXAM_QUESTION, true);
                 startActivityForResult(i, REQUEST_ADD_QUESTION);
             }
         });
@@ -110,6 +113,12 @@ public class ExamQuestionsActivity extends SingleFragmentActivity
         i.putExtra(ScheduleActivity.EXTRA_CURRENT_LESSON, lesson.substring(Question.EXAM_PREFIX.length()));
         i.putExtra(EXTRA_LESSON_REAL_NAME, lesson);
         i.putExtra(EXTRA_IMMUTABLE_LESSON, true);
+        i.putExtra(EXTRA_EXAM_QUESTION, true);
         startActivityForResult(i, REQUEST_EDIT_QUESTION);
+    }
+
+    @Override
+    public FloatingActionButton getFab() {
+        return (FloatingActionButton) findViewById(R.id.fab_add_exam_question);
     }
 }

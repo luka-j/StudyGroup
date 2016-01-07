@@ -23,6 +23,7 @@ import android.widget.TextView;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
@@ -38,6 +39,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
     private static String TAG = "studygroup.CourseFragment";
 
     private Course course;
+    private NetworkExceptionHandler exceptionHandler;
 
     private RecyclerView   lessonsRecyclerView;
     private Callbacks      callbacks;
@@ -66,6 +68,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
     public void onAttach(Context activity) {
         super.onAttach(activity);
         callbacks = (Callbacks) activity;
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)activity);
     }
 
     @Override
@@ -114,7 +117,8 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     protected void refresh() {
-        DataManager.refreshLessons(this, getActivity().getLoaderManager());
+        DataManager.refreshLessons(getContext(), course.getIdValue(),
+                                   this, getActivity().getLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -154,12 +158,17 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             adapter = new LessonsAdapter(getActivity(), null);
             lessonsRecyclerView.setAdapter(adapter);
         }
-        DataManager.getLessons(getContext(), this, getActivity().getLoaderManager());
+        DataManager.getLessons(getContext(), course.getIdValue(), this, getActivity().getLoaderManager(), exceptionHandler);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        progress.setVisibility(View.VISIBLE);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progress.setVisibility(View.VISIBLE);
+            }
+        });
         return course.getLessonLoader(getActivity());
     }
 
@@ -207,7 +216,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             final LessonHolder swipedHolder = (LessonHolder) viewHolder;
             final String       lesson       = swipedHolder.title;
-            final int noteCount = swipedHolder.noteCount, quesionCount = swipedHolder.questionCount, _id
+            final int noteCount = swipedHolder.noteCount, questionCount = swipedHolder.questionCount, _id
                     = swipedHolder._id;
             course.hideLesson(getActivity(), lesson);
             refresh();
@@ -225,7 +234,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                                new View.OnClickListener() {
                                    @Override
                                    public void onClick(View v) {
-                                       course.showLesson(getActivity(), _id, lesson, noteCount, quesionCount);
+                                       course.showLesson(getActivity(), _id, lesson, noteCount, questionCount);
                                        refresh();
                                    }
                                })
@@ -251,7 +260,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                                                                           View.OnCreateContextMenuListener {
         private final TextView titleTextView;
         private final TextView noteCountTextView;
-        private final TextView TextView;
+        private final TextView questionCountTextView;
 
         private String title;
         private int noteCount;
@@ -266,7 +275,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
 
             titleTextView = (TextView) itemView.findViewById(R.id.card_lesson_title);
             noteCountTextView = (TextView) itemView.findViewById(R.id.note_count_text);
-            TextView = (TextView) itemView.findViewById(R.id.question_count_text);
+            questionCountTextView = (TextView) itemView.findViewById(R.id.question_count_text);
         }
 
         public void bindLesson(String title, int noteNo, int questionNo, int _id) {
@@ -276,7 +285,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             this._id = _id;
             titleTextView.setText(title);
             noteCountTextView.setText(getString(R.string.notes_no, noteNo));
-            TextView.setText(getString(R.string.questions_no, questionNo));
+            questionCountTextView.setText(getString(R.string.questions_no, questionNo));
         }
 
         @Override

@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 
 import java.io.File;
 
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.LocalImages;
@@ -49,6 +50,11 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
         audioExists = in.readInt()!=0;
     }
 
+    public String getLesson() {return lesson;}
+    public long getGroupIdValue() {return id.getGroupIdValue();}
+    public long getCourseIdValue() {return id.getCourseIdValue();}
+    public long getIdValue() {return id.getItemIdValue();}
+
     public String getText() {
         return text;
     }
@@ -87,8 +93,8 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
         Database.getInstance(c).insertNote(id, lesson, text, imageExists, audioExists);
     }
 
-    public void edit(Context c, String lesson, String text, File imageFile, File audioFile) {
-        DataManager.editNote(c, id, lesson, text, imageFile, audioFile);
+    public void edit(Context c, String lesson, String text, File imageFile, File audioFile, NetworkExceptionHandler handler) {
+        DataManager.editNote(c, id, lesson, text, imageFile, audioFile, handler);
     }
 
     public String getHistory(Context c) {

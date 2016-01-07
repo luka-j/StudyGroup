@@ -7,6 +7,7 @@ import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
@@ -28,6 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
@@ -40,6 +42,7 @@ import rs.luka.android.studygroup.ui.Snackbar;
  * Created by luka on 11.7.15..
  */
 public class QuestionListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private NetworkExceptionHandler exceptionHandler;
 
     private int toolbarHeight;
     private Set<Question> selected = new HashSet<>();
@@ -115,6 +118,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
     public void onAttach(Context activity) {
         super.onAttach(activity);
         callbacks = (QuestionCallbacks) activity;
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)activity);
     }
 
     @Override
@@ -160,7 +164,8 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
 
     public void refresh() {
         swipe.setRefreshing(true);
-        DataManager.refreshQuestions(this, getActivity().getLoaderManager());
+        DataManager.refreshQuestions(getContext(), course.getIdValue(), lessonName, this,
+                                     getActivity().getLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -184,7 +189,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
                            .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
                            .colorTheFuckingTextToWhite(getActivity())
                            .doStuffThatGoogleDidntFuckingDoProperly(getActivity(),
-                                                                    ((LessonActivity) getActivity()).getFab()); //TODO FIX !! (ExamQuestionsActivity != LessonActivity)
+                                                                    (callbacks.getFab()));
         snackbar.show();
     }
 
@@ -197,12 +202,18 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
             adapter = new QuestionsAdapter(getActivity(), null);
             questionsRecycler.setAdapter(adapter);
         }
-        DataManager.getQuestions(getContext(), this, getActivity().getLoaderManager());
+        DataManager.getQuestions(getContext(), course.getIdValue(), lessonName, this,
+                                 getActivity().getLoaderManager(), exceptionHandler);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        progress.setVisibility(View.VISIBLE);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progress.setVisibility(View.VISIBLE);
+            }
+        });
         return course.getQuestionsLoader(getActivity(), lessonName);
     }
 
@@ -224,6 +235,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
         void onQuestionSelected(int questionPosition);
 
         void onQuestionsEdit(Set<Question> questions);
+        FloatingActionButton getFab();
     }
 
     private class QuestionHolder extends RecyclerView.ViewHolder

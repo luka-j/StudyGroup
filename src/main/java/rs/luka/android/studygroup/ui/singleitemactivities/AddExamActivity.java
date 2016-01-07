@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Exam;
@@ -37,6 +38,8 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
     private static final String DATA_SELECTED_COURSE  = "dCourse";
     private static final String DATA_SELECTED_DATE    = "dDate";
     private static final int    REQUEST_SELECT_COURSE = 0;
+
+    private NetworkExceptionHandler exceptionHandler;
 
     private Group    group;
     private Course   course;
@@ -63,6 +66,14 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_exam);
+
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
+            @Override
+            public void finishedSuccessfully() {
+                onBackPressed();
+            }
+        };
+
         exam = getIntent().getParcelableExtra(EXTRA_EXAM);
         editing = exam != null;
         if (editing) {
@@ -146,9 +157,9 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
             lessonEdit.setText(exam.getLesson());
             lessonEdit.setSelection(lessonEdit.length());
             classEdit.setText(exam.getKlassName());
-            classEdit.setSelection(classEdit.length());
+            classEdit.setEnabled(false);
             typeEdit.setText(exam.getType());
-            typeEdit.setSelection(typeEdit.length());
+            typeEdit.setEnabled(false);
         }
 
         typeEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -204,15 +215,15 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
         } else { typeTil.setError(null); }
         if (!error) {
             if (editing) {
-                exam.edit(this, classText, lessonText, typeText, selectedDate.getTime());
+                exam.edit(this, classText, lessonText, typeText, selectedDate.getTime(), exceptionHandler);
             } else {
                 course.addExam(this,
                                classEdit.getText().toString(),
                                lessonEdit.getText().toString(),
                                typeEdit.getText().toString(),
-                               selectedDate == null ? new GregorianCalendar() : selectedDate);
+                               selectedDate == null ? new GregorianCalendar() : selectedDate,
+                                exceptionHandler);
             }
-            onBackPressed();
         }
     }
 

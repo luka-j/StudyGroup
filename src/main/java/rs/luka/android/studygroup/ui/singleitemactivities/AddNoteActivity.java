@@ -26,6 +26,7 @@ import java.io.File;
 import java.util.List;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.misc.Utils;
@@ -37,6 +38,8 @@ import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
  * Created by luka on 14.7.15..
  */
 public class AddNoteActivity extends AppCompatActivity {
+
+    private NetworkExceptionHandler exceptionHandler;
 
     public static final String STATE_IMAGE_FILE_PATH = "stateImg";
     public static final String STATE_AUDIO_FILE_PATH = "stateAudio";
@@ -58,12 +61,20 @@ public class AddNoteActivity extends AppCompatActivity {
     private File            audioFile;
     private Course          course;
     private List<Note>      notes;
+    private String          lessonStr;
     private int currentNote = 0;
     private boolean editing;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
+            @Override
+            public void finishedSuccessfully() {
+                setUpNext();
+            }
+        };
 
         course = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE);
         notes = getIntent().getParcelableArrayListExtra(LessonActivity.EXTRA_SELECTED_NOTES);
@@ -230,22 +241,26 @@ public class AddNoteActivity extends AppCompatActivity {
             error = true;
         } else { textTil.setError(null); }
         if (!error) {
+            this.lessonStr = lessonStr;
             if (editing) {
-                currentNote++;
-                if (currentNote < notes.size()) { setFieldsForEditing(); }
-                if (currentNote <= notes.size()) {
-                    notes.get(currentNote - 1).edit(this, lessonStr, noteStr, imageFile, audioFile);
-                }
-                if (currentNote == notes.size() - 1) { mergeButtons(); }
-                if (currentNote == notes.size()) {
-                    setResultData(lessonStr);
-                    onBackPressed();
-                }
+                notes.get(currentNote - 1).edit(this, lessonStr, noteStr, imageFile, audioFile, exceptionHandler);
             } else {
-                course.addNote(this, lessonStr, noteStr, imageFile, audioFile);
+                course.addNote(this, lessonStr, noteStr, imageFile, audioFile, exceptionHandler);
+            }
+        }
+    }
+
+    private void setUpNext() {
+        if(editing) {
+            if (currentNote < notes.size()) { setFieldsForEditing(); }
+            if (currentNote == notes.size() - 1) { mergeButtons(); }
+            if (currentNote == notes.size()) {
                 setResultData(lessonStr);
                 onBackPressed();
             }
+        } else {
+            setResultData(lessonStr);
+            onBackPressed();
         }
     }
 

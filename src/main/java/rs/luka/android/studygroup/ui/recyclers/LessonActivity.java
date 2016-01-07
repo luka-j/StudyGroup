@@ -218,7 +218,7 @@ public class LessonActivity extends AppCompatActivity
         startActivityForResult(i, REQUEST_EDIT_QUESTION);
     }
 
-    protected FloatingActionButton getFab() {
+    public FloatingActionButton getFab() {
         return fab;
     }
 

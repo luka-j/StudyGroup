@@ -21,6 +21,7 @@
         android:layout_width="@dimen/progress_bar_diameter"
         android:layout_height="@dimen/progress_bar_diameter"
         android:layout_gravity="center"
+        android:elevation="@dimen/cpv_elevation"
         app:cpv_animAutostart="true"
         app:cpv_indeterminate="true"/>
 
