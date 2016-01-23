@@ -2,9 +2,9 @@ package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -12,6 +12,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,10 +24,16 @@ import java.util.Collections;
 import java.util.Set;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.google.SlidingTabLayout;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.NetworkRequests;
+import rs.luka.android.studygroup.network.Notes;
+import rs.luka.android.studygroup.network.Questions;
+import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddNoteActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddQuestionActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.NotePagerActivity;
@@ -36,30 +43,49 @@ import rs.luka.android.studygroup.ui.singleitemactivities.QuestionPagerActivity;
  * Created by luka on 5.7.15..
  */
 public class LessonActivity extends AppCompatActivity
-        implements NoteListFragment.NoteCallbacks, QuestionListFragment.QuestionCallbacks {
+        implements NoteListFragment.NoteCallbacks, QuestionListFragment.QuestionCallbacks,
+                   NetworkRequests.NetworkCallbacks<String>, ConfirmDialog.Callbacks {
 
     public static final  String EXTRA_CURRENT_NOTE_POSITION     = "noteIndex";
     public static final  String EXTRA_CURRENT_QUESTION_POSITION = "questionIndex";
-    public static final String EXTRA_CURRENT_LESSON     = CourseActivity.EXTRA_LESSON_NAME;
-    public static final String EXTRA_CURRENT_COURSE     = CourseActivity.EXTRA_COURSE;
-    public static final String EXTRA_SELECTED_NOTES     = "selNotes";
-    public static final String EXTRA_SELECTED_QUESTIONS = "selQuestions";
+    public static final  String EXTRA_CURRENT_LESSON            = CourseActivity.EXTRA_LESSON_NAME;
+    public static final  String EXTRA_CURRENT_COURSE            = CourseActivity.EXTRA_COURSE;
+    public static final  String EXTRA_SELECTED_NOTES            = "selNotes";
+    public static final  String EXTRA_SELECTED_QUESTIONS        = "selQuestions";
+    public static final  String EXTRA_PERMISSION                = CourseActivity.EXTRA_PERMISSION;
     public static final  String EXTRA_LESSON                    = CourseActivity.EXTRA_LESSON_NAME;
-    private static final String TAG                             = "studygroup.LessonActivity";
-    private static final int REQUEST_ADD_NOTE      = 0;
-    private static final int REQUEST_ADD_QUESTION  = 1;
-    private static final int    REQUEST_EDIT_NOTE               = 2;
-    private static final int    REQUEST_EDIT_QUESTION           = 3;
+    private static final String TAG                             = "LessonActivity";
+
+    private static final int NOTE_LIST_FRAGMENT_POSITION     = 0;
+    private static final int QUESTION_LIST_FRAGMENT_POSITION = 1;
+
+    private static final int REQUEST_ADD_NOTE           = 0;
+    private static final int REQUEST_ADD_QUESTION       = 1;
+    private static final int REQUEST_EDIT_NOTE          = 2;
+    private static final int REQUEST_EDIT_QUESTION      = 3;
+    private static final int REQUEST_SHOW_ALL_NOTES     = 4; //network request
+    private static final int REQUEST_SHOW_ALL_QUESTIONS = 5; //network request
+    private static final int REQUEST_REMOVE_NOTES       = 6; //network request
+    private static final int REQUEST_REMOVE_QUESTIONS   = 7; //network request
+
+    private static final String DIALOG_REMOVE_NOTES     = "confirmRemoveNotes";
+    private static final String DIALOG_REMOVE_QUESTIONS = "confirmRemoveQuestions";
 
     private static final int TABS_COUNT = 2;
     private Course course;
     private String lessonName;
+    private int    permission;
 
-    private Toolbar             toolbar;
-    private ViewPager           pager;
-    private NoteQuestionAdapter adapter;
-    private SlidingTabLayout    tabs;
+    //for multiple network requests
+    private int setSize;
+    private int count;
+
+    private Toolbar              toolbar;
+    private ViewPager            pager;
+    private NoteQuestionAdapter  adapter;
+    private SlidingTabLayout     tabs;
     private FloatingActionButton fab;
+    private Set<Long> pendingIds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +93,7 @@ public class LessonActivity extends AppCompatActivity
         setContentView(R.layout.activity_lesson);
         course = getIntent().getParcelableExtra(CourseActivity.EXTRA_COURSE);
         lessonName = getIntent().getStringExtra(CourseActivity.EXTRA_LESSON_NAME);
+        permission = getIntent().getIntExtra(EXTRA_PERMISSION, 0);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(lessonName);
@@ -100,14 +127,12 @@ public class LessonActivity extends AppCompatActivity
                 if (pager.getCurrentItem() == 0) {
                     Intent i = new Intent(This, AddNoteActivity.class);
                     i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
-                    i.putExtra(EXTRA_CURRENT_COURSE,
-                               getIntent().getParcelableExtra(CourseActivity.EXTRA_COURSE));
+                    i.putExtra(EXTRA_CURRENT_COURSE, course);
                     startActivityForResult(i, REQUEST_ADD_NOTE);
                 } else {
                     Intent i = new Intent(This, AddQuestionActivity.class);
                     i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
-                    i.putExtra(EXTRA_CURRENT_COURSE,
-                               getIntent().getParcelableExtra(CourseActivity.EXTRA_COURSE));
+                    i.putExtra(EXTRA_CURRENT_COURSE, course);
                     startActivityForResult(i, REQUEST_ADD_QUESTION);
                 }
             }
@@ -130,8 +155,8 @@ public class LessonActivity extends AppCompatActivity
     }
 
     private void updateNote(Intent data) {
-        NoteListFragment noteListFragment = ((NoteListFragment) ((NoteQuestionAdapter) (pager.getAdapter()))
-                .getRegisteredFragment(0));
+        NoteListFragment noteListFragment = (NoteListFragment) (adapter.getRegisteredFragment(
+                NOTE_LIST_FRAGMENT_POSITION                                                  ));
         if (noteListFragment != null && data != null) {
             lessonName = data.getStringExtra(EXTRA_LESSON);
             noteListFragment.refreshForLesson(lessonName);
@@ -140,7 +165,7 @@ public class LessonActivity extends AppCompatActivity
 
     private void updateQuestion(Intent data) {
         QuestionListFragment questionListFragment
-                = ((QuestionListFragment) ((NoteQuestionAdapter) (pager.getAdapter())).getRegisteredFragment(1));
+                = (QuestionListFragment) (adapter.getRegisteredFragment(QUESTION_LIST_FRAGMENT_POSITION));
         if (questionListFragment != null && data != null) {
             lessonName = data.getStringExtra(EXTRA_LESSON);
             questionListFragment.refreshForLesson(lessonName);
@@ -157,25 +182,62 @@ public class LessonActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                startActivity(new Intent(this,
-                                         CourseActivity.class).putExtra(CourseActivity.EXTRA_GO_BACKWARD,
-                                                                        false)
-                                                              .putExtra(CourseActivity.EXTRA_COURSE,
-                                                                        course));
+                startActivity                                                                (new Intent(this, CourseActivity.class)
+                                      .putExtra(CourseActivity.EXTRA_GO_BACKWARD, false)
+                                      .putExtra(CourseActivity.EXTRA_COURSE, course)
+                                      .putExtra                                             (CourseActivity.EXTRA_PERMISSION,
+                                                getIntent().getIntExtra(EXTRA_PERMISSION, 0)));
                 return true;
-            case R.id.show_all:
-                // TODO: 9.9.15.
+
+            case R.id.show_all_items:
+                if (pager.getCurrentItem() == NOTE_LIST_FRAGMENT_POSITION) {
+                    Notes.showAllNotes(REQUEST_SHOW_ALL_NOTES, course.getIdValue(), lessonName, this);
+                } else {
+                    Questions.showAllQuestions(REQUEST_SHOW_ALL_QUESTIONS, course.getIdValue(), lessonName, this);
+                }
+                setSize = 1;
+                count = 0;
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
+    public void onRequestCompleted(final int id, Network.Response<String> response) {
+        if (response.responseCode == Network.Response.RESPONSE_OK) {
+            count++;
+            if (count >= setSize) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (id == REQUEST_SHOW_ALL_NOTES || id == REQUEST_REMOVE_NOTES) {
+                            ((NoteListFragment) adapter.getRegisteredFragment(NOTE_LIST_FRAGMENT_POSITION)).refresh();
+                        } else {
+                            ((QuestionListFragment) adapter.getRegisteredFragment(QUESTION_LIST_FRAGMENT_POSITION)).refresh();
+                        }
+                    }
+                });
+                count = 0;
+                setSize = 0;
+            }
+        } else {
+            response.handleException(new NetworkExceptionHandler.DefaultHandler(this));
+        }
+    }
+
+    @Override
+    public void onExceptionThrown(int id, Throwable ex) {
+        ex.printStackTrace();
+        //todo
+    }
+
+    @Override
     public void onBackPressed() {
-        startActivity(new Intent(this, CourseActivity.class).putExtra(CourseActivity.EXTRA_GO_BACKWARD,
-                                                                      true)
-                                                            .putExtra(CourseActivity.EXTRA_COURSE,
-                                                                      course));
+        startActivity                                                                (new Intent(this, CourseActivity.class)
+                              .putExtra(CourseActivity.EXTRA_GO_BACKWARD, true)
+                              .putExtra(CourseActivity.EXTRA_COURSE, course)
+                              .putExtra                                             (CourseActivity.EXTRA_PERMISSION,
+                                        getIntent().getIntExtra(EXTRA_PERMISSION, 0)));
     }
 
     @Override
@@ -196,6 +258,25 @@ public class LessonActivity extends AppCompatActivity
         i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
         i.putExtra(EXTRA_CURRENT_COURSE, course);
         startActivityForResult(i, REQUEST_EDIT_NOTE);
+    }
+
+    @Override
+    public void onNotesRemove(Set<Long> ids) {
+        setSize = ids.size();
+        count = 0;
+        pendingIds = ids;
+        ConfirmDialog.newInstance                                                (R.string.confirm_remove_notes_title, R.string.confirm_remove_notes_message,
+                                  R.string.confirm_remove_plural, R.string.cancel)
+                     .show(getSupportFragmentManager(), DIALOG_REMOVE_NOTES);
+    }
+
+    public void onQuestionsRemove(Set<Long> ids) {
+        setSize = ids.size();
+        count = 0;
+        pendingIds = ids;
+        ConfirmDialog.newInstance                                                (R.string.confirm_remove_questions_title, R.string.confirm_remove_questions_message,
+                                  R.string.confirm_remove_plural, R.string.cancel)
+                     .show(getSupportFragmentManager(), DIALOG_REMOVE_QUESTIONS);
     }
 
     @Override
@@ -222,21 +303,25 @@ public class LessonActivity extends AppCompatActivity
         return fab;
     }
 
-    /**
-     * Verovatno nije thread-safe. Nije testirano.
-     */
-    private class UpdateNoteTask extends AsyncTask<Object, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Object... params) {
-            NoteListFragment noteListFragment = (NoteListFragment) params[0];
-            Intent           data             = (Intent) params[1];
-            if (noteListFragment != null && data != null) {
-                String lessonName = data.getStringExtra(EXTRA_LESSON);
-                noteListFragment.refreshForLesson(lessonName);
-            }
-            return null;
+    @Override
+    public void onPositive(DialogFragment dialog) {
+        switch (dialog.getTag()) {
+            case DIALOG_REMOVE_NOTES:
+                Notes.removeNotes(REQUEST_REMOVE_NOTES, pendingIds, this);
+                pendingIds = null;
+                break;
+            case DIALOG_REMOVE_QUESTIONS:
+                Questions.removeQuestions(REQUEST_REMOVE_QUESTIONS, pendingIds, this);
+                pendingIds = null;
+                break;
+            default:
+                Log.w(TAG, "Invalid dialog tag: " + dialog.getTag());
         }
+    }
+
+    @Override
+    public void onNegative(DialogFragment dialog) {
+
     }
 
     private class NoteQuestionAdapter extends FragmentStatePagerAdapter {
@@ -256,17 +341,18 @@ public class LessonActivity extends AppCompatActivity
         @Override
         public Fragment getItem(int position) {
             if (position == 0) {
-                QuestionListFragment qlf = (QuestionListFragment) registeredFragments.get(1);
+                QuestionListFragment qlf = (QuestionListFragment) registeredFragments.get(
+                        QUESTION_LIST_FRAGMENT_POSITION                                  );
                 if (qlf != null) {
                     qlf.dismissSnackbar(); // TODO: 5.9.15. fix
                 }
-                return NoteListFragment.newInstance(course, lessonName);
+                return NoteListFragment.newInstance(course, lessonName, permission);
             } else {
-                NoteListFragment nlf = (NoteListFragment) registeredFragments.get(0);
+                NoteListFragment nlf = (NoteListFragment) registeredFragments.get(NOTE_LIST_FRAGMENT_POSITION);
                 if (registeredFragments.size() > 0) {
                     nlf.dismissSnackbar(); // TODO: 5.9.15. fix
                 }
-                return QuestionListFragment.newInstance(course, lessonName);
+                return QuestionListFragment.newInstance(course, lessonName, permission);
             }
 
         }

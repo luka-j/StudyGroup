@@ -7,7 +7,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,7 +15,6 @@ import java.util.Map;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Database;
-import rs.luka.android.studygroup.io.Network;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 
@@ -24,14 +22,13 @@ import rs.luka.android.studygroup.model.ID;
  * Created by luka on 2.1.16..
  */
 public class Groups  {
+    public static final String GROUPS = "groups/";
     private static final String TAG = "studygroup.net.Groups";
-
     private static final String JSON_KEY_ID = "id";
     private static final String JSON_KEY_NAME = "name";
     private static final String JSON_KEY_PLACE = "place";
     private static final String JSON_KEY_HASIMAGE = "hasImage";
     private static final String JSON_KEY_PERMISSION = "permission";
-    public static final String GROUPS = "groups/";
 
     /**
      * Retrieves groups from server and overwrites those in the database
@@ -42,9 +39,9 @@ public class Groups  {
     public static void getGroups(Context c, NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
             URL              url      = new URL(Network.getDomain(), GROUPS);
-            Network.Response response = Network.requestGetData(url);
+            Network.Response<String> response = NetworkRequests.requestGetData(url);
             if(response.responseCode == Network.Response.RESPONSE_OK) {
-                JSONArray array = new JSONArray(response.responseMessage);
+                JSONArray array = new JSONArray(response.responseData);
                 int len = array.length();
                 Group[] groups = new Group[len];
                 for(int i=0; i<len; i++) {
@@ -74,18 +71,18 @@ public class Groups  {
             throws IOException {
         try {
             URL                 url      = new URL(Network.getDomain(), GROUPS);
-            Map<String, String> params   = new HashMap<>(3);
+            Map<String, String> params   = new HashMap<>(2);
             params.put(JSON_KEY_NAME, name);
             params.put(JSON_KEY_PLACE, place);
 
-            Network.Response    response = Network.requestPostData(url, params);
+            Network.Response<String>    response = NetworkRequests.requestPostData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
-                return Long.parseLong(response.responseMessage);
+                return Long.parseLong(response.responseData);
 
 
             Network.Response handled = response.handleException(exceptionHandler);
             if(handled.responseCode == Network.Response.RESPONSE_CREATED)
-                return Long.parseLong(response.responseMessage);
+                return Long.parseLong(response.responseData);
             return null;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -96,11 +93,11 @@ public class Groups  {
         throws IOException {
         try {
             URL                 url      = new URL(Network.getDomain(), GROUPS + id);
-            Map<String, String> params   = new HashMap<>(3);
+            Map<String, String> params   = new HashMap<>(2);
             params.put(JSON_KEY_NAME, name);
             params.put(JSON_KEY_PLACE, place);
 
-            Network.Response    response = Network.requestPutData(url, params);
+            Network.Response    response = NetworkRequests.requestPutData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
 
@@ -111,14 +108,18 @@ public class Groups  {
         }
     }
 
-    public static boolean updateImage(long id, File image) throws IOException {
-
-        return false;
+    public static void getUsers(int requestId, long id, NetworkRequests.NetworkCallbacks<String> callbacks) {
+        try {
+            NetworkRequests.getDataAsync(requestId, new URL(Network.getDomain(), GROUPS + id + "/members"), callbacks);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static void getUsers(int requestId, long id, Network.NetworkCallbacks callbacks) {
+    public static void requestJoin(int requestId, long id, NetworkRequests.NetworkCallbacks<String> callbacks) {
         try {
-            Network.getDataAsync(requestId, new URL(Network.getDomain(), GROUPS + id + "/members"), callbacks);
+            NetworkRequests.postDataAsync                                    (requestId, new URL(Network.getDomain(), "group/" + id + "/requestWrite"),
+                                          NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

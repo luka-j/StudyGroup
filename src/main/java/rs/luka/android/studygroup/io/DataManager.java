@@ -11,12 +11,12 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.network.Courses;
@@ -30,6 +30,13 @@ import rs.luka.android.studygroup.network.Questions;
  * Created by luka on 18.8.15..
  */
 public class DataManager {
+    //loader ids, could be anything (yes, they can clash, as long as we know they are from different LoaderManagers)
+    public static final int LOADER_ID_GROUPS = 0;
+    public static final int LOADER_ID_COURSES = 1;
+    public static final int LOADER_ID_NOTES = 2;
+    public static final int LOADER_ID_QUESTIONS = 3;
+    public static final int LOADER_ID_EXAMS = 4;
+    public static final int LOADER_ID_LESSONS = 5;
     private static final String TAG                  = "studygroup.DataManager";
     private static final String PREFS_NAME           = "fetchHistory";
     private static final String LAST_FETCH_GROUPS    = "lfGroups";
@@ -38,20 +45,10 @@ public class DataManager {
     private static final String LAST_FETCH_NOTES     = "lfNotes";
     private static final String LAST_FETCH_QUESTIONS = "lfQuestions";
     private static final String LAST_FETCH_EXAMS     = "lfExams";
-
     private static final int   FETCH_TIMEOUT_GROUPS  = 1000 * 60 * 60 * 12; //1d
     private static final int   FETCH_TIMEOUT_COURSES = 1000 * 60 * 60 * 6; //6h
     private static final int   FETCH_TIMEOUT_LESSONS = 1000 * 60 * 60 * 2; //2h
     private static final int   FETCH_TIMEOUT_ITEMS   = 1000 * 60 * 20; //20min
-
-    //loader ids, could be anything (yes, they can clash, as long as we know they are from different LoaderManagers)
-    private static final int LOADER_ID_GROUPS = 0;
-    private static final int LOADER_ID_COURSES = 1;
-    private static final int LOADER_ID_NOTES = 2;
-    private static final int LOADER_ID_QUESTIONS = 3;
-    private static final int LOADER_ID_EXAMS = 4;
-    private static final int LOADER_ID_LESSONS = 5;
-
     private static ExecutorService executor = Executors.newCachedThreadPool();
 
     private static long getLastFetch(Context context, String key) {
@@ -87,7 +84,17 @@ public class DataManager {
         });
     }
 
-    public static void refreshGroups(final Context c, final LoaderManager.LoaderCallbacks callbacks,
+    /**
+     * Queries local database for group
+     * @param c context used to obtain database
+     * @param id id of the wanted group
+     * @return Group, if it exists in the database
+     */
+    public static Group getGroup(Context c, ID id) {
+        return Database.getInstance(c).queryGroup(id);
+    }
+
+    public static void refreshGroups(final Context c, final LoaderManager.LoaderCallbacks<Cursor> callbacks,
                                      final LoaderManager manager, final NetworkExceptionHandler handler) {
         executor.execute(new Runnable() {
             @Override
@@ -179,8 +186,7 @@ public class DataManager {
      * @return Course, if it exists in the database
      */
     public static Course getCourse(Context c, ID id) {
-        return Database.getInstance(c).queryCourse(id); /// retrieve if doesn't exist (on current thread)
-                                                    // (probably unnecessary, courses are loaded right after groups)
+        return Database.getInstance(c).queryCourse(id);
     }
 
     public static void refreshCourses(final Context c, final long groupId,
@@ -244,9 +250,19 @@ public class DataManager {
         });
     }
 
-    public static void removeCourse(final Context c, final ID id) {
-                //todo remove course
+    public static void hideCourse(final Context c, final ID id, final NetworkExceptionHandler exceptionHandler) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    boolean success = Courses.hideCourse(id.getCourseIdValue(), exceptionHandler);
+                    exceptionHandler.finished();
+                } catch (IOException e) {
+                    exceptionHandler.handleIOException(e);
+                }
                 Database.getInstance(c).removeCourse(id);
+            }
+        });
     }
 
     public static void getLessons(final Context c, final long courseId,
@@ -288,9 +304,21 @@ public class DataManager {
         });
     }
 
-    public static void removeLesson(final Context c, final ID courseId, final String lesson) {
-                //todo remove lesson
+    public static void hideLesson(final Context c, final ID courseId, final String lesson,
+                                  final NetworkExceptionHandler exceptionHandler) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    boolean success = Lessons.hideLesson(courseId.getCourseIdValue(), lesson, exceptionHandler);
+                    exceptionHandler.finished();
+                } catch (IOException e) {
+                    exceptionHandler.handleIOException(e);
+                }
                 Database.getInstance(c).removeLesson(courseId, lesson);
+            }
+        });
+
     }
 
     public static void renameLesson(final Context c, final ID courseId, final String oldName, final String newName,
@@ -401,9 +429,20 @@ public class DataManager {
         });
     }
 
-    public static void removeNote(final Context c, final ID noteId, final String lesson) {
-                //todo remove note
-                Database.getInstance(c).removeNote(noteId, lesson);
+    public static void hideNote(final Context c, final ID noteId, final String lesson,
+            final NetworkExceptionHandler exceptionHandler) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    boolean success = Notes.hideNote(noteId.getItemIdValue(), exceptionHandler);
+                    Database.getInstance(c).removeNote(noteId, lesson);
+                    exceptionHandler.finished();
+                } catch (IOException e) {
+                    exceptionHandler.handleIOException(e);
+                }
+            }
+        });
     }
 
     public static void getQuestions(final Context c, final long courseId, final String lesson,
@@ -500,9 +539,20 @@ public class DataManager {
         });
     }
 
-    public static void removeQuestion(final Context c, final ID questionId, final String lesson) {
-        //todo remove question
+    public static void hideQuestion(final Context c, final ID questionId, final String lesson,
+                                    final NetworkExceptionHandler exceptionHandler) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    boolean success = Notes.hideNote(questionId.getItemIdValue(), exceptionHandler);
+                    exceptionHandler.finished();
+                } catch (IOException e) {
+                    exceptionHandler.handleIOException(e);
+                }
                 Database.getInstance(c).removeQuestion(questionId, lesson);
+            }
+        });
     }
 
     public static void getExams(final Context c, final long groupId,
@@ -586,9 +636,20 @@ public class DataManager {
         });
     }
 
-    public static void removeExam(final Context c, final ID id, final String lesson) {
-                //todo remove exam
+    public static void hideExam(final Context c, final ID id, final String lesson,
+                                final NetworkExceptionHandler exceptionHandler) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    boolean success = Notes.hideNote(id.getItemIdValue(), exceptionHandler);
+                    exceptionHandler.finished();
+                } catch (IOException e) {
+                    exceptionHandler.handleIOException(e);
+                }
                 Database.getInstance(c).removeExam(id, lesson);
+            }
+        });
     }
 
     public static void addExamQuestion(final Context c, final ID courseId, final String courseName,

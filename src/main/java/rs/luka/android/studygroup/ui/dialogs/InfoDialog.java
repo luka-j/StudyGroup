@@ -2,10 +2,9 @@ package rs.luka.android.studygroup.ui.dialogs;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.widget.EditText;
+import android.support.v4.app.DialogFragment;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -15,17 +14,17 @@ import rs.luka.android.studygroup.R;
 /**
  * Created by luka on 2.1.16..
  */
-public class ErrorDialog extends DialogFragment {
-    private Callbacks callbacks;
+public class InfoDialog extends DialogFragment {
     public static final String ARG_ERROR_TITLE = "studygroup.dialog.errortile";
     public static final String ARG_ERROR_MESSAGE = "studygroup.dialog.errormsg";
+    private Callbacks callbacks;
 
-    public static ErrorDialog newInstance(String title, String content) {
+    public static InfoDialog newInstance(String title, String content) {
         if(title == null) title = "I've forgotten a title (please tell me!)";
         if(content == null) content = "I've forgotten to put text here. If I've forgotten the title too, "
                                       + "something is definitely wrong.";
-        ErrorDialog f    = new ErrorDialog();
-        Bundle             args = new Bundle();
+        InfoDialog f    = new InfoDialog();
+        Bundle     args = new Bundle();
         args.putString(ARG_ERROR_TITLE, title);
         args.putString(ARG_ERROR_MESSAGE, content);
         f.setArguments(args);
@@ -37,7 +36,7 @@ public class ErrorDialog extends DialogFragment {
         super.onAttach(activity);
     }
 
-    public ErrorDialog registerCallbacks(Callbacks callbacks) {
+    public InfoDialog registerCallbacks(Callbacks callbacks) {
         this.callbacks = callbacks;
         return this;
     }
@@ -46,11 +45,6 @@ public class ErrorDialog extends DialogFragment {
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity());
-        //TextInputLayout til = new TextInputLayout(getActivity());
-        final EditText input = new EditText(getActivity());
-        input.requestFocus();
-        input.setSelection(input.getText().length());
-        //til.addView(input);
         return builder.title(getArguments().getString(ARG_ERROR_TITLE))
                       .content(getArguments().getString(ARG_ERROR_MESSAGE))
                       .positiveText(R.string.ok)
@@ -59,13 +53,13 @@ public class ErrorDialog extends DialogFragment {
                           @Override
                           public void onClick(@NonNull MaterialDialog materialDialog,
                                               @NonNull DialogAction dialogAction) {
-                              if(callbacks!=null) callbacks.onErrorDialogClosed();
+                              if(callbacks!=null) callbacks.onErrorDialogClosed(InfoDialog.this);
                           }
                       })
                       .show();
     }
 
     public interface Callbacks {
-        void onErrorDialogClosed();
+        void onErrorDialogClosed(InfoDialog dialog);
     }
 }

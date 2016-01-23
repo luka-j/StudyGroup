@@ -74,10 +74,9 @@ public class ScheduleActivity extends SingleFragmentActivity implements Schedule
 
     @Override
     public void onShowQuestions(Exam exam) {
-        startActivity(new Intent(this, ExamQuestionsActivity.class).putExtra(ExamQuestionsActivity.EXTRA_COURSE,
-                                                                             exam.getCourse())
-                                                                   .putExtra(ExamQuestionsActivity.EXTRA_LESSON,
-                                                                             Question.EXAM_PREFIX
-                                                                             + exam.getLesson()));
+        startActivity(new Intent(this, ExamQuestionsActivity.class)
+                              .putExtra(ExamQuestionsActivity.EXTRA_COURSE, exam.getCourse())
+                              .putExtra(ExamQuestionsActivity.EXTRA_LESSON, Question.EXAM_PREFIX + exam.getLesson())
+                              .putExtra(ExamQuestionsActivity.EXTRA_PERMISSION, getIntent().getParcelableExtra(EXTRA_GROUP)));
     }
 }

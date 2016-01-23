@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.model.User;
-import rs.luka.android.studygroup.ui.dialogs.ErrorDialog;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.LoginActivity;
 
 /**
@@ -41,9 +41,9 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ErrorDialog.newInstance(hostActivity.getString(R.string.error_session_expired_title),
-                                            hostActivity.getString(R.string.error_session_expired_text))
-                               .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
+                    InfoDialog.newInstance                                                            (hostActivity.getString(R.string.error_session_expired_title),
+                                           hostActivity.getString(R.string.error_session_expired_text))
+                              .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
                     hostActivity.startActivity(new Intent(hostActivity, LoginActivity.class));
                 }
             });
@@ -55,9 +55,9 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ErrorDialog.newInstance(hostActivity.getString(R.string.error_insufficient_permissions_title),
-                                            hostActivity.getString(R.string.error_insufficient_permissions_text))
-                               .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
+                    InfoDialog.newInstance                                                                     (hostActivity.getString(R.string.error_insufficient_permissions_title),
+                                           hostActivity.getString(R.string.error_insufficient_permissions_text))
+                              .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
                 }
             });
             hasErrors=true;
@@ -68,9 +68,9 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ErrorDialog.newInstance(hostActivity.getString(R.string.error_server_error_title),
-                                            hostActivity.getString(R.string.error_server_error_text))
-                               .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
+                    InfoDialog.newInstance                                                         (hostActivity.getString(R.string.error_server_error_title),
+                                           hostActivity.getString(R.string.error_server_error_text))
+                              .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
                 }
             });
             hasErrors=true;
@@ -81,9 +81,9 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ErrorDialog.newInstance(String.valueOf(code) + " " +hostActivity.getString(R.string.error_not_found_title),
-                                            hostActivity.getString(R.string.error_not_found_text))
-                               .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
+                    InfoDialog.newInstance                                                      (String.valueOf(code) + " " + hostActivity.getString(R.string.error_not_found_title),
+                                           hostActivity.getString(R.string.error_not_found_text))
+                              .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
                 }
             });
             hasErrors=true;
@@ -94,9 +94,9 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ErrorDialog.newInstance(hostActivity.getString(R.string.error_duplicate_title),
-                                            hostActivity.getString(R.string.error_duplicate_text))
-                               .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
+                    InfoDialog.newInstance                                                      (hostActivity.getString(R.string.error_duplicate_title),
+                                           hostActivity.getString(R.string.error_duplicate_text))
+                              .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
                 }
             });
             hasErrors=true;
@@ -107,9 +107,9 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ErrorDialog.newInstance(hostActivity.getString(R.string.error_bad_request_title),
-                                            hostActivity.getString(R.string.error_bad_request_text))
-                               .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
+                    InfoDialog.newInstance                                                        (hostActivity.getString(R.string.error_bad_request_title),
+                                           hostActivity.getString(R.string.error_bad_request_text))
+                              .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
                 }
             });
             hasErrors=true;
@@ -120,9 +120,9 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ErrorDialog.newInstance(hostActivity.getString(R.string.error_json_title),
-                                            hostActivity.getString(R.string.error_json_text))
-                               .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
+                    InfoDialog.newInstance                                                 (hostActivity.getString(R.string.error_json_title),
+                                           hostActivity.getString(R.string.error_json_text))
+                              .show(hostActivity.getSupportFragmentManager(), "studygroup.dialog.error");
                 }
             });
             hasErrors=true;

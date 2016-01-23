@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -34,6 +33,9 @@ import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.network.Courses;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
 import rs.luka.android.studygroup.ui.Snackbar;
@@ -42,11 +44,14 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 /**
  * Created by Luka on 7/1/2015.
  */
-public class GroupFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class GroupFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
+                                                       NetworkRequests.NetworkCallbacks<String> {
 
-    protected static final int    REQUEST_EDIT_COURSE = 1;
-    private static final   String TAG                 = "studygroup.GroupFrag";
-    private static final   int    REQUEST_ADD_COURSE  = 0;
+    protected static final int    REQUEST_EDIT_COURSE   = 1;
+    protected static final int      REQUEST_REMOVE_COURSE = 2; //network request
+    private static final   String TAG                   = "studygroup.GroupFrag";
+    private static final   int    REQUEST_ADD_COURSE    = 0; //intent request
+    private static final int      REQUEST_SHOW_ALL      = 1; //network request
     private Group                group;
     private RecyclerView         courseRecyclerView;
     private Callbacks            callbacks;
@@ -95,18 +100,26 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
         courseRecyclerView = (RecyclerView) view.findViewById(R.id.course_recycler_view);
         fab = (FloatingActionButton) view.findViewById(R.id.fab_add_course);
+        if(group.getPermission() < Group.PERM_WRITE) {
+            fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_pencil));
+        }
         coordinator = (CoordinatorLayout) view.findViewById(R.id.coordinator);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(getActivity(), AddCourseActivity.class);
-                i.putExtra(AddCourseActivity.EXTRA_GROUP, group);
-                startActivityForResult(i, REQUEST_ADD_COURSE);
+                if(group.getPermission() >= Group.PERM_WRITE) {
+                    Intent i = new Intent(getActivity(), AddCourseActivity.class);
+                    i.putExtra(AddCourseActivity.EXTRA_GROUP, group);
+                    startActivityForResult(i, REQUEST_ADD_COURSE);
+                } else {
+                    callbacks.onRequestJoin(group);
+                }
             }
         });
         final LinearLayoutManager lm = new LinearLayoutManager(getActivity());
         courseRecyclerView.setLayoutManager(lm);
-        registerForContextMenu(courseRecyclerView);
+        if(group.getPermission() >= Group.PERM_MODIFY) //context menu postoji samo za one koji mogu da ga koriste
+            registerForContextMenu(courseRecyclerView);
         setData();
 
         new ItemTouchHelper(new TouchHelperCallbacks(0,
@@ -171,6 +184,9 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             case R.id.context_edit:
                 callbacks.onEditSelected(adapter.selectedCourse, REQUEST_EDIT_COURSE);
                 return true;
+            case R.id.context_remove_course:
+                callbacks.onRemoveCourse(adapter.selectedCourse);
+                return true;
         }
         return onContextItemSelected(item);
     }
@@ -182,6 +198,10 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                 Intent i = new Intent(getActivity(), RootActivity.class);
                 i.putExtra(GroupActivity.EXTRA_SHOW_LIST, true);
                 startActivity(i);
+                return true;
+            case R.id.show_all:
+                Log.i(TAG, "Show all selected");
+                Courses.showAllCourses(REQUEST_SHOW_ALL, group.getIdValue(), this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -221,10 +241,38 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         adapter.swapCursor(null);
     }
 
+    @Override
+    public void onRequestCompleted(int id, Network.Response<String> response) {
+        switch (id) {
+            case REQUEST_SHOW_ALL:
+            case REQUEST_REMOVE_COURSE:
+                if (response.responseCode == Network.Response.RESPONSE_OK) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            refresh();
+                        }
+                    });
+                } else {
+                    response.handleException(exceptionHandler);
+                }
+                break;
+            default: Log.w(TAG, "Unknown requestId: " + id);
+        }
+    }
+
+    @Override
+    public void onExceptionThrown(int id, Throwable ex) {
+        ex.printStackTrace();
+        //todo
+    }
+
     public interface Callbacks {
         void onCourseSelected(Course course);
 
         void onEditSelected(Course course, int requestCode);
+        void onRequestJoin(Group group);
+        void onRemoveCourse(Course course);
     }
 
     private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
@@ -242,13 +290,13 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         @Override
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             final Course course   = ((CourseHolder) viewHolder).course;
-            course.hide(getActivity());
-            refresh();
+            course.shallowHide(getActivity());
+            getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_COURSES, null, GroupFragment.this);
             Snackbar.make(coordinator, R.string.course_hidden, Snackbar.LENGTH_LONG)
                     .setOnHideListener(new Snackbar.OnHideListener() {
                         @Override
                         public void onHide() {
-                            new RemoveCourseTask().doInBackground(course);
+                            course.hide(getContext(), exceptionHandler);
                         }
                     })
                     .setAction(R.string.undo, new View.OnClickListener() {
@@ -265,14 +313,6 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             // ((TextView)(coordinator.findViewById(android.support.design.R.id.snackbar_text)))
             //       .setTextColor(getActivity().getResources().getColor(R.color.white)); //fuck you Google
             // doesn't actually work
-        }
-    }
-
-    private class RemoveCourseTask extends AsyncTask<Course, Void, Void> {
-        @Override
-        protected Void doInBackground(Course... params) {
-            params[0].remove(getActivity());
-            return null;
         }
     }
 
@@ -326,6 +366,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             adapter.selectedCourse = course;
             return false;
         }
+
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v,

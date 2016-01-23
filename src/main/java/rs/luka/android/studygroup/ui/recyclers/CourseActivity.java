@@ -1,36 +1,44 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
 import android.content.Intent;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.network.Lessons;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
+import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
 import rs.luka.android.studygroup.ui.dialogs.RenameLessonDialog;
 
 /**
  * Created by luka on 2.7.15..
  */
 public class CourseActivity extends SingleFragmentActivity implements CourseFragment.Callbacks,
-                                                                      RenameLessonDialog.Callbacks {
+                                                                      RenameLessonDialog.Callbacks,
+                                                                      ConfirmDialog.Callbacks {
 
-    private NetworkExceptionHandler exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
-
-    private static final String   TAG_DIALOG_RENAME = "studygroup.dialog.renamelesson";
     public static final String    EXTRA_LESSON_NAME = "lessonName";
     public static final String    EXTRA_COURSE      = "exCourse";
+    public static final String EXTRA_PERMISSION = "permission";
     protected static final String EXTRA_GO_FORWARD  = "forwardToLesson";
     protected static final String EXTRA_GO_BACKWARD = "backToCourses";
+    private static final String TAG = "CourseActivity";
+    private static final String   TAG_DIALOG_RENAME = "studygroup.dialog.renamelesson";
+    private static final String TAG_DIALOG_REMOVE = "studygroup.dialog.removelesson";
+    private NetworkExceptionHandler exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
     private CourseFragment fragment;
     private String         oldLessonName;
+    private String pendingRemove;
 
     @Override
     protected Fragment createFragment() {
-        fragment = CourseFragment.newInstance((Course) getIntent().getParcelableExtra(EXTRA_COURSE));
+        fragment = CourseFragment.newInstance((Course) getIntent().getParcelableExtra(EXTRA_COURSE),
+                                              getIntent().getIntExtra(EXTRA_PERMISSION, 0));
         return fragment;
     }
 
@@ -44,10 +52,10 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
                 onBackPressed();
                 return true;
             } else if (getIntent().getBooleanExtra(EXTRA_GO_FORWARD, false)) {
-                startActivity(new Intent(this, LessonActivity.class).putExtra(EXTRA_LESSON_NAME, lesson)
-                                                                    .putExtra(EXTRA_COURSE,
-                                                                              getIntent().getParcelableExtra(
-                                                                                      EXTRA_COURSE)));
+                startActivity(new Intent(this, LessonActivity.class)
+                                      .putExtra(EXTRA_LESSON_NAME, lesson)
+                                      .putExtra(EXTRA_COURSE, getIntent().getParcelableExtra(EXTRA_COURSE))
+                             .putExtra(LessonActivity.EXTRA_PERMISSION, getIntent().getIntExtra(EXTRA_PERMISSION, 0)));
                 return true;
             }
             return false;
@@ -59,6 +67,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
         Intent i = new Intent(this, LessonActivity.class);
         i.putExtra(EXTRA_COURSE, getIntent().getParcelableExtra(EXTRA_COURSE));
         i.putExtra(EXTRA_LESSON_NAME, title);
+        i.putExtra(LessonActivity.EXTRA_PERMISSION, getIntent().getIntExtra(EXTRA_PERMISSION, 0));
         startActivity(i);
     }
 
@@ -81,17 +90,34 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.context_course, menu);
+        getMenuInflater().inflate(R.menu.menu_course, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.show_all:
-                // TODO: 9.9.15.
-                return true;
-        }
-        return false;
+    public void removeLesson(String title) {
+        pendingRemove = title;
+        ConfirmDialog.newInstance(R.string.confirm_remove_lesson_title,
+                                  R.string.confirm_remove_lesson_message,
+                                  R.string.confirm_remove_singular,
+                                  R.string.cancel)
+                     .show(getSupportFragmentManager(), TAG_DIALOG_REMOVE);
     }
+
+    @Override
+    public void onPositive(DialogFragment dialog) {
+        switch (dialog.getTag()) {
+            case TAG_DIALOG_REMOVE:
+                Lessons.removeLesson(CourseFragment.REQUEST_REMOVE_LESSON,
+                                     ((Course) getIntent().getParcelableExtra(EXTRA_COURSE)).getIdValue(),
+                                     pendingRemove,
+                                     fragment);
+                break;
+            default:
+                Log.w(TAG, "Invalid dialog tag: " + dialog.getTag());
+        }
+    }
+
+    @Override
+    public void onNegative(DialogFragment dialog) {;}
 }

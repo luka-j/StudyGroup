@@ -12,21 +12,19 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Database;
-import rs.luka.android.studygroup.io.Network;
 import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Note;
-import rs.luka.android.studygroup.model.User;
 
 /**
  * Created by luka on 4.1.16..
  */
 public class Notes {
-    private static final String TAG = "studygroup.net.Notes";
-
     public static final String NOTES = "notes/";
+    private static final String TAG = "studygroup.net.Notes";
     private static final String COURSE = "course/";
 
     private static final String JSON_KEY_ID = "id";
@@ -43,9 +41,9 @@ public class Notes {
         try {
             URL              url      = new URL(Network.getDomain(), COURSE + courseId + "/" +
                                                                      (lesson.isEmpty()?"%20":lesson) + "/" + NOTES);
-            Network.Response response = Network.requestGetData(url);
+            Network.Response<String> response = NetworkRequests.requestGetData(url);
             if(response.responseCode == Network.Response.RESPONSE_OK) {
-                JSONArray array = new JSONArray(response.responseMessage);
+                JSONArray array = new JSONArray(response.responseData);
                 int       len   = array.length();
                 Note[]    notes = new Note[len];
                 for (int i = 0; i < len; i++) {
@@ -81,14 +79,14 @@ public class Notes {
             params.put(JSON_KEY_LESSON, lesson);
             params.put(JSON_KEY_TEXT, text);
 
-            Network.Response    response = Network.requestPostData(url, params);
+            Network.Response<String> response = NetworkRequests.requestPostData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
-                return Long.parseLong(response.responseMessage);
+                return Long.parseLong(response.responseData);
 
 
             Network.Response handled = response.handleException(exceptionHandler);
                 if(handled.responseCode == Network.Response.RESPONSE_CREATED)
-                    return Long.parseLong(response.responseMessage);
+                    return Long.parseLong(response.responseData);
             return null;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -103,7 +101,7 @@ public class Notes {
             params.put(JSON_KEY_LESSON, lesson);
             params.put(JSON_KEY_TEXT, text);
 
-            Network.Response    response = Network.requestPutData(url, params);
+            Network.Response    response = NetworkRequests.requestPutData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
 
@@ -112,6 +110,44 @@ public class Notes {
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean hideNote(long noteId, NetworkExceptionHandler exceptionHandler)
+            throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), NOTES + noteId + "/hide");
+
+            Network.Response    response = NetworkRequests.requestPutData(url, NetworkRequests.emptyMap);
+            if(response.responseCode == Network.Response.RESPONSE_OK)
+                return true;
+
+            Network.Response handled = response.handleException(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_CREATED;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void showAllNotes(int requestId, long courseId, String lesson,
+                                    NetworkRequests.NetworkCallbacks<String> callbacks) {
+        try {
+            URL url = new URL(Network.getDomain(), COURSE + courseId + "/" + lesson + "/showAllNotes");
+            NetworkRequests.putDataAsync(requestId, url, NetworkRequests.emptyMap, callbacks);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void removeNotes(int requestId, Set<Long> noteIds, NetworkRequests.NetworkCallbacks<String> callbacks) {
+        try {
+            URL url;
+            for(Long id : noteIds) {
+                url = new URL(Network.getDomain(), NOTES + id);
+                NetworkRequests.deleteDataAsync(requestId, url, callbacks);
+            }
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException(ex);
         }
     }
 }

@@ -83,8 +83,8 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
         return null;
     }
 
-    public void hide(Context c) {
-        DataManager.removeQuestion(c, id, lesson);
+    public void hide(Context c, NetworkExceptionHandler exceptionHandler) {
+        DataManager.hideQuestion(c, id, lesson, exceptionHandler);
     }
 
     public void show(Context c) {

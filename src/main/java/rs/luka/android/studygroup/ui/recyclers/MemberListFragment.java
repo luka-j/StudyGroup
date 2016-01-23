@@ -1,10 +1,6 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
-import android.app.Activity;
-import android.content.Context;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -23,23 +19,21 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.Network;
-import rs.luka.android.studygroup.network.AdditionalCursors;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.network.Groups;
-import rs.luka.android.studygroup.ui.CursorAdapter;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.NetworkRequests;
 
 /**
  * Created by luka on 19.9.15..
  */
-public class MemberListFragment extends Fragment implements Network.NetworkCallbacks {
+public class MemberListFragment extends Fragment implements NetworkRequests.NetworkCallbacks {
 
     private static final String ARG_GROUP = "agroup";
 
@@ -104,7 +98,7 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
                 NetworkExceptionHandler exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)getActivity());
                 if(response.responseCode == Network.Response.RESPONSE_OK) {
                     try {
-                        JSONArray array = new JSONArray(response.responseMessage);
+                        JSONArray array = new JSONArray(response.responseData);
                         List<User> list = new ArrayList<>(array.length());
                         for(int i=0; i<array.length(); i++) {
                             JSONObject jsonUser = array.getJSONObject(i).getJSONObject("user");

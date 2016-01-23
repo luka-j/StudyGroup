@@ -3,6 +3,7 @@ package rs.luka.android.studygroup.ui.recyclers;
 import android.app.Activity;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -10,6 +11,7 @@ import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
 
@@ -37,6 +39,17 @@ public class SelectCourseActivity extends SingleFragmentActivity implements Grou
         Intent i = new Intent(this, AddCourseActivity.class);
         i.putExtra(CourseActivity.EXTRA_COURSE, course);
         startActivityForResult(i, requestCode);
+    }
+
+    @Override
+    public void onRequestJoin(Group group) {
+        Log.w("SelectCourseActivity", "You cannot request to join group here!");
+    }
+
+    @Override
+    public void onRemoveCourse(Course course) {
+        InfoDialog.newInstance(getString(R.string.remove_course_disabled_title),
+                               getString(R.string.remove_course_disabled_message));
     }
 
     @Override

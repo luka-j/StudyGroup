@@ -8,6 +8,7 @@ import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
@@ -33,6 +34,7 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
@@ -51,6 +53,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
     private RecyclerView             notesRecycler;
     private NoteCallbacks            callbacks;
     private NotesAdapter             adapter;
+    private int                      permission;
     private Course                   course;
     private String                   lessonName;
     private PoliteSwipeRefreshLayout swipe;
@@ -65,6 +68,10 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
 
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            if(permission < Group.PERM_MODIFY) {
+                menu.removeItem(R.id.context_remove_note); //todo fix
+                return true;
+            }
             return false;
         }
 
@@ -79,6 +86,11 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
                     hide();
                     actionMode.finish();
                     return true;
+                case R.id.context_remove_note:
+                    Set<Long> selectedIds = new HashSet<>(selected.size());
+                    for(Note n : selected) selectedIds.add(n.getIdValue());
+                    callbacks.onNotesRemove(selectedIds);
+                    actionMode.finish();
             }
             return false;
         }
@@ -90,11 +102,12 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         }
     };
 
-    public static NoteListFragment newInstance(Course course, String lessonName) {
+    public static NoteListFragment newInstance(Course course, String lessonName, int permission) {
         NoteListFragment f    = new NoteListFragment();
         Bundle           args = new Bundle();
         args.putParcelable(CourseActivity.EXTRA_COURSE, course);
         args.putString(CourseActivity.EXTRA_LESSON_NAME, lessonName);
+        args.putInt(LessonActivity.EXTRA_PERMISSION, permission);
         f.setArguments(args);
         return f;
     }
@@ -114,6 +127,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
 
         course = getArguments().getParcelable(CourseActivity.EXTRA_COURSE);
         lessonName = getArguments().getString(CourseActivity.EXTRA_LESSON_NAME);
+        permission = getArguments().getInt(LessonActivity.EXTRA_PERMISSION);
     }
 
     @Override
@@ -177,11 +191,10 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         super.onDetach();
         callbacks = null;
     }
-
     private void hide() {
-        for (Note n : selected) { n.hide(getActivity()); }
-        refresh();
-        final Set<Note> selected = new HashSet<>(this.selected); //selected se briše kad se actionmode zatvori
+        for (Note n : selected) { n.hide(getActivity(), exceptionHandler); }
+        getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_NOTES, null, NoteListFragment.this);
+        /*final Set<Note> selected = new HashSet<>(this.selected); //selected se briše kad se actionmode zatvori
         snackbar = Snackbar.make(notesRecycler, R.string.notes_hidden, Snackbar.LENGTH_LONG)
                            .setAction(R.string.undo, new View.OnClickListener() {
                                @Override
@@ -194,7 +207,11 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
                            .colorTheFuckingTextToWhite(getActivity())
                            .doStuffThatGoogleDidntFuckingDoProperly(getActivity(),
                                                                     ((LessonActivity) getActivity()).getFab());
-        snackbar.show();
+        snackbar.show();*/
+        Snackbar.make(notesRecycler, R.string.notes_hidden, Snackbar.LENGTH_SHORT)
+                .colorTheFuckingTextToWhite(getContext())
+                .doStuffThatGoogleDidntFuckingDoProperly(getContext(), callbacks.getFab())
+                .show();
     }
 
     protected void dismissSnackbar() {
@@ -241,6 +258,8 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         void onNoteSelected(int position);
 
         void onNotesEdit(Set<Note> notes);
+        void onNotesRemove(Set<Long> ids);
+        FloatingActionButton getFab();
     }
 
     private class NoteHolder extends RecyclerView.ViewHolder

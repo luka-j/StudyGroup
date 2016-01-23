@@ -3,4 +3,6 @@
     <item
         android:id="@+id/context_edit"
         android:title="@string/edit" />
+    <item android:id="@+id/context_remove_course"
+          android:title="@string/remove" />
 </menu>

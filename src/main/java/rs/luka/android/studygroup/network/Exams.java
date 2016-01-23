@@ -16,20 +16,16 @@ import java.util.Map;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Database;
-import rs.luka.android.studygroup.io.Network;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.ID;
-import rs.luka.android.studygroup.model.User;
 
 /**
  * Created by luka on 5.1.16..
  */
 public class Exams {
-    private static final String TAG = "studygroup.net.Exams";
-
-    private static final String GROUP = "group/";
     public static final String  EXAMS = "exams/";
-
+    private static final String TAG = "studygroup.net.Exams";
+    private static final String GROUP = "group/";
     private static final String JSON_KEY_ID = "id";
     private static final String JSON_KEY_GROUPID = "groupId";
     private static final String JSON_KEY_COURSEID = "courseId";
@@ -42,9 +38,9 @@ public class Exams {
             throws IOException {
         try {
             URL url      = new URL(Network.getDomain(), GROUP + groupId + "/" + EXAMS);
-            Network.Response response = Network.requestGetData(url);
+            Network.Response<String> response = NetworkRequests.requestGetData(url);
             if(response.responseCode == Network.Response.RESPONSE_OK) {
-                JSONArray array = new JSONArray(response.responseMessage);
+                JSONArray array = new JSONArray(response.responseData);
                 int       len   = array.length();
                 Exam[]    exams = new Exam[len];
                 for (int i = 0; i < len; i++) {
@@ -83,13 +79,13 @@ public class Exams {
             params.put(JSON_KEY_TYPE, type);
             params.put(JSON_KEY_DATE, String.valueOf(date));
 
-            Network.Response    response = Network.requestPostData(url, params);
+            Network.Response<String>    response = NetworkRequests.requestPostData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
-                return Long.parseLong(response.responseMessage);
+                return Long.parseLong(response.responseData);
 
             Network.Response handled = response.handleException(exceptionHandler);
             if(handled.responseCode == Network.Response.RESPONSE_CREATED)
-                return Long.parseLong(response.responseMessage);
+                return Long.parseLong(response.responseData);
             return null;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -104,7 +100,7 @@ public class Exams {
             params.put(JSON_KEY_LESSON, lesson);
             params.put(JSON_KEY_DATE, String.valueOf(date));
 
-            Network.Response    response = Network.requestPutData(url, params);
+            Network.Response    response = NetworkRequests.requestPutData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
 
@@ -112,6 +108,40 @@ public class Exams {
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean hideExam(long examId, NetworkExceptionHandler exceptionHandler)
+            throws IOException {
+        try {
+            URL              url      = new URL(Network.getDomain(), EXAMS + examId + "/hide");
+
+            Network.Response    response = NetworkRequests.requestPutData(url, NetworkRequests.emptyMap);
+            if(response.responseCode == Network.Response.RESPONSE_OK)
+                return true;
+
+            Network.Response handled = response.handleException(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_CREATED;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void showAllExams(int requestId, long groupId, NetworkRequests.NetworkCallbacks<String> callbacks) {
+        try {
+            URL                 url      = new URL(Network.getDomain(), GROUP + groupId + "/showAllExams");
+            NetworkRequests.putDataAsync(requestId, url, NetworkRequests.emptyMap, callbacks);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void removeExam(int requestId, long examId, NetworkRequests.NetworkCallbacks<String> callbacks) {
+        try {
+            URL url = new URL(Network.getDomain(), EXAMS + examId);
+            NetworkRequests.deleteDataAsync(requestId, url, callbacks);
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException(ex);
         }
     }
 }

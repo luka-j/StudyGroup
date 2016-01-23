@@ -2,14 +2,8 @@ package rs.luka.android.studygroup.model;
 
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.util.Log;
-
-import java.io.IOException;
-import java.util.Arrays;
 
 import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Network;
-import rs.luka.android.studygroup.network.UserManager;
 
 /**
  * Created by luka on 25.7.15..
@@ -39,7 +33,8 @@ public class User {
     }
 
     public static void clearToken() {
-        instance.prefs.edit().remove(PREFS_KEY_TOKEN).apply();
+        if(instance.prefs != null)
+            instance.prefs.edit().remove(PREFS_KEY_TOKEN).apply();
         instance.token=null;
     }
     public static void instantiateUser(String token, SharedPreferences prefs) {
@@ -47,6 +42,9 @@ public class User {
         prefsEditor.putString(PREFS_KEY_TOKEN, token);
         prefsEditor.apply();
         instance = new User(token, prefs);
+    }
+    public static void setOfflineUser(SharedPreferences prefs) {
+        instance = new User(prefs.getString(PREFS_KEY_TOKEN, "0"), prefs);
     }
 
     public static String getToken() {

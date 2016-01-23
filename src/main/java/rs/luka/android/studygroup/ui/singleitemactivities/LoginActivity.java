@@ -9,23 +9,27 @@ import android.support.v7.widget.CardView;
 import android.view.View;
 import android.widget.EditText;
 
+import java.net.ConnectException;
+
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.io.Limits;
-import rs.luka.android.studygroup.io.Network;
 import rs.luka.android.studygroup.model.User;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.network.UserManager;
-import rs.luka.android.studygroup.ui.dialogs.ErrorDialog;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.RootActivity;
 
 /**
  * Created by luka on 25.7.15..
  */
-public class LoginActivity extends AppCompatActivity implements Network.NetworkCallbacks, ErrorDialog.Callbacks {
+public class LoginActivity extends AppCompatActivity implements NetworkRequests.NetworkCallbacks<String>, InfoDialog.Callbacks {
     public static final int REQUEST_LOGIN = 0;
     public static final int REQUEST_REFRESH = 1;
 
-    private static final String TAG_DIALOG_ERROR = "studygroup.dialog.errordialog";
-    private boolean requestInProgress = false;
+    private static final String TAG_DIALOG_ERROR   = "studygroup.dialog.errordialog";
+    private static final String TAG_DIALOG_NO_NETWORK = "studygroup.LoginActivity.errorNetwork";
+    private boolean requestInProgress              = false;
 
     private CardView login, register;
     private TextInputLayout emailTil;
@@ -87,39 +91,42 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
     }
 
     @Override
-    public void onErrorDialogClosed() {
-        password.setText("");
+    public void onErrorDialogClosed(InfoDialog dialog) {
+        if(dialog.getTag().equals(TAG_DIALOG_ERROR))
+            password.setText("");
+        else if(dialog.getTag().equals(TAG_DIALOG_NO_NETWORK))
+            startActivity(new Intent(LoginActivity.this, RootActivity.class));
     }
 
     @Override
-    public void onRequestCompleted(final int id, final Network.Response response) {
+    public void onRequestCompleted(final int id, final Network.Response<String> response) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if(id == REQUEST_LOGIN) {
                     switch (response.responseCode) {
                         case Network.Response.RESPONSE_OK:
-                            User.instantiateUser(response.responseMessage,
+                            User.instantiateUser(response.responseData,
                                                  LoginActivity.this.getSharedPreferences(User.PREFS_NAME,
                                                                                          MODE_PRIVATE));
                             startActivity(new Intent(LoginActivity.this, RootActivity.class));
                             break;
                         case Network.Response.RESPONSE_UNAUTHORIZED:
-                            ErrorDialog.newInstance(getString(R.string.wrong_creds_title),
-                                                    getString(R.string.wrong_creds))
-                                       .registerCallbacks(LoginActivity.this)
-                                       .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
+                            InfoDialog.newInstance                                (getString(R.string.wrong_creds_title),
+                                                   getString(R.string.wrong_creds))
+                                      .registerCallbacks(LoginActivity.this)
+                                      .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
                             break;
                         default:
-                            ErrorDialog.newInstance(getString(R.string.unexpected_server_error),
-                                                    response.getDefaultErrorMessage(LoginActivity.this))
-                                       .registerCallbacks(LoginActivity.this)
-                                       .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
+                            InfoDialog.newInstance                                                    (getString(R.string.unexpected_server_error),
+                                                   response.getDefaultErrorMessage(LoginActivity.this))
+                                      .registerCallbacks(LoginActivity.this)
+                                      .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
                     }
                 } else if(id == REQUEST_REFRESH) {
                     switch (response.responseCode) {
                         case Network.Response.RESPONSE_OK:
-                            User.instantiateUser(response.responseMessage,
+                            User.instantiateUser(response.responseData,
                                                  LoginActivity.this.getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
                             startActivity(new Intent(LoginActivity.this, RootActivity.class));
                             break;
@@ -133,9 +140,19 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
     }
 
     @Override
-    public void onExceptionThrown(int id, Throwable ex) {
-        //todo generic exception handling
-        ex.printStackTrace();
-        requestInProgress = false;
+    public void onExceptionThrown(int id, final Throwable ex) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(ex instanceof ConnectException) {
+                    User.setOfflineUser(getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
+                    InfoDialog.newInstance                                       (getString(R.string.error_offline_title),
+                                           getString(R.string.error_offline_text))
+                              .show(getSupportFragmentManager(), TAG_DIALOG_NO_NETWORK);
+                    ex.printStackTrace();
+                    requestInProgress = false;
+                }
+            }
+        });
     }
 }

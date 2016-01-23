@@ -118,4 +118,24 @@
     <string name="error_bad_request_text">Server says it can\'t understand me, which is weird. Please report this.</string>
     <string name="error_json_title">JSON error</string>
     <string name="error_json_text">Server is drunk (or I messed up something badly). Please report this.</string>
+    <string name="error_offline_title">You\'re offline</string>
+    <string name="error_offline_text">That means you won\'t see any new changes, though you can still browse any data you have already seen</string>
+    <string name="confirm_join_group_title">Join group?</string>
+    <string name="confirm_join_group_message">Only members can add new items and see exams and audio recordings</string>
+    <string name="join">Join</string>
+    <string name="join_request_sent_title">Request sent</string>
+    <string name="join_request_sent_text">Your request has been sent. You\'ll be a group member as soon as one of the owners accepts your request.</string>
+    <string name="remove">Remove</string>
+    <string name="confirm_remove_notes_title">Are you sure you want to remove these notes?</string>
+    <string name="confirm_remove_notes_message">If you remove them, they are gone forever; no one will be able to see them anymore (you can use the hide button to remove them only for you)</string>
+    <string name="confirm_remove_plural">I\'m sure, remove them</string>
+    <string name="confirm_remove_singular">I\'m sure, remove it</string>
+    <string name="confirm_remove_questions_title">Are you sure you want to remove these questions?</string>
+    <string name="confirm_remove_questions_message">If you remove them, they are gone forever; no one will be able to see them anymore (you can use the hide button to remove them only for you)</string>
+    <string name="confirm_remove_lesson_title">Are you sure you want to remove this lesson?</string>
+    <string name="confirm_remove_lesson_message">If you remove it, all its data is gone forever, including all notes and questions; no one will be able to see it anymore (you can swipe it away to hide it only for you)</string>
+    <string name="confirm_remove_course_title">Are you sure you want to remove this course?</string>
+    <string name="confirm_remove_course_message">If you remove it, all its data is gone forever, including all lessons, notes and questions; no one will be able to see it anymore (you can swipe it away to hide it only for you)</string>
+    <string name="remove_course_disabled_title">You can\'t remove course from here</string>
+    <string name="remove_course_disabled_message">Removing courses from here isn\'t supported yet, but I\'m glad you tried!</string>
 </resources>

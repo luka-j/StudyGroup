@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/context_edit"
-        android:title="@string/edit" />
-    <item
-        android:id="@+id/context_hide"
-        android:title="@string/hide"/>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/context_edit"
+          android:icon="@drawable/ic_pencil"
+          android:title="@string/edit"
+          app:showAsAction="always" />
+    <item android:id="@+id/context_hide"
+          android:icon="@drawable/ic_x"
+          android:title="@string/hide"
+          app:showAsAction="always"/>
+    <item android:id="@+id/context_remove_question"
+          android:icon="@drawable/ic_trash"
+          android:title="@string/remove"
+          app:showAsAction="always"/>
 </menu>

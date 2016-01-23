@@ -38,20 +38,13 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
     private final String  teacher;
     private final
     @Nullable     Integer year;
-    private boolean hidden = false;
     private final boolean imageExists;
 
     public Course(ID id, String subject, String teacher, @Nullable Integer year, boolean imageExists) {
-        this(id, subject, teacher, year, false, imageExists);
-    }
-
-    public Course(ID id, String subject, String teacher, @Nullable Integer year, boolean hidden,
-                  boolean imageExists) {
         this.id = id;
         this.subject = subject;
         this.teacher = teacher;
         this.year = year;
-        this.hidden = hidden;
         this.imageExists = imageExists;
     }
 
@@ -107,7 +100,12 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
         return new Loaders.ItemLoader(c, id, lesson, Loaders.ItemLoader.LOAD_QUESTIONS);
     }
 
-    public void hide(Context c) {
+    /**
+     * Removes course from the database, keeping all lessons and data associated with it
+     * @param c
+     * @see Database#hideCourse(ID)
+     */
+    public void shallowHide(Context c) {
         Database.getInstance(c).hideCourse(id);
     }
 
@@ -115,15 +113,20 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
         Database.getInstance(c).insertCourse(id, subject, teacher, year, imageExists);
     }
 
-    public void remove(Context c) {
-        DataManager.removeCourse(c, id);
+    /**
+     * Hides course on server, and removes all data associated with it locally
+     * @param c
+     * @see DataManager#hideCourse(Context, ID, NetworkExceptionHandler)
+     */
+    public void hide(Context c, NetworkExceptionHandler exceptionHandler) {
+        DataManager.hideCourse(c, id, exceptionHandler);
     }
 
-    public void removeLesson(Context c, String lesson) {
-        DataManager.removeLesson(c, id, lesson);
+    public void hideLesson(Context c, String lesson, NetworkExceptionHandler exceptionHandler) {
+        DataManager.hideLesson(c, id, lesson, exceptionHandler);
     }
 
-    public void hideLesson(Context c, String lesson) {
+    public void shallowHideLesson(Context c, String lesson) {
         Database.getInstance(c).hideLesson(id, lesson);
     }
 

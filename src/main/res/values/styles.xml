@@ -8,14 +8,11 @@
         <item name="android:textColor">@color/primary_text</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="android:activatedBackgroundIndicator">@drawable/selector_activated</item>
-        <item name="actionModeStyle">@style/LStyled.ActionMode</item>
+        <item name="android:actionMenuTextColor">@color/white</item>
+        <item name="actionModeBackground">@color/color_primary_dark</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat.Light</item>
         <!--<item name="android:windowAnimationStyle">@null</item>-->
     </style>
-
-    <style name="LStyled.ActionMode" parent="@style/Widget.AppCompat.ActionMode">
-        <item name="background">@color/actionmode_background</item>
-    </style>
-
 
     <style name="property_text">
         <item name="android:layout_width">0dip</item>

@@ -9,9 +9,6 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +22,7 @@ import rs.luka.android.studygroup.io.Loaders;
  * Created by Luka on 7/1/2015.
  */
 public class Group implements Parcelable, Comparable<Group>, PastEvents {
+
     public static final  Parcelable.Creator<Group> CREATOR
                                                        = new Parcelable.Creator<Group>() {
         public Group createFromParcel(Parcel in) {
@@ -35,7 +33,11 @@ public class Group implements Parcelable, Comparable<Group>, PastEvents {
             return new Group[size];
         }
     };
-
+    public static final int PERM_READ_PUBLIC = 0;
+    public static final int PERM_REQUEST_WRITE = 10;
+    public static final int PERM_WRITE = 100;
+    public static final int PERM_MODIFY = 200;
+    public static final int PERM_OWNER = 300;
     private static final String                    TAG = "studygroup.Group";
     private static final Integer[] years = new Integer[]{1, 2, 3, 4}; //TODO
     private final ID id; //private by design (iliti nikada ne napusta ovu klasu)
@@ -43,12 +45,6 @@ public class Group implements Parcelable, Comparable<Group>, PastEvents {
     private final String place;
     private final int permission;
     private final boolean imageExists;
-
-    public static final int PERM_READ_PUBLIC = 0;
-    public static final int PERM_REQUEST_WRITE = 10;
-    public static final int PERM_WRITE = 100;
-    public static final int PERM_MODIFY = 200;
-    public static final int PERM_OWNER = 300;
 
     public Group(ID id, String name, String place, boolean imageExists, int permission) {
         this.id = id;

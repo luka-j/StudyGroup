@@ -2,6 +2,7 @@ package rs.luka.android.studygroup.misc;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,12 +11,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 /**
  * Created by luka on 16.7.15..
  */
 public class Utils {
-    private static final int COPY_BUFFER_SIZE = 1024;
+    private static final String TAG = "studygroup.Utils";
+
+    private static final int COPY_BUFFER_SIZE = 10240;
 
     public static String getRealPathFromUri(Context c, Uri uri) {
         return FilePathUtils.getPath(c, uri);
@@ -110,5 +116,20 @@ public class Utils {
             }
         }
         return newStr.toString();
+    }
+
+    public static InputStream wrapStream(String contentEncoding, InputStream inputStream)
+            throws IOException {
+        if (contentEncoding == null || "identity".equalsIgnoreCase(contentEncoding)) {
+            return inputStream;
+        }
+        if ("gzip".equalsIgnoreCase(contentEncoding)) {
+            return new GZIPInputStream(inputStream);
+        }
+        if ("deflate".equalsIgnoreCase(contentEncoding)) {
+            return new InflaterInputStream(inputStream, new Inflater(false), 512);
+        }
+        Log.e(TAG, "Unknown contentEncoding " + contentEncoding);
+        return inputStream;
     }
 }

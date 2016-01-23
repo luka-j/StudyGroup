@@ -20,7 +20,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
-import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
@@ -29,7 +28,6 @@ import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Group;
-import rs.luka.android.studygroup.ui.dialogs.ErrorDialog;
 import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 
 /**

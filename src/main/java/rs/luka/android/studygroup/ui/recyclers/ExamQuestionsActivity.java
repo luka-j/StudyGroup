@@ -14,8 +14,12 @@ import java.util.Collections;
 import java.util.Set;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.NetworkRequests;
+import rs.luka.android.studygroup.network.Questions;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddQuestionActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.QuestionPagerActivity;
@@ -24,18 +28,24 @@ import rs.luka.android.studygroup.ui.singleitemactivities.QuestionPagerActivity;
  * Created by luka on 31.7.15.
  */
 public class ExamQuestionsActivity extends SingleFragmentActivity
-        implements QuestionListFragment.QuestionCallbacks {
+        implements QuestionListFragment.QuestionCallbacks,
+                   NetworkRequests.NetworkCallbacks {
+
 
     public static final  String EXTRA_IMMUTABLE_LESSON = "canEditLessonName";
     public static final  String EXTRA_LESSON_REAL_NAME = "realLesson";
     public static final  String EXTRA_COURSE           = "course";
     public static final  String EXTRA_LESSON           = "lesson";
     public static final  String EXTRA_EXAM_QUESTION    = "isFromExam";
+    public static final  String EXTRA_PERMISSION        = "permission";
     private static final int    REQUEST_ADD_QUESTION   = 0;
     private static final int    REQUEST_EDIT_QUESTION  = 1;
+    private static final int    REQUEST_REMOVE_QUESTIONS = 2;
     private String               lesson;
     private Course               course;
     private QuestionListFragment fragment;
+
+    private int setSize, count;
 
     @Override
     protected int getLayoutResId() {
@@ -45,7 +55,8 @@ public class ExamQuestionsActivity extends SingleFragmentActivity
     @Override
     protected Fragment createFragment() {
         fragment = QuestionListFragment.newInstance((Course) getIntent().getParcelableExtra(EXTRA_COURSE),
-                                                    getIntent().getStringExtra(EXTRA_LESSON));
+                                                    getIntent().getStringExtra(EXTRA_LESSON),
+                                                   getIntent().getIntExtra(EXTRA_PERMISSION, 0));
         return fragment;
     }
 
@@ -118,7 +129,38 @@ public class ExamQuestionsActivity extends SingleFragmentActivity
     }
 
     @Override
+    public void onQuestionsRemove(Set<Long> ids) {
+        setSize = ids.size();
+        count=0;
+        Questions.removeQuestions(REQUEST_REMOVE_QUESTIONS, ids, this);
+    }
+
+    @Override
     public FloatingActionButton getFab() {
         return (FloatingActionButton) findViewById(R.id.fab_add_exam_question);
+    }
+
+    @Override
+    public void onRequestCompleted(final int id, Network.Response response) {
+        if(response.responseCode == Network.Response.RESPONSE_OK) {
+            count++;
+            if(count >= setSize) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        fragment.refresh();
+                    }
+                });
+                count=0; setSize=0;
+            }
+        } else {
+            response.handleException(new NetworkExceptionHandler.DefaultHandler(this));
+        }
+    }
+
+    @Override
+    public void onExceptionThrown(int id, Throwable ex) {
+        ex.printStackTrace();
+        //todo
     }
 }

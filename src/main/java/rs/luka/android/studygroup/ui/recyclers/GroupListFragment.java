@@ -1,6 +1,5 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
-import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
@@ -25,8 +24,6 @@ import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
-import java.io.IOException;
-
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
@@ -35,9 +32,7 @@ import rs.luka.android.studygroup.io.Loaders;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
-import rs.luka.android.studygroup.ui.dialogs.ErrorDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddGroupActivity;
-import rs.luka.android.studygroup.ui.singleitemactivities.LoginActivity;
 
 /**
  * Created by luka on 17.7.15..

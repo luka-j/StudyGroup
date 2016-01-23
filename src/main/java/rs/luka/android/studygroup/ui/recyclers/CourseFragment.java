@@ -4,7 +4,6 @@ import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Loader;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
@@ -13,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -27,6 +27,10 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.network.Lessons;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
 import rs.luka.android.studygroup.ui.Snackbar;
@@ -34,11 +38,14 @@ import rs.luka.android.studygroup.ui.Snackbar;
 /**
  * Created by luka on 3.7.15..
  */
-public class CourseFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class CourseFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
+                                                        NetworkRequests.NetworkCallbacks<String> {
 
+    protected static final int REQUEST_REMOVE_LESSON = 1;
+    private static final int REQUEST_SHOW_ALL      = 0;
     private static String TAG = "studygroup.CourseFragment";
-
     private Course course;
+    private int permission;
     private NetworkExceptionHandler exceptionHandler;
 
     private RecyclerView   lessonsRecyclerView;
@@ -47,9 +54,10 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
     private PoliteSwipeRefreshLayout swipe;
     private CircularProgressView     progress;
 
-    protected static CourseFragment newInstance(Course course) {
+    protected static CourseFragment newInstance(Course course, int permission) {
         Bundle args = new Bundle();
         args.putParcelable(CourseActivity.EXTRA_COURSE, course);
+        args.putInt(CourseActivity.EXTRA_PERMISSION, permission);
 
         CourseFragment f = new CourseFragment();
         f.setArguments(args);
@@ -62,6 +70,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         setHasOptionsMenu(true);
 
         course = getArguments().getParcelable(CourseActivity.EXTRA_COURSE);
+        permission = getArguments().getInt(CourseActivity.EXTRA_PERMISSION);
     }
 
     @Override
@@ -85,7 +94,8 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         lessonsRecyclerView = (RecyclerView) view.findViewById(R.id.lessons_recycler_view);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         lessonsRecyclerView.setLayoutManager(layoutManager);
-        registerForContextMenu(lessonsRecyclerView);
+        if(permission >= Group.PERM_MODIFY)
+            registerForContextMenu(lessonsRecyclerView);
 
         setData();
 
@@ -139,8 +149,10 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             case R.id.context_rename:
                 callbacks.onEdit(adapter.selectedTitle);
                 return true;
+            case R.id.context_remove_lesson:
+                callbacks.removeLesson(adapter.selectedTitle);
         }
-        return onContextItemSelected(item);
+        return super.onContextItemSelected(item);
     }
 
     @Override
@@ -148,6 +160,9 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         switch (item.getItemId()) {
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(getActivity());
+                return true;
+            case R.id.show_all_lessons:
+                Lessons.showAllLessons(REQUEST_SHOW_ALL, course.getIdValue(), this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -192,12 +207,41 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         adapter.swapCursor(null);
     }
 
+    @Override
+    public void onRequestCompleted(int id, Network.Response<String> response) {
+        switch (id) {
+            case REQUEST_SHOW_ALL:
+            case REQUEST_REMOVE_LESSON:
+                if (response.responseCode == Network.Response.RESPONSE_OK) {
+                    getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        refresh();
+                    }
+                });
+                } else {
+                    response.handleException(exceptionHandler);
+                }
+                break;
+            default:
+                Log.w(TAG, "Invalid request id: " + id);
+        }
+    }
+
+    @Override
+    public void onExceptionThrown(int id, Throwable ex) {
+        ex.printStackTrace();
+        //todo
+    }
+
     public interface Callbacks {
         void onLessonSelected(String title);
 
         void onEdit(String title);
 
         boolean handleLessonSkipping(int lessonNumber, String first);
+
+        void removeLesson(String title);
     }
 
     private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
@@ -218,16 +262,16 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             final String       lesson       = swipedHolder.title;
             final int noteCount = swipedHolder.noteCount, questionCount = swipedHolder.questionCount, _id
                     = swipedHolder._id;
-            course.hideLesson(getActivity(), lesson);
-            refresh();
+            course.shallowHideLesson(getActivity(), lesson);
+            getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_LESSONS, null, CourseFragment.this);
             // TODO: 4.9.15. http://stackoverflow.com/questions/32406144/hiding-and-re-showing-cards-in-recyclerview-backed-by-cursor
             Snackbar.make(lessonsRecyclerView,
-                          R.string.course_hidden,
+                          R.string.lesson_hidden,
                           Snackbar.LENGTH_LONG)
                     .setOnHideListener(new Snackbar.OnHideListener() {
                         @Override
                         public void onHide() {
-                            new RemoveLessonTask().execute(course, swipedHolder.title);
+                            course.hideLesson(getContext(), swipedHolder.title, exceptionHandler);
                         }
                     })
                     .setAction(R.string.undo,
@@ -243,15 +287,6 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                     .doStuffThatGoogleDidntFuckingDoProperly(getActivity(), null)
                     .show();
             //viewHolder.itemView.setVisibility(View.GONE); //ne radi
-        }
-    }
-
-    private class RemoveLessonTask extends AsyncTask<Object, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Object... params) {
-            ((Course) params[0]).removeLesson(getActivity(), (String) params[1]);
-            return null;
         }
     }
 
@@ -329,14 +364,6 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                               ((Database.LessonCursor) data).getNoteCount(),
                               ((Database.LessonCursor) data).getQuestionCount(),
                               data.getInt(data.getColumnIndex("_id")));
-        }
-
-        public void removeTitle(RecyclerView.ViewHolder holder) {
-            //todo
-        }
-
-        public void addTitle(String title, int position) {
-            //todo
         }
     }
 }

@@ -13,7 +13,6 @@ import android.util.Log;
 
 import java.util.Date;
 
-import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
@@ -185,11 +184,16 @@ public class Database extends SQLiteOpenHelper {
         removeLesson(id, null);
     }
 
+    /**
+     * Like removeCourse, but doesn't remove lessons
+     * @param id
+     */
     public void hideCourse(ID id) {
         SQLiteDatabase db = getWritableDatabase();
         long code = db.delete(Courses.TABLE_NAME,
                                Courses.CourseEntry.COLUMN_NAME_ID + "=" + id.getCourseIdValue(),
                               null);
+        Log.i(TAG, "hideCourse status: " + code);
     }
 
     public void clearCourses(long groupId) {
@@ -249,6 +253,21 @@ public class Database extends SQLiteOpenHelper {
                                                    "1"));
         c.moveToNext();
         return c.getCourse();
+    }
+
+    public Group queryGroup(ID groupId) {
+        SQLiteDatabase db = getReadableDatabase();
+        GroupCursor c = new GroupCursor(db.query(Groups.TABLE_NAME,
+                                                 null,
+                                                 Groups.GroupEntry.COLUMN_NAME_ID
+                                                 + "=" + groupId.getGroupIdValue(),
+                                                 null,
+                                                 null,
+                                                 null,
+                                                 null,
+                                                 "1"));
+        c.moveToNext();
+        return c.getGroup();
     }
 
     public Cursor queryLessons(ID courseId) {

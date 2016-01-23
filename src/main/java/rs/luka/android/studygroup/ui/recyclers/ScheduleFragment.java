@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -16,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,6 +35,9 @@ import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.network.Exams;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
 import rs.luka.android.studygroup.ui.Snackbar;
@@ -43,12 +46,14 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
 /**
  * Created by luka on 29.7.15..
  */
-public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
+                                                          NetworkRequests.NetworkCallbacks {
     private static final int REQUEST_ADD_EXAM = 0;
-    private static final String ARG_GROUP = "agroup";
-
+    private static final String ARG_GROUP     = "agroup";
+    private static final String TAG           = "ScheduleFragment";
+    private static final int REQUEST_SHOW_ALL = 1; //network request
+    private static final int REQUEST_REMOVE = 2; //network request
     private NetworkExceptionHandler exceptionHandler;
-
     private Group                    group;
     private RecyclerView             recycler;
     private Callbacks                callbacks;
@@ -171,6 +176,8 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             case R.id.context_edit:
                 callbacks.onEditSelected(adapter.selectedExam);
                 return true;
+            case R.id.context_remove_exam:
+                Exams.removeExam(REQUEST_REMOVE, adapter.selectedExam.getIdValue(), this);
         }
         return onContextItemSelected(item);
     }
@@ -185,7 +192,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
                 callbacks.onFilterSelected();
                 return true;
             case R.id.show_all:
-                //TODO
+                Exams.showAllExams(REQUEST_SHOW_ALL, group.getIdValue(), this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -224,6 +231,33 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
         adapter.swapCursor(null);
     }
 
+    @Override
+    public void onRequestCompleted(int id, Network.Response response) {
+        switch (id) {
+            case REQUEST_SHOW_ALL:
+            case REQUEST_REMOVE:
+                if (response.responseCode == Network.Response.RESPONSE_OK) {
+                    getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        refresh();
+                    }
+                });
+                } else {
+                    response.handleException(exceptionHandler);
+                }
+                break;
+            default:
+                Log.w(TAG, "Invalid requestId: " + id);
+        }
+    }
+
+    @Override
+    public void onExceptionThrown(int id, Throwable ex) {
+        ex.printStackTrace();
+        //todo
+    }
+
     public interface Callbacks {
         void onExamSelected(Exam exam);
         void onEditSelected(Exam exam);
@@ -245,13 +279,13 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
         @Override
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             final Exam exam   = ((ExamHolder) viewHolder).exam;
-            exam.hide(getActivity());
-            refresh();
+            exam.shallowHide(getActivity());
+            getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_EXAMS, null, ScheduleFragment.this);
             Snackbar.make(coordinator, R.string.exam_hidden, Snackbar.LENGTH_LONG)
                     .setOnHideListener(new Snackbar.OnHideListener() {
                         @Override
                         public void onHide() {
-                            new RemoveExamTask().execute(exam);
+                            exam.hide(getContext(), exceptionHandler);
                         }
                     })
                     .setAction(R.string.undo, new View.OnClickListener() {
@@ -265,14 +299,6 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
                     .colorTheFuckingTextToWhite(getActivity())
                     .doStuffThatGoogleDidntFuckingDoProperly(getActivity(), fab)
                     .show();
-        }
-    }
-
-    private class RemoveExamTask extends AsyncTask<Exam, Void, Void> {
-        @Override
-        protected Void doInBackground(Exam... params) {
-            params[0].remove(getActivity());
-            return null;
         }
     }
 
@@ -327,6 +353,9 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
         public void onCreateContextMenu(ContextMenu menu, View v,
                                         ContextMenu.ContextMenuInfo menuInfo) {
             getActivity().getMenuInflater().inflate(R.menu.context_schedule, menu);
+            if(group.getPermission() < Group.PERM_MODIFY) {
+                menu.removeItem(R.id.context_remove_exam);
+            }
         }
     }
 

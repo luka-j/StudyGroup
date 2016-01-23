@@ -130,12 +130,12 @@ public class Exam implements Parcelable, Comparable<Exam>, PastEvents {
         Database.getInstance(c).insertExam(id, klass, lesson, type, date.getTime());
     }
 
-    public void hide(Context c) {
+    public void shallowHide(Context c) {
         Database.getInstance(c).hideExam(id);
     }
 
-    public void remove(Context c) {
-        DataManager.removeExam(c, id, lesson);
+    public void hide(Context c, NetworkExceptionHandler exceptionHandler) {
+        DataManager.hideExam(c, id, lesson, exceptionHandler);
     }
 
     @Override

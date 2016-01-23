@@ -85,8 +85,8 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
         return DataManager.getImage(id, courseName, lesson, widerDimension);
     }
 
-    public void hide(Context c) {
-        DataManager.removeNote(c, id, lesson);
+    public void hide(Context c, NetworkExceptionHandler exceptionHandler) {
+        DataManager.hideNote(c, id, lesson, exceptionHandler);
     }
 
     public void show(Context c) {

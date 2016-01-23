@@ -33,6 +33,7 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
@@ -50,6 +51,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
     private RecyclerView             questionsRecycler;
     private QuestionCallbacks        callbacks;
     private QuestionsAdapter         adapter;
+    private int                      permission;
     private Course                   course;
     private String                   lessonName;
     private PoliteSwipeRefreshLayout swipe;
@@ -64,6 +66,10 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
 
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            if(permission < Group.PERM_MODIFY) {
+                menu.removeItem(R.id.context_remove_question);
+                return true;
+            }
             return false;
         }
 
@@ -76,7 +82,13 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
                     return true;
                 case R.id.context_hide:
                     hide();
+                    actionMode.finish();
                     return true;
+                case R.id.context_remove_question:
+                    Set<Long> selectedIds = new HashSet<>(selected.size());
+                    for(Question n : selected) selectedIds.add(n.getIdValue());
+                    callbacks.onQuestionsRemove(selectedIds);
+                    actionMode.finish();
             }
             return false;
         }
@@ -88,11 +100,12 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
         }
     };
 
-    public static QuestionListFragment newInstance(Course course, String lessonName) {
+    public static QuestionListFragment newInstance(Course course, String lessonName, int permission) {
         QuestionListFragment f    = new QuestionListFragment();
         Bundle               args = new Bundle();
         args.putParcelable(CourseActivity.EXTRA_COURSE, course);
         args.putString(CourseActivity.EXTRA_LESSON_NAME, lessonName);
+        args.putInt(LessonActivity.EXTRA_PERMISSION, permission);
         f.setArguments(args);
         return f;
     }
@@ -112,6 +125,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
 
         course = getArguments().getParcelable(CourseActivity.EXTRA_COURSE);
         lessonName = getArguments().getString(CourseActivity.EXTRA_LESSON_NAME);
+        permission = getArguments().getInt(LessonActivity.EXTRA_PERMISSION);
     }
 
     @Override
@@ -175,9 +189,9 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
     }
 
     private void hide() {
-        for (Question q : selected) { q.hide(getActivity()); }
-        refresh();
-        final Set<Question> selected = new HashSet<>(this.selected); //selected se briše kad se actionmode zatvori
+        for (Question q : selected) { q.hide(getActivity(), exceptionHandler); }
+        getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_QUESTIONS, null, QuestionListFragment.this);
+        /*final Set<Question> selected = new HashSet<>(this.selected); //selected se briše kad se actionmode zatvori
         snackbar = Snackbar.make(questionsRecycler, R.string.questions_hidden, Snackbar.LENGTH_LONG)
                            .setAction(R.string.undo, new View.OnClickListener() {
                                @Override
@@ -190,7 +204,12 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
                            .colorTheFuckingTextToWhite(getActivity())
                            .doStuffThatGoogleDidntFuckingDoProperly(getActivity(),
                                                                     (callbacks.getFab()));
-        snackbar.show();
+        snackbar.show();*/
+
+        Snackbar.make(questionsRecycler, R.string.questions_hidden, Snackbar.LENGTH_SHORT)
+                .colorTheFuckingTextToWhite(getContext())
+                .doStuffThatGoogleDidntFuckingDoProperly(getContext(), callbacks.getFab())
+                .show();
     }
 
     protected void dismissSnackbar() {
@@ -235,6 +254,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
         void onQuestionSelected(int questionPosition);
 
         void onQuestionsEdit(Set<Question> questions);
+        void onQuestionsRemove(Set<Long> questionIds);
         FloatingActionButton getFab();
     }
 

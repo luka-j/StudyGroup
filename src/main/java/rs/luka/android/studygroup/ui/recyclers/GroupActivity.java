@@ -1,7 +1,9 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
 import android.content.Intent;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -13,18 +15,30 @@ import java.util.Set;
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.network.Courses;
+import rs.luka.android.studygroup.network.Groups;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
+import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
 import rs.luka.android.studygroup.ui.dialogs.FilterDialog;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 
 public class GroupActivity extends SingleFragmentActivity implements GroupFragment.Callbacks,
-                                                                     FilterDialog.Callbacks {
+                                                                     FilterDialog.Callbacks,
+                                                                     ConfirmDialog.Callbacks,
+                                                                     NetworkRequests.NetworkCallbacks<String> {
 
     public static final  String EXTRA_GROUP     = "exGroup";
     public static final  String EXTRA_SHOW_LIST = "showList";
+    private static final String DIALOG_JOIN = "studygroup.dialog.joingroup";
+    private static final String DIALOG_REMOVE = "studygroup.dialog.removecourse";
+    private static final int REQUEST_JOIN_GROUP = 0; //network request
     private static final String TAG             = "GroupActivity";
     private List<Integer> filterYears;
     private GroupFragment fragment;
+    private Course pendingRemove;
 
     @Override
     protected Fragment createFragment() {
@@ -37,6 +51,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         Intent i = new Intent(this, CourseActivity.class);
         i.putExtra(CourseActivity.EXTRA_COURSE, course);
         i.putExtra(CourseActivity.EXTRA_GO_FORWARD, true);
+        i.putExtra(CourseActivity.EXTRA_PERMISSION, getIntent().<Group>getParcelableExtra(EXTRA_GROUP).getPermission());
         startActivity(i);
     }
 
@@ -57,9 +72,6 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                                                                                 getIntent().getParcelableExtra(
                                                                                         EXTRA_GROUP)));
                 return true;
-            case R.id.show_all:
-                //TODO
-                return true;
             case R.id.settings:
                 // TODO: 19.9.15.
                 return true;
@@ -77,6 +89,25 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         Intent i = new Intent(this, AddCourseActivity.class);
         i.putExtra(CourseActivity.EXTRA_COURSE, course);
         startActivityForResult(i, requestCode);
+    }
+
+    @Override
+    public void onRequestJoin(Group group) {
+        ConfirmDialog.newInstance(R.string.confirm_join_group_title,
+                                  R.string.confirm_join_group_message,
+                                  R.string.join,
+                                  R.string.cancel)
+                     .show(getSupportFragmentManager(), DIALOG_JOIN);
+    }
+
+    @Override
+    public void onRemoveCourse(Course course) {
+        pendingRemove = course;
+        ConfirmDialog.newInstance(R.string.confirm_remove_course_title,
+                                  R.string.confirm_remove_course_message,
+                                  R.string.confirm_remove_singular,
+                                  R.string.cancel)
+                     .show(getSupportFragmentManager(), DIALOG_REMOVE);
     }
 
     @Override
@@ -106,6 +137,50 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        fragment.onActivityResult(requestCode, resultCode, data); // TODO: 10.9.15. fix
+        if(fragment != null)
+            fragment.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onPositive(DialogFragment dialog) {
+        switch (dialog.getTag()) {
+            case DIALOG_JOIN:
+                Groups.requestJoin(REQUEST_JOIN_GROUP,
+                                   getIntent().<Group>getParcelableExtra(EXTRA_GROUP).getIdValue(),
+                                   this);
+                break;
+            case DIALOG_REMOVE:
+                Courses.removeCourse(GroupFragment.REQUEST_REMOVE_COURSE, pendingRemove.getIdValue(), this);
+                break;
+            default:
+        }
+    }
+
+    @Override
+    public void onNegative(DialogFragment dialog) {
+        ;
+    }
+
+    @Override
+    public void onRequestCompleted(final int id, Network.Response<String> response) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                switch (id) {
+                    case REQUEST_JOIN_GROUP:
+                        InfoDialog.newInstance(getString(R.string.join_request_sent_title),
+                                           getString(R.string.join_request_sent_text))
+                              .show(getSupportFragmentManager(), "");
+                        break;
+                    default:
+                        Log.w(TAG, "Invalid requestId " + id);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onExceptionThrown(int id, Throwable ex) {
+        ex.printStackTrace();
     }
 }
