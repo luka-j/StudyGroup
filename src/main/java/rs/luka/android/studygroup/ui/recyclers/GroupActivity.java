@@ -7,18 +7,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.io.IOException;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.network.Courses;
 import rs.luka.android.studygroup.network.Groups;
 import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
 import rs.luka.android.studygroup.ui.dialogs.FilterDialog;
@@ -28,13 +28,14 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 public class GroupActivity extends SingleFragmentActivity implements GroupFragment.Callbacks,
                                                                      FilterDialog.Callbacks,
                                                                      ConfirmDialog.Callbacks,
-                                                                     NetworkRequests.NetworkCallbacks<String> {
+                                                                     Network.NetworkCallbacks<String> {
 
     public static final  String EXTRA_GROUP     = "exGroup";
     public static final  String EXTRA_SHOW_LIST = "showList";
     private static final String DIALOG_JOIN = "studygroup.dialog.joingroup";
     private static final String DIALOG_REMOVE = "studygroup.dialog.removecourse";
     private static final int REQUEST_JOIN_GROUP = 0; //network request
+    private static final int REQUEST_FILTER_COURSES = 1; //network request
     private static final String TAG             = "GroupActivity";
     private List<Integer> filterYears;
     private GroupFragment fragment;
@@ -65,7 +66,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.filter_courses:
-                FilterDialog.newInstance(getItems()).show(getSupportFragmentManager(), null);
+                FilterDialog.newInstance(getItems(), getSelectedItems()).show(getSupportFragmentManager(), null);
                 return true;
             case R.id.raspored_kontrolnih:
                 startActivity(new Intent(this, ScheduleActivity.class).putExtra(ScheduleActivity.EXTRA_GROUP,
@@ -116,7 +117,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     }
 
     public String[] getItems() {
-        filterYears = ((Group) getIntent().getParcelableExtra(EXTRA_GROUP)).getCourseYears();
+        filterYears = getIntent().<Group>getParcelableExtra(EXTRA_GROUP).getCourseYears();
         Collections.sort(filterYears);
         String[] items = new String[filterYears.size()];
         for(int i=0; i<items.length; i++) {
@@ -125,14 +126,28 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         return items;
     }
 
+    /**
+     * Must be called AFTER {@link #getItems}
+     * @return
+     */
+    public int[] getSelectedItems() {
+        Group group = getIntent().<Group>getParcelableExtra(EXTRA_GROUP);
+        List<Integer> filteringYears = group.getFilteringYears();
+        int[] selected = new int[filteringYears.size()];
+        for(int i=0; i<selected.length; i++)
+            selected[i] = filterYears.indexOf(filteringYears.get(i));
+        return selected;
+    }
+
     @Override
     public void onFiltered(Integer[] selected) {
         Group g = getIntent().getParcelableExtra(EXTRA_GROUP);
-        Set<Integer> selectedYears = new HashSet<>(selected.length);
-        for(Integer item : selected) {
-            selectedYears.add(filterYears.get(item));
-        }
-        g.filter(selectedYears);
+        int[] selectedYears = new int[selected.length];
+        for(int i=0; i<selected.length; i++)
+            selectedYears[i] = filterYears.get(selected[i]);
+        if(selectedYears.length == 0)
+            selectedYears = Utils.integerToIntArray(g.getCourseYears().toArray());
+        g.filter(REQUEST_FILTER_COURSES, selectedYears, this); //todo show spinner
     }
 
     @Override
@@ -172,6 +187,9 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                                            getString(R.string.join_request_sent_text))
                               .show(getSupportFragmentManager(), "");
                         break;
+                    case REQUEST_FILTER_COURSES:
+                        fragment.refresh();
+                        break;
                     default:
                         Log.w(TAG, "Invalid requestId " + id);
                 }
@@ -181,6 +199,20 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
 
     @Override
     public void onExceptionThrown(int id, Throwable ex) {
-        ex.printStackTrace();
+        if(ex instanceof Error)
+            throw new Error(ex);
+        if(ex instanceof IOException)
+            new NetworkExceptionHandler.DefaultHandler(this).handleIOException((IOException)ex);
+        else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                           getString(R.string.error_unknown_ex_text))
+                              .show(getSupportFragmentManager(), "");
+                }
+            });
+            Log.e(TAG, "Unknown Throwable caught", ex);
+        }
     }
 }

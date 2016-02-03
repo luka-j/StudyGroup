@@ -1,20 +1,28 @@
 package rs.luka.android.studygroup.ui.singleitemactivities;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.IOException;
+
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.model.Note;
+import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
 
 /**
  * Created by luka on 12.7.15..
@@ -22,13 +30,14 @@ import rs.luka.android.studygroup.model.Note;
 public class NoteFragment extends Fragment {
     public static final  String ARG_NOTE          = "anote";
     public static final  String ARG_COURSE_NAME   = "acourse";
-    private static final int    IMAGE_IDEAL_DIMEN = 700;
+    private static int    IMAGE_IDEAL_DIMEN = 720;
     private Note     note;
     private String   courseName;
     private TextView text;
     private ImageView image;
     private TextView audio;
     private TextView history;
+    private NetworkExceptionHandler exceptionHandler;
 
     public static NoteFragment newInstance(String courseName, Note note) {
         NoteFragment f    = new NoteFragment();
@@ -46,6 +55,15 @@ public class NoteFragment extends Fragment {
 
         note = getArguments().getParcelable(ARG_NOTE);
         courseName = getArguments().getString(ARG_COURSE_NAME);
+        DisplayMetrics metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        IMAGE_IDEAL_DIMEN = metrics.widthPixels;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)context);
     }
 
     @Override
@@ -65,7 +83,11 @@ public class NoteFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(getContext(), FullscreenImageActivity.class);
-                i.putExtra(FullscreenImageActivity.EXTRA_IMAGE_PATH, note.getImagePath(courseName));
+                try {
+                    i.putExtra(FullscreenImageActivity.EXTRA_IMAGE_PATH, note.getImagePath(courseName));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 startActivity(i);
             }
         });
@@ -77,9 +99,7 @@ public class NoteFragment extends Fragment {
                     Uri    uri    = note.getAudioPath(courseName);
                     Intent intent = new Intent();
                     intent.setAction(android.content.Intent.ACTION_VIEW);
-                    intent.setDataAndType(uri,
-                                          "audio/mp3"); // TODO: 19.9.15. change to audio/* when supporting multiple formats
-                    // onda ce prikazivati chooser/default player, ovako je 'inline'
+                    intent.setDataAndType(uri, "audio/*");
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
                 }
@@ -93,9 +113,13 @@ public class NoteFragment extends Fragment {
     private void updateUI() {
         text.setText(note.getText());
         if (note.hasImage()) {
-            image.setImageBitmap(note.getImage(courseName, IMAGE_IDEAL_DIMEN));
+            note.getImage(getContext(), courseName, IMAGE_IDEAL_DIMEN, exceptionHandler, image);
         }
-        history.setText(note.getHistory(getActivity()));
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        getActivity().getMenuInflater().inflate(R.menu.menu_note, menu);
     }
 
     @Override
@@ -103,6 +127,9 @@ public class NoteFragment extends Fragment {
         switch (item.getItemId()) {
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(getActivity());
+                return true;
+            case R.id.note_history:
+                startActivity(new Intent(getContext(), HistoryActivity.class).putExtra(HistoryActivity.EXTRA_ITEM, note));
                 return true;
         }
         return super.onOptionsItemSelected(item);

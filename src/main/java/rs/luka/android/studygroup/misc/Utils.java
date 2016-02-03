@@ -2,6 +2,7 @@ package rs.luka.android.studygroup.misc;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.File;
@@ -10,7 +11,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
@@ -113,6 +117,7 @@ public class Utils {
                 camelCase = true;
             } else {
                 newStr.append(camelCase ? Character.toUpperCase(str.charAt(i)) : str.charAt(i));
+                camelCase = false;
             }
         }
         return newStr.toString();
@@ -131,5 +136,44 @@ public class Utils {
         }
         Log.e(TAG, "Unknown contentEncoding " + contentEncoding);
         return inputStream;
+    }
+
+    @NonNull
+    public static String listToString(List<Integer> list) {
+        if(list.isEmpty()) return "";
+        StringBuilder str = new StringBuilder((int)(list.size()*2.5));
+        for(Object o : list) {
+            str.append(o).append(",");
+        }
+        return str.deleteCharAt(str.length()-1).toString();
+    }
+
+    @NonNull
+    public static List<Integer> stringToList(String str) {
+        if(str == null) return new ArrayList<>();
+        StringTokenizer tokenizer = new StringTokenizer(str, ",", false);
+        List<Integer> list = new ArrayList<>((int)(str.length()/2.5));
+        while(tokenizer.hasMoreTokens()) {
+            String next = tokenizer.nextToken();
+            if(next.equals("null"))
+                list.add(null);
+            else
+                list.add(Integer.parseInt(next));
+        }
+        return list;
+    }
+
+    public static Integer[] intToIntegerArray(int[] arr) {
+        Integer[] ret = new Integer[arr.length];
+        for(int i=0; i<arr.length; i++)
+            ret[i] = arr[i];
+        return ret;
+    }
+
+    public static int[] integerToIntArray(Object[] arr) {
+        int[] ret = new int[arr.length];
+        for(int i=0; i<arr.length; i++)
+            ret[i] = (Integer)arr[i];
+        return ret;
     }
 }

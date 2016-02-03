@@ -284,8 +284,10 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
             this.note = note;
             titleTextView.setText(note.getText());
             if (note.hasImage()) {
-                thumbnail.setImageBitmap(note.getImage(course.getSubject(),
-                                                       getResources().getDimensionPixelSize(R.dimen.list_item_thumbnail_size)));
+                note.getImage(getContext(),
+                              course.getSubject(),
+                              getResources().getDimensionPixelSize(R.dimen.list_item_thumbnail_size),
+                              exceptionHandler, thumbnail);
             } else {
                 thumbnail.setImageBitmap(null);
             }

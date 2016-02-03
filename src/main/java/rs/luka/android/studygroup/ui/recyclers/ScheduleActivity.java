@@ -2,19 +2,23 @@ package rs.luka.android.studygroup.ui.recyclers;
 
 import android.content.Intent;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 
+import java.io.IOException;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.dialogs.ExamDetailsDialog;
 import rs.luka.android.studygroup.ui.dialogs.FilterDialog;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
 
 /**
@@ -22,17 +26,22 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
  */
 public class ScheduleActivity extends SingleFragmentActivity implements ScheduleFragment.Callbacks,
                                                                         FilterDialog.Callbacks,
-                                                                        ExamDetailsDialog.Callbacks {
+                                                                        ExamDetailsDialog.Callbacks,
+                                                                        Network.NetworkCallbacks<String> {
     public static final String EXTRA_GROUP                     = GroupActivity.EXTRA_GROUP;
     public static final String EXTRA_CURRENT_COURSE            = LessonActivity.EXTRA_CURRENT_COURSE;
     public static final String EXTRA_CURRENT_QUESTION_POSITION = LessonActivity.EXTRA_CURRENT_QUESTION_POSITION;
     public static final String EXTRA_SELECTED_QUESTIONS        = LessonActivity.EXTRA_SELECTED_QUESTIONS;
     public static final String EXTRA_CURRENT_LESSON            = LessonActivity.EXTRA_CURRENT_LESSON;
+    private static final int REQUEST_FILTER_COURSES            = 0; //network request
+    private static final String TAG                            = "ScheduleActivity";
     private List<Integer> filterYears;
+    private ScheduleFragment fragment;
 
     @Override
     protected Fragment createFragment() {
-        return ScheduleFragment.newInstance((Group) getIntent().getParcelableExtra(EXTRA_GROUP));
+        fragment = ScheduleFragment.newInstance(getIntent().<Group>getParcelableExtra(EXTRA_GROUP));
+        return fragment;
     }
 
     @Override
@@ -49,11 +58,11 @@ public class ScheduleActivity extends SingleFragmentActivity implements Schedule
 
     @Override
     public void onFilterSelected() {
-        FilterDialog.newInstance(getItems()).show(getSupportFragmentManager(), null);
+        FilterDialog.newInstance(getItems(), getSelectedItems()).show(getSupportFragmentManager(), null);
     }
 
     public String[] getItems() {
-        filterYears = ((Group) getIntent().getParcelableExtra(EXTRA_GROUP)).getExamYears();
+        filterYears = ((Group) getIntent().getParcelableExtra(EXTRA_GROUP)).getCourseYears();
         Collections.sort(filterYears);
         String[] items = new String[filterYears.size()];
         for (int i = 0; i < items.length; i++) {
@@ -62,14 +71,28 @@ public class ScheduleActivity extends SingleFragmentActivity implements Schedule
         return items;
     }
 
+    /**
+     * Must be called AFTER {@link #getItems}
+     * @return
+     */
+    public int[] getSelectedItems() {
+        Group group = getIntent().<Group>getParcelableExtra(EXTRA_GROUP);
+        List<Integer> filteringYears = group.getFilteringYears();
+        int[] selected = new int[filteringYears.size()];
+        for(int i=0; i<selected.length; i++)
+            selected[i] = filterYears.indexOf(filteringYears.get(i));
+        return selected;
+    }
+
     @Override
     public void onFiltered(Integer[] selected) {
         Group g = getIntent().getParcelableExtra(EXTRA_GROUP);
-        Set<Integer> selectedYears = new HashSet<>(selected.length);
-        for (Integer item : selected) {
-            selectedYears.add(filterYears.get(item));
-        }
-        g.filter(selectedYears);
+        int[] selectedYears = new int[selected.length];
+        for(int i=0; i<selected.length; i++)
+            selectedYears[i] = filterYears.get(selected[i]);
+        if(selectedYears.length == 0)
+            selectedYears = Utils.integerToIntArray(g.getCourseYears().toArray());
+        g.filter(REQUEST_FILTER_COURSES, selectedYears, this); //todo show spinner
     }
 
     @Override
@@ -78,5 +101,34 @@ public class ScheduleActivity extends SingleFragmentActivity implements Schedule
                               .putExtra(ExamQuestionsActivity.EXTRA_COURSE, exam.getCourse())
                               .putExtra(ExamQuestionsActivity.EXTRA_LESSON, Question.EXAM_PREFIX + exam.getLesson())
                               .putExtra(ExamQuestionsActivity.EXTRA_PERMISSION, getIntent().getParcelableExtra(EXTRA_GROUP)));
+    }
+
+    @Override
+    public void onRequestCompleted(int id, Network.Response<String> response) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                fragment.refresh();
+            }
+        });
+    }
+
+    @Override
+    public void onExceptionThrown(int id, Throwable ex) {
+        if(ex instanceof Error)
+            throw new Error(ex);
+        if(ex instanceof IOException)
+            new NetworkExceptionHandler.DefaultHandler(this).handleIOException((IOException)ex);
+        else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                           getString(R.string.error_unknown_ex_text))
+                              .show(getSupportFragmentManager(), "");
+                }
+            });
+            Log.e(TAG, "Unknown Throwable caught", ex);
+        }
     }
 }

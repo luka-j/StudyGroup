@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+              android:layout_width="match_parent"
               android:layout_height="wrap_content"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:orientation="vertical">
 
     <include layout="@layout/toolbar"/>
@@ -69,6 +70,20 @@
                 android:layout_toEndOf="@id/add_note_image"
                 android:layout_toRightOf="@id/add_note_image"
                 android:src="@drawable/audio"/>
+
+            <com.github.rahatarmanahmed.cpv.CircularProgressView
+                android:id="@+id/add_note_cpv"
+                android:visibility="gone"
+                android:layout_width="@dimen/addview_cpv_size"
+                android:layout_height="@dimen/addview_cpv_size"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_below="@id/add_note_image"
+                android:layout_marginTop="@dimen/addview_cpv_marginTop"
+                android:layout_marginRight="@dimen/addview_cpv_marginEnd"
+                android:layout_marginEnd="@dimen/addview_cpv_marginEnd"
+                app:cpv_animAutostart="true"
+                app:cpv_indeterminate="true"/>
 
             <include
                 style="@style/small_button_position"

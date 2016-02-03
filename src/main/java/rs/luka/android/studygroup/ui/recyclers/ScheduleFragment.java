@@ -28,6 +28,8 @@ import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
+import java.io.IOException;
+
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
@@ -37,17 +39,17 @@ import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.network.Exams;
 import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
 import rs.luka.android.studygroup.ui.Snackbar;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
 
 /**
  * Created by luka on 29.7.15..
  */
 public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
-                                                          NetworkRequests.NetworkCallbacks {
+                                                          Network.NetworkCallbacks {
     private static final int REQUEST_ADD_EXAM = 0;
     private static final String ARG_GROUP     = "agroup";
     private static final String TAG           = "ScheduleFragment";
@@ -148,7 +150,8 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
         swipe.setRefreshing(false);
     }
 
-    private void refresh() {
+    protected void refresh() {
+        swipe.setRefreshing(true);
         DataManager.refreshExams(getContext(), group.getIdValue(), this, getActivity().getLoaderManager(), exceptionHandler);
     }
 
@@ -254,8 +257,21 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onExceptionThrown(int id, Throwable ex) {
-        ex.printStackTrace();
-        //todo
+        if(ex instanceof Error)
+            throw new Error(ex);
+        if(ex instanceof IOException)
+            exceptionHandler.handleIOException((IOException)ex);
+        else {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                           getString(R.string.error_unknown_ex_text))
+                              .show(getFragmentManager(), "");
+                }
+            });
+            Log.e(TAG, "Unknown Throwable caught", ex);
+        }
     }
 
     public interface Callbacks {
@@ -332,7 +348,9 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             yearTextView.setText(exam.getKlass());
             Course examCourse = exam.getCourse();
             if (examCourse.hasImage()) {
-                imageView.setImageBitmap(examCourse.getImage(getResources().getDimensionPixelSize(R.dimen.card_image_size)));
+                examCourse.getImage(getContext(),
+                                    getResources().getDimensionPixelSize(R.dimen.card_image_size),
+                                    exceptionHandler, imageView);
             } else {
                 imageView.setImageResource(R.drawable.placeholder);
             }

@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 
@@ -28,6 +30,7 @@ public class Groups  {
     private static final String JSON_KEY_NAME = "name";
     private static final String JSON_KEY_PLACE = "place";
     private static final String JSON_KEY_HASIMAGE = "hasImage";
+    private static final String JSON_KEY_YEARS = "courseYears";
     private static final String JSON_KEY_PERMISSION = "permission";
 
     /**
@@ -50,6 +53,7 @@ public class Groups  {
                                           jsonGroup.getString(JSON_KEY_NAME),
                                           jsonGroup.getString(JSON_KEY_PLACE),
                                           jsonGroup.getBoolean(JSON_KEY_HASIMAGE),
+                                          Utils.stringToList(jsonGroup.getString(JSON_KEY_YEARS)),
                                           array.getJSONObject(i).getInt(JSON_KEY_PERMISSION));
                 }
                 Database.getInstance(c).clearGroups();
@@ -108,7 +112,7 @@ public class Groups  {
         }
     }
 
-    public static void getUsers(int requestId, long id, NetworkRequests.NetworkCallbacks<String> callbacks) {
+    public static void getUsers(int requestId, long id, Network.NetworkCallbacks<String> callbacks) {
         try {
             NetworkRequests.getDataAsync(requestId, new URL(Network.getDomain(), GROUPS + id + "/members"), callbacks);
         } catch (MalformedURLException e) {
@@ -116,10 +120,76 @@ public class Groups  {
         }
     }
 
-    public static void requestJoin(int requestId, long id, NetworkRequests.NetworkCallbacks<String> callbacks) {
+    public static void requestJoin(int requestId, long id, Network.NetworkCallbacks<String> callbacks) {
         try {
-            NetworkRequests.postDataAsync                                    (requestId, new URL(Network.getDomain(), "group/" + id + "/requestWrite"),
+            NetworkRequests.postDataAsync(requestId, new URL(Network.getDomain(), "group/" + id + "/requestWrite"),
                                           NetworkRequests.emptyMap, callbacks);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void grantOwner(int requestId, long groupId, long userId, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), GROUPS + groupId + "/grantOwner/" + userId),
+                                         NetworkRequests.emptyMap, callbacks);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void grantMod(int requestId, long groupId, long userId, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), GROUPS + groupId + "/grantModify/" + userId),
+                                         NetworkRequests.emptyMap, callbacks);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void grantMember(int requestId, long groupId, long userId, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), GROUPS + groupId + "/grantWrite/" + userId),
+                                         NetworkRequests.emptyMap, callbacks);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void revokeMember(int requestId, long groupId, long userId, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), GROUPS + groupId + "/revokeWrite/" + userId),
+                                         NetworkRequests.emptyMap, callbacks);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean loadImage(long id, int size, File loadInto, NetworkExceptionHandler exceptionHandler)
+            throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), GROUPS + id + "/image?size=" + size);
+            Network.Response<File> response = NetworkRequests.requestGetFile(url, loadInto);
+
+            if(response.responseCode == Network.Response.RESPONSE_OK)
+                return true;
+            Network.Response<File> handled = response.handleException(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_OK;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean updateImage(long id, File image, NetworkExceptionHandler exceptionHandler)
+            throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), GROUPS + id + "/image");
+            Network.Response<File> response = NetworkRequests.requestPutFile(url, image);
+
+            if(response.responseCode == Network.Response.RESPONSE_CREATED)
+                return true;
+            Network.Response<File> handled = response.handleException(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

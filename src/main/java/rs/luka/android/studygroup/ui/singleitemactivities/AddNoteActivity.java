@@ -3,6 +3,7 @@ package rs.luka.android.studygroup.ui.singleitemactivities;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -22,6 +23,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
+
 import java.io.File;
 import java.util.List;
 
@@ -32,6 +35,8 @@ import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Note;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
 
 /**
@@ -55,8 +60,11 @@ public class AddNoteActivity extends AppCompatActivity {
     private CardView        next;
     private TextView        nextText;
     private CardView        done;
+    private CircularProgressView progressView;
     private ImageView       image;
     private ImageView       audio;
+
+
     private File            imageFile;
     private File            audioFile;
     private Course          course;
@@ -72,7 +80,15 @@ public class AddNoteActivity extends AppCompatActivity {
         exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
             @Override
             public void finishedSuccessfully() {
+                super.finishedSuccessfully();
                 setUpNext();
+            }
+            @Override
+            public void handleOffline() {
+                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
+                                       getString(R.string.error_offline_edit_text))
+                          .show(getSupportFragmentManager(), "");
+                Network.Status.setOffline();
             }
         };
 
@@ -93,6 +109,7 @@ public class AddNoteActivity extends AppCompatActivity {
         lesson = (EditText) findViewById(R.id.add_note_lesson_input);
         lessonTil = (TextInputLayout) findViewById(R.id.add_note_lesson_til);
         submit = (CardView) findViewById(R.id.button_add);
+        progressView = (CircularProgressView) findViewById(R.id.add_note_cpv);
         if (editing && notes.size() > 1) { //kreiranje dva dugmeta
             LayoutInflater inflater = LayoutInflater.from(this);
             buttonsLayout = (LinearLayout) inflater.inflate(R.layout.buttons_next_done, null, false);
@@ -100,7 +117,7 @@ public class AddNoteActivity extends AppCompatActivity {
                     = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
                                                       RelativeLayout.LayoutParams.WRAP_CONTENT);
             params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-            params.addRule(RelativeLayout.ALIGN_PARENT_END);
+            if(Build.VERSION.SDK_INT >= 17) params.addRule(RelativeLayout.ALIGN_PARENT_END);
             params.addRule(RelativeLayout.BELOW, R.id.add_note_image);
             params.setMargins(0, 14, 0, 10);
             content = (RelativeLayout) findViewById(R.id.add_note_content);
@@ -219,9 +236,10 @@ public class AddNoteActivity extends AppCompatActivity {
         text.setText(notes.get(currentNote).getText());
         text.setSelection(text.getText().length());
         if (notes.get(currentNote).hasImage()) {
-            image.setImageBitmap(notes.get(currentNote)
-                                      .getImage(course.getSubject(),
-                                                getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
+            notes.get(currentNote).getImage(this,
+                                            course.getSubject(),
+                                            getResources().getDimensionPixelOffset(R.dimen.addview_image_size),
+                                            exceptionHandler, image);
         }
     }
 
@@ -243,15 +261,22 @@ public class AddNoteActivity extends AppCompatActivity {
         if (!error) {
             this.lessonStr = lessonStr;
             if (editing) {
-                notes.get(currentNote - 1).edit(this, lessonStr, noteStr, imageFile, audioFile, exceptionHandler);
+                notes.get(currentNote).edit(this, lessonStr, noteStr, imageFile, audioFile, exceptionHandler);
+                currentNote++;
+                if(buttonsLayout!=null)buttonsLayout.setVisibility(View.GONE);
+                else submit.setVisibility(View.GONE);
             } else {
                 course.addNote(this, lessonStr, noteStr, imageFile, audioFile, exceptionHandler);
+                submit.setVisibility(View.GONE);
             }
+            progressView.setVisibility(View.VISIBLE);
         }
     }
 
     private void setUpNext() {
         if(editing) {
+            progressView.setVisibility(View.GONE);
+            if(buttonsLayout!=null) buttonsLayout.setVisibility(View.VISIBLE);
             if (currentNote < notes.size()) { setFieldsForEditing(); }
             if (currentNote == notes.size() - 1) { mergeButtons(); }
             if (currentNote == notes.size()) {

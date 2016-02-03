@@ -1,23 +1,26 @@
 package rs.luka.android.studygroup.model;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.widget.ImageView;
 
 import java.io.File;
+import java.io.IOException;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.Questions;
 
 /**
  * Created by luka on 2.7.15..
  */
 public class Question implements Parcelable, Comparable<Question>, PastEvents {
-    public static final String EXAM_PREFIX = "-exam-";
+    public static final String EXAM_PREFIX = "_exam_";
 
     public static final Parcelable.Creator<Question> CREATOR
             = new Parcelable.Creator<Question>() {
@@ -70,17 +73,16 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
         return imageExists;
     }
 
-    public Bitmap getImage(String courseName, int idealDimension) {
-        return DataManager.getImage(id, courseName, lesson, idealDimension);
+    public void getImage(Context c, String courseName, int idealDimension, NetworkExceptionHandler handler, ImageView view) {
+        DataManager.getQuestionImage(c, id, courseName, lesson, idealDimension, handler, view);
     }
 
-    public String getImagePath(String courseName) {
-        return LocalImages.getItemImagePath(courseName, lesson, id);
+    public String getImagePath(String courseName) throws IOException {
+        return LocalImages.getQuestionImagePath(courseName, lesson, id);
     }
 
-    public String getHistory(Context c) {
-        // TODO: 20.9.15.
-        return null;
+    public void getHistory(int requestId, Network.NetworkCallbacks<String> callbacks) {
+        Questions.getEdits(requestId, id.getItemIdValue(), callbacks);
     }
 
     public void hide(Context c, NetworkExceptionHandler exceptionHandler) {

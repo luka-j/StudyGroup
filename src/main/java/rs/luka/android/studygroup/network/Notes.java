@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -130,7 +131,7 @@ public class Notes {
     }
 
     public static void showAllNotes(int requestId, long courseId, String lesson,
-                                    NetworkRequests.NetworkCallbacks<String> callbacks) {
+                                    Network.NetworkCallbacks<String> callbacks) {
         try {
             URL url = new URL(Network.getDomain(), COURSE + courseId + "/" + lesson + "/showAllNotes");
             NetworkRequests.putDataAsync(requestId, url, NetworkRequests.emptyMap, callbacks);
@@ -139,7 +140,16 @@ public class Notes {
         }
     }
 
-    public static void removeNotes(int requestId, Set<Long> noteIds, NetworkRequests.NetworkCallbacks<String> callbacks) {
+    public static void getEdits(int requestId, long noteId, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            URL url = new URL(Network.getDomain(), NOTES + noteId + "/edits");
+            NetworkRequests.getDataAsync(requestId, url, callbacks);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void removeNotes(int requestId, Set<Long> noteIds, Network.NetworkCallbacks<String> callbacks) {
         try {
             URL url;
             for(Long id : noteIds) {
@@ -148,6 +158,51 @@ public class Notes {
             }
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    public static boolean loadImage(long id, File loadInto, NetworkExceptionHandler exceptionHandler)
+            throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), NOTES + id + "/image");
+            Network.Response<File> response = NetworkRequests.requestGetFile(url, loadInto);
+
+            if(response.responseCode == Network.Response.RESPONSE_OK)
+                return true;
+            Network.Response<File> handled = response.handleException(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_OK;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean loadThumb(long id, int size, File loadInto, NetworkExceptionHandler exceptionHandler)
+            throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), NOTES + id + "/image?size=" + size);
+            Network.Response<File> response = NetworkRequests.requestGetFile(url, loadInto);
+
+            if(response.responseCode == Network.Response.RESPONSE_OK)
+                return true;
+            Network.Response<File> handled = response.handleException(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_OK;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean updateImage(long id, File image, NetworkExceptionHandler exceptionHandler)
+            throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), NOTES + id + "/image");
+            Network.Response<File> response = NetworkRequests.requestPutFile(url, image);
+
+            if(response.responseCode == Network.Response.RESPONSE_CREATED)
+                return true;
+            Network.Response<File> handled = response.handleException(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_CREATED;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
         }
     }
 }

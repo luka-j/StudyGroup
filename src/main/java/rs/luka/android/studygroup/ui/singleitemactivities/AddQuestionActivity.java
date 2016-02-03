@@ -23,6 +23,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
+
 import java.io.File;
 import java.util.List;
 
@@ -33,6 +35,8 @@ import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.ExamQuestionsActivity;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
 
@@ -56,6 +60,8 @@ public class AddQuestionActivity extends AppCompatActivity {
     private CardView        next;
     private CardView        done;
     private ImageView       image;
+    private CircularProgressView progressView;
+
     private File            imageFile;
     private Course          course;
     private boolean         editing;
@@ -70,7 +76,15 @@ public class AddQuestionActivity extends AppCompatActivity {
         exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
             @Override
             public void finishedSuccessfully() {
+                super.finishedSuccessfully();
                 setUpNext();
+            }
+            @Override
+            public void handleOffline() {
+                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
+                                       getString(R.string.error_offline_edit_text))
+                          .show(getSupportFragmentManager(), "");
+                Network.Status.setOffline();
             }
         };
 
@@ -93,6 +107,7 @@ public class AddQuestionActivity extends AppCompatActivity {
         questionTil = (TextInputLayout) findViewById(R.id.add_question_text_til);
         add = (CardView) findViewById(R.id.button_add);
         image = (ImageView) findViewById(R.id.add_question_image);
+        progressView = (CircularProgressView) findViewById(R.id.add_question_cpv);
         if (editing && questions.size() > 1) { //kreiranje dva dugmeta
             LayoutInflater inflater = LayoutInflater.from(this);
             buttonsLayout = (LinearLayout) inflater.inflate(R.layout.buttons_next_done, null, false);
@@ -182,9 +197,10 @@ public class AddQuestionActivity extends AppCompatActivity {
         question.setSelection(question.getText().length());
         answer.setText(questions.get(currentQuestion).getAnswer());
         if (questions.get(currentQuestion).hasImage()) {
-            image.setImageBitmap(questions.get(currentQuestion)
-                                          .getImage(course.getSubject(),
-                                                    getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
+            questions.get(currentQuestion).getImage(this,
+                                                    course.getSubject(),
+                                                    getResources().getDimensionPixelOffset(R.dimen.addview_image_size),
+                                                    exceptionHandler, image);
         }
     }
 
@@ -215,18 +231,24 @@ public class AddQuestionActivity extends AppCompatActivity {
                 currentQuestion++;
                 questions.get(currentQuestion - 1)
                          .edit(this, lessonStr, questionStr, answerStr, imageFile, exceptionHandler);
+                if(buttonsLayout!=null)buttonsLayout.setVisibility(View.GONE);
+                else add.setVisibility(View.GONE);
             } else {
                 if(!getIntent().getBooleanExtra(ExamQuestionsActivity.EXTRA_EXAM_QUESTION, false)) {
                     course.addQuestion(this, lessonStr, questionStr, answerStr, imageFile, exceptionHandler);
                 } else {
                     course.addExamQuestion(this, lessonStr, questionStr, answerStr, imageFile, exceptionHandler);
                 }
+                add.setVisibility(View.GONE);
             }
+            progressView.setVisibility(View.VISIBLE);
         }
     }
 
     private void setUpNext() {
         if(editing) {
+            progressView.setVisibility(View.GONE);
+            if(buttonsLayout!=null) buttonsLayout.setVisibility(View.VISIBLE);
             if (currentQuestion < questions.size()) { setFieldsForEditing(); }
             if (currentQuestion == questions.size() - 1) { mergeButtons(); }
             if (currentQuestion == questions.size()) {

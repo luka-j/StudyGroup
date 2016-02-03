@@ -1,19 +1,27 @@
 package rs.luka.android.studygroup.ui.singleitemactivities;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.IOException;
+
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
 
 /**
  * Created by luka on 12.7.15.
@@ -21,13 +29,14 @@ import rs.luka.android.studygroup.model.Question;
 public class QuestionFragment extends Fragment {
     public static final  String ARG_QUESTION      = "aquestion";
     public static final  String ARG_COURSE_NAME   = "acourse";
-    private static final int    IMAGE_IDEAL_DIMEN = 700;
+    private static int    IMAGE_IDEAL_DIMEN = 720;
     private Question question;
     private String courseName;
     private TextView questionText;
     private TextView answerText;
     private ImageView image;
     private TextView history;
+    private NetworkExceptionHandler exceptionHandler;
 
     public static QuestionFragment newInstance(String courseName, Question question) {
         QuestionFragment f    = new QuestionFragment();
@@ -39,12 +48,21 @@ public class QuestionFragment extends Fragment {
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)context);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
         question = getArguments().getParcelable(ARG_QUESTION);
         courseName = getArguments().getString(ARG_COURSE_NAME);
+        DisplayMetrics metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        IMAGE_IDEAL_DIMEN = metrics.widthPixels;
     }
 
     @Override
@@ -64,7 +82,11 @@ public class QuestionFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(getContext(), FullscreenImageActivity.class);
-                i.putExtra(FullscreenImageActivity.EXTRA_IMAGE_PATH, question.getImagePath(courseName));
+                try {
+                    i.putExtra(FullscreenImageActivity.EXTRA_IMAGE_PATH, question.getImagePath(courseName));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 startActivity(i);
             }
         });
@@ -77,9 +99,13 @@ public class QuestionFragment extends Fragment {
         questionText.setText(question.getQuestion());
         answerText.setText(question.getAnswer());
         if (question.hasImage()) {
-            image.setImageBitmap(question.getImage(courseName, IMAGE_IDEAL_DIMEN));
+            question.getImage(getContext(), courseName, IMAGE_IDEAL_DIMEN, exceptionHandler, image);
         }
-        history.setText(question.getHistory(getActivity()));
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_question, menu);
     }
 
     @Override
@@ -87,6 +113,9 @@ public class QuestionFragment extends Fragment {
         switch (item.getItemId()) {
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(getActivity());
+                return true;
+            case R.id.question_history:
+                startActivity(new Intent(getContext(), HistoryActivity.class).putExtra(HistoryActivity.EXTRA_ITEM, question));
                 return true;
         }
         return super.onOptionsItemSelected(item);

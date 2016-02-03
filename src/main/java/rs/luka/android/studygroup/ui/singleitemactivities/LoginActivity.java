@@ -9,13 +9,12 @@ import android.support.v7.widget.CardView;
 import android.view.View;
 import android.widget.EditText;
 
-import java.net.ConnectException;
+import java.net.SocketException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.network.UserManager;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.RootActivity;
@@ -23,7 +22,7 @@ import rs.luka.android.studygroup.ui.recyclers.RootActivity;
 /**
  * Created by luka on 25.7.15..
  */
-public class LoginActivity extends AppCompatActivity implements NetworkRequests.NetworkCallbacks<String>, InfoDialog.Callbacks {
+public class LoginActivity extends AppCompatActivity implements Network.NetworkCallbacks<String>, InfoDialog.Callbacks {
     public static final int REQUEST_LOGIN = 0;
     public static final int REQUEST_REFRESH = 1;
 
@@ -91,7 +90,7 @@ public class LoginActivity extends AppCompatActivity implements NetworkRequests.
     }
 
     @Override
-    public void onErrorDialogClosed(InfoDialog dialog) {
+    public void onInfoDialogClosed(InfoDialog dialog) {
         if(dialog.getTag().equals(TAG_DIALOG_ERROR))
             password.setText("");
         else if(dialog.getTag().equals(TAG_DIALOG_NO_NETWORK))
@@ -141,17 +140,36 @@ public class LoginActivity extends AppCompatActivity implements NetworkRequests.
 
     @Override
     public void onExceptionThrown(int id, final Throwable ex) {
+        if(ex instanceof Error)
+            throw new Error(ex);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if(ex instanceof ConnectException) {
-                    User.setOfflineUser(getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
-                    InfoDialog.newInstance                                       (getString(R.string.error_offline_title),
+                InfoDialog.Callbacks callbacks = new InfoDialog.Callbacks() {
+                    @Override
+                    public void onInfoDialogClosed(InfoDialog dialog) {
+                        startActivity(new Intent(LoginActivity.this, RootActivity.class));
+                    }
+                };
+                if(ex instanceof SocketException && !Network.Status.checkNetworkStatus(LoginActivity.this)) {
+                    InfoDialog.newInstance(getString(R.string.error_offline_title),
                                            getString(R.string.error_offline_text))
+                              .registerCallbacks(callbacks)
                               .show(getSupportFragmentManager(), TAG_DIALOG_NO_NETWORK);
-                    ex.printStackTrace();
-                    requestInProgress = false;
+                } else if (ex instanceof SocketException) {
+                    InfoDialog.newInstance(getString(R.string.error_login_socketex_title),
+                                           getString(R.string.error_login_socketex_text))
+                            .registerCallbacks(callbacks)
+                            .show(getSupportFragmentManager(), TAG_DIALOG_NO_NETWORK);
+                } else {
+                    InfoDialog.newInstance(getString(R.string.error_login_unknownex_title),
+                                           getString(R.string.error_login_unknownex_text))
+                            .registerCallbacks(callbacks)
+                            .show(getSupportFragmentManager(), TAG_DIALOG_NO_NETWORK);
                 }
+                User.setOfflineUser(getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
+                ex.printStackTrace();
+                requestInProgress = false;
             }
         });
     }

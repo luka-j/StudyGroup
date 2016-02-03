@@ -12,7 +12,9 @@ import android.provider.BaseColumns;
 import android.util.Log;
 
 import java.util.Date;
+import java.util.List;
 
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
@@ -26,7 +28,7 @@ import rs.luka.android.studygroup.model.Question;
 public class Database extends SQLiteOpenHelper {
     private static final String TAG           = "studygroup.Database";
     private static final String DB_NAME       = "base.sqlite";
-    private static final int    VERSION       = 11;
+    private static final int    VERSION       = 13;
     private static final String DROP          = "DROP TABLE IF EXISTS ";
     private static final String CREATE        = "CREATE TABLE ";
     private static final String TYPE_VARCHAR  = " VARCHAR";
@@ -96,7 +98,7 @@ public class Database extends SQLiteOpenHelper {
     }
 
     public void updateGroup(ID id, String name, String place, boolean hasImage) {
-        ContentValues cv = new ContentValues(2);
+        ContentValues cv = new ContentValues(3);
         cv.put(Groups.GroupEntry.COLUMN_NAME_SCHOOL, name);
         cv.put(Groups.GroupEntry.COLUMN_NAME_PLACE, place);
         cv.put(Groups.GroupEntry.COLUMN_NAME_IMAGE, hasImage);
@@ -104,6 +106,17 @@ public class Database extends SQLiteOpenHelper {
         long code = db.update(Groups.TABLE_NAME,
                               cv,
                               Groups.GroupEntry.COLUMN_NAME_ID + "=" + id.getGroupIdValue(),
+                              null);
+    }
+
+    public void updateFilteringData(long id, List<Integer> allYears, List<Integer> filteringYears) {
+        ContentValues cv = new ContentValues(2);
+        cv.put(Groups.GroupEntry.COLUMN_NAME_YEARS, Utils.listToString(allYears));
+        cv.put(Groups.GroupEntry.COLUMN_NAME_FILTERING, Utils.listToString(filteringYears));
+        SQLiteDatabase db = getWritableDatabase();
+        long code = db.update(Groups.TABLE_NAME,
+                              cv,
+                              Groups.GroupEntry.COLUMN_NAME_ID + "=" + id,
                               null);
     }
 
@@ -129,7 +142,8 @@ public class Database extends SQLiteOpenHelper {
             stmt.bindString(2, group.getName());
             stmt.bindString(3, group.getPlace());
             stmt.bindLong(4, group.hasImage() ? 1 : 0);
-            stmt.bindLong(5, group.getPermission());
+            stmt.bindString(5, Utils.listToString(group.getCourseYears()));
+            stmt.bindLong(6, group.getPermission());
             stmt.executeInsert();
             stmt.clearBindings();
         }
@@ -607,26 +621,34 @@ public class Database extends SQLiteOpenHelper {
                 + COMMA_SEP +
                 GroupEntry.COLUMN_NAME_PLACE + TYPE_VARCHAR + "(" + Limits.GROUP_PLACE_MAX_LENGTH + ")" + COMMA_SEP +
                 GroupEntry.COLUMN_NAME_IMAGE + TYPE_INT1 + COMMA_SEP +
+                GroupEntry.COLUMN_NAME_YEARS + TYPE_TEXT + COMMA_SEP +
+                GroupEntry.COLUMN_NAME_FILTERING + TYPE_TEXT + COMMA_SEP +
                 GroupEntry.COLUMN_NAME_PERMISSION + TYPE_INT4 +
                 ")";
 
         private static final String SQL_DELETE_TABLE = DROP + TABLE_NAME;
         private static final String SQL_REMOVE_ENTRIES = DELETE + TABLE_NAME;
         /**
-         * Order: id, name, place, hasImage
+         * Order: id, name, place, allYears, hasImage
          */
         private static final String SQL_INSERT = INSERT + TABLE_NAME + " (" +
-                GroupEntry.COLUMN_NAME_ID + COMMA_SEP + GroupEntry.COLUMN_NAME_SCHOOL + COMMA_SEP + GroupEntry.COLUMN_NAME_PLACE
-                 + COMMA_SEP + GroupEntry.COLUMN_NAME_IMAGE + COMMA_SEP + GroupEntry.COLUMN_NAME_PERMISSION  +
-                                                 ")" + VALS + "(?, ?, ?, ?, ?)";
+                                                 GroupEntry.COLUMN_NAME_ID + COMMA_SEP +
+                                                 GroupEntry.COLUMN_NAME_SCHOOL + COMMA_SEP +
+                                                 GroupEntry.COLUMN_NAME_PLACE + COMMA_SEP +
+                                                 GroupEntry.COLUMN_NAME_IMAGE + COMMA_SEP +
+                                                 GroupEntry.COLUMN_NAME_YEARS + COMMA_SEP +
+                                                 GroupEntry.COLUMN_NAME_PERMISSION  +
+                                                 ")" + VALS + "(?, ?, ?, ?, ?, ?)";
 
         public Groups() {}
 
         public static abstract class GroupEntry implements BaseColumns {
-            public static final String COLUMN_NAME_ID     = _ID;
-            public static final String COLUMN_NAME_SCHOOL = "name";
-            public static final String COLUMN_NAME_PLACE  = "place";
-            public static final String COLUMN_NAME_IMAGE  = "image_exists";
+            public static final String COLUMN_NAME_ID         = _ID;
+            public static final String COLUMN_NAME_SCHOOL     = "name";
+            public static final String COLUMN_NAME_PLACE      = "place";
+            public static final String COLUMN_NAME_IMAGE      = "image_exists";
+            public static final String COLUMN_NAME_YEARS      = "course_years";
+            public static final String COLUMN_NAME_FILTERING  = "filtering_years";
             public static final String COLUMN_NAME_PERMISSION = "permission";
         }
     }
@@ -640,10 +662,13 @@ public class Database extends SQLiteOpenHelper {
         public Group getGroup() {
             if (isBeforeFirst() || isAfterLast()) { return null; }
             ID id = new ID(getLong(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_ID)));
-            return new Group(id, getString(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_SCHOOL)),
+            Group ret =  new Group(id, getString(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_SCHOOL)),
                              getString(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_PLACE)),
                              getInt(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_IMAGE))!=0,
+                             Utils.stringToList(getString(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_YEARS))),
                              getInt(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_PERMISSION)));
+            ret.setFiltering(Utils.stringToList(getString(getColumnIndex(Groups.GroupEntry.COLUMN_NAME_FILTERING))));
+            return ret;
         }
     }
 
@@ -790,7 +815,7 @@ public class Database extends SQLiteOpenHelper {
                             getString(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_LESSON)),
                             getString(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_TEXT)),
                             getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_IMAGE)) != 0,
-                            getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_IMAGE)) != 0);
+                            getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_AUDIO)) != 0);
         }
     }
 

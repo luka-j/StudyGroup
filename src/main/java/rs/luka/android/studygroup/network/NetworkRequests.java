@@ -1,10 +1,10 @@
 package rs.luka.android.studygroup.network;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -20,15 +20,20 @@ import rs.luka.android.studygroup.model.User;
  */
 public class NetworkRequests {
 
-    public static final  Map<String, String> emptyMap = Collections.unmodifiableMap(new HashMap<String, String>(0));
+    public static final  Map<String, String> emptyMap = Collections.emptyMap();
     private static final String VERB_POST = "POST";
     private static final String VERB_GET = "GET";
     private static final String VERB_PUT = "PUT";
     private static final String VERB_DELETE = "DELETE";
     private static final ExecutorService     executor = Executors.newCachedThreadPool();
 
-    private static void requestDataAsync(int requestId, URL url, Map<String, String> data, NetworkCallbacks<String> callback, String verb) {
+    private static void requestDataAsync(int requestId, URL url, Map<String, String> data, Network.NetworkCallbacks<String> callback, String verb) {
         executor.submit(new Network.StringRequest(requestId, url, User.getToken(), data, verb, callback));
+    }
+
+    private static void requestFileAsync(int requestId, URL url, File data, File saveTo,
+                                         Network.NetworkCallbacks<File> callbacks, String verb) {
+        executor.submit(new Network.FileRequest(requestId, url, User.getToken(), data, verb, callbacks, saveTo));
     }
 
     private static Network.Response<String> requestDataBlocking(int requestId, URL url, Map<String, String> data, long timeout,
@@ -50,7 +55,7 @@ public class NetworkRequests {
         }
     }
 
-    public static void postDataAsync(int requestId, URL url, Map<String, String> data, NetworkCallbacks<String> callback) {
+    public static void postDataAsync(int requestId, URL url, Map<String, String> data, Network.NetworkCallbacks<String> callback) {
         requestDataAsync(requestId, url, data, callback, VERB_POST);
     }
 
@@ -63,7 +68,7 @@ public class NetworkRequests {
         return new Network.StringRequest(0, url, User.getToken(), param, VERB_POST, null).call();
     }
 
-    public static void getDataAsync(int requestId, URL url, NetworkCallbacks<String> callback) {
+    public static void getDataAsync(int requestId, URL url, Network.NetworkCallbacks<String> callback) {
         requestDataAsync(requestId, url, emptyMap, callback, VERB_GET);
     }
 
@@ -76,7 +81,7 @@ public class NetworkRequests {
         return new Network.StringRequest(0, url, User.getToken(), emptyMap, VERB_GET, null).call();
     }
 
-    public static void putDataAsync(int requestId, URL url, Map<String, String> data, NetworkCallbacks<String> callback) {
+    public static void putDataAsync(int requestId, URL url, Map<String, String> data, Network.NetworkCallbacks<String> callback) {
         requestDataAsync(requestId, url, data, callback, VERB_PUT);
     }
 
@@ -89,7 +94,7 @@ public class NetworkRequests {
         return new Network.StringRequest(0, url, User.getToken(), param, VERB_PUT, null).call();
     }
 
-    public static void deleteDataAsync(int requestId, URL url, NetworkCallbacks<String> callback) {
+    public static void deleteDataAsync(int requestId, URL url, Network.NetworkCallbacks<String> callback) {
         requestDataAsync(requestId, url, emptyMap, callback, VERB_DELETE);
     }
 
@@ -98,8 +103,11 @@ public class NetworkRequests {
         return requestDataBlocking(requestId, url, emptyMap, timeout, unit, VERB_DELETE);
     }
 
-    public interface NetworkCallbacks<T> {
-        void onRequestCompleted(int id, Network.Response<T> response);
-        void onExceptionThrown(int id, Throwable ex);
+    public static Network.Response<File> requestGetFile(URL url, File saveTo) throws IOException {
+        return new Network.FileRequest(0, url, User.getToken(), null, VERB_GET, null, saveTo).call();
     }
+    public static Network.Response<File> requestPutFile(URL url, File data) throws IOException {
+        return new Network.FileRequest(0, url, User.getToken(), data, VERB_PUT, null, null).call();
+    }
+
 }

@@ -13,4 +13,5 @@
     <color name="refresh_progress_3">@color/color_primary</color>
     <color name="card_selected">@color/color_primary_light</color>
     <color name="actionmode_background">@color/color_primary_dark</color>
+    <color name="secondary_text">#414141</color>
 </resources>

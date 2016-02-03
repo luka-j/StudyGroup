@@ -12,9 +12,19 @@
         app:cpv_animAutostart="true"
         app:cpv_indeterminate="true"/>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/members_recycler"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <include
+            layout="@layout/list_header_member_list"
+            android:id="@+id/member_list_header"/>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/members_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </LinearLayout>
 
 </FrameLayout>

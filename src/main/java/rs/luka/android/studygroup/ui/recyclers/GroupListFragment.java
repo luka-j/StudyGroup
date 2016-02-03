@@ -222,7 +222,9 @@ public class GroupListFragment extends Fragment implements LoaderManager.LoaderC
             name.setText(group.getName());
             place.setText(group.getPlace());
             if (group.hasImage()) {
-                image.setImageBitmap(group.getImage(getResources().getDimensionPixelSize(R.dimen.card_image_size)));
+                group.getImage(getContext(),
+                               getResources().getDimensionPixelSize(R.dimen.card_image_size),
+                               exceptionHandler, image);
             }
         }
 

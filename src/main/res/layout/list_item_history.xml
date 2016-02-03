@@ -3,4 +3,9 @@
     android:id="@+id/list_item_history"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"/>
+    android:layout_height="match_parent"
+    android:textSize="@dimen/list_item_text_size"
+    android:paddingTop="@dimen/list_item_padding_vertical"
+    android:paddingBottom="@dimen/list_item_padding_vertical"
+    android:paddingRight="@dimen/list_item_padding_horizontal"
+    android:paddingLeft="@dimen/list_item_padding_horizontal"/>

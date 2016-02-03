@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+              android:layout_width="match_parent"
               android:layout_height="wrap_content"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:orientation="vertical">
 
     <include layout="@layout/toolbar"/>
@@ -73,6 +74,20 @@
                 android:layout_below="@id/add_course_year_til"
                 android:layout_marginTop="@dimen/addview_image_margin_top"
                 android:src="@drawable/empty"/>
+
+            <com.github.rahatarmanahmed.cpv.CircularProgressView
+                android:id="@+id/add_course_cpv"
+                android:visibility="gone"
+                android:layout_width="@dimen/addview_cpv_size"
+                android:layout_height="@dimen/addview_cpv_size"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_gravity="right|end"
+                android:layout_marginTop="@dimen/addview_cpv_marginTop"
+                android:layout_marginRight="@dimen/addview_cpv_marginEnd"
+                android:layout_marginEnd="@dimen/addview_cpv_marginEnd"
+                app:cpv_animAutostart="true"
+                app:cpv_indeterminate="true"/>
 
             <include
                 style="@style/small_button_position"

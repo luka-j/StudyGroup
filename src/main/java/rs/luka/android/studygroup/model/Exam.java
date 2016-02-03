@@ -1,7 +1,6 @@
 package rs.luka.android.studygroup.model;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -13,6 +12,8 @@ import java.util.Date;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.Notes;
 
 /**
  * Created by luka on 29.7.15..
@@ -112,18 +113,12 @@ public class Exam implements Parcelable, Comparable<Exam>, PastEvents {
 
     public Course getCourse() { return course; }
 
-    public boolean hasImage() {
-
-        return false;
-    }
-
-    public Bitmap getImage() {
-
-        return null;
-    }
-
     public void edit(Context c, String klass, String lesson, String type, Date date, NetworkExceptionHandler handler) {
         DataManager.editExam(c, id, klass, lesson, type, date, handler);
+    }
+
+    public void getHistory(int requestId, Network.NetworkCallbacks<String> callbacks) {
+        Notes.getEdits(requestId, id.getItemIdValue(), callbacks);
     }
 
     public void show(Context c) {

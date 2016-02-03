@@ -19,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
@@ -30,10 +31,10 @@ import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.network.Notes;
 import rs.luka.android.studygroup.network.Questions;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddNoteActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddQuestionActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.NotePagerActivity;
@@ -44,7 +45,7 @@ import rs.luka.android.studygroup.ui.singleitemactivities.QuestionPagerActivity;
  */
 public class LessonActivity extends AppCompatActivity
         implements NoteListFragment.NoteCallbacks, QuestionListFragment.QuestionCallbacks,
-                   NetworkRequests.NetworkCallbacks<String>, ConfirmDialog.Callbacks {
+                   Network.NetworkCallbacks<String>, ConfirmDialog.Callbacks {
 
     public static final  String EXTRA_CURRENT_NOTE_POSITION     = "noteIndex";
     public static final  String EXTRA_CURRENT_QUESTION_POSITION = "questionIndex";
@@ -80,6 +81,7 @@ public class LessonActivity extends AppCompatActivity
     private int setSize;
     private int count;
 
+    private NetworkExceptionHandler exceptionHandler;
     private Toolbar              toolbar;
     private ViewPager            pager;
     private NoteQuestionAdapter  adapter;
@@ -94,6 +96,7 @@ public class LessonActivity extends AppCompatActivity
         course = getIntent().getParcelableExtra(CourseActivity.EXTRA_COURSE);
         lessonName = getIntent().getStringExtra(CourseActivity.EXTRA_LESSON_NAME);
         permission = getIntent().getIntExtra(EXTRA_PERMISSION, 0);
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(lessonName);
@@ -182,10 +185,10 @@ public class LessonActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                startActivity                                                                (new Intent(this, CourseActivity.class)
+                startActivity(new Intent(this, CourseActivity.class)
                                       .putExtra(CourseActivity.EXTRA_GO_BACKWARD, false)
                                       .putExtra(CourseActivity.EXTRA_COURSE, course)
-                                      .putExtra                                             (CourseActivity.EXTRA_PERMISSION,
+                                      .putExtra(CourseActivity.EXTRA_PERMISSION,
                                                 getIntent().getIntExtra(EXTRA_PERMISSION, 0)));
                 return true;
 
@@ -221,22 +224,35 @@ public class LessonActivity extends AppCompatActivity
                 setSize = 0;
             }
         } else {
-            response.handleException(new NetworkExceptionHandler.DefaultHandler(this));
+            response.handleException(exceptionHandler);
         }
     }
 
     @Override
     public void onExceptionThrown(int id, Throwable ex) {
-        ex.printStackTrace();
-        //todo
+        if(ex instanceof Error)
+            throw new Error(ex);
+        if(ex instanceof IOException)
+            exceptionHandler.handleIOException((IOException)ex);
+        else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                           getString(R.string.error_unknown_ex_text))
+                              .show(getSupportFragmentManager(), "");
+                }
+            });
+            Log.e(TAG, "Unknown Throwable caught", ex);
+        }
     }
 
     @Override
     public void onBackPressed() {
-        startActivity                                                                (new Intent(this, CourseActivity.class)
+        startActivity(new Intent(this, CourseActivity.class)
                               .putExtra(CourseActivity.EXTRA_GO_BACKWARD, true)
                               .putExtra(CourseActivity.EXTRA_COURSE, course)
-                              .putExtra                                             (CourseActivity.EXTRA_PERMISSION,
+                              .putExtra(CourseActivity.EXTRA_PERMISSION,
                                         getIntent().getIntExtra(EXTRA_PERMISSION, 0)));
     }
 

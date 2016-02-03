@@ -3,11 +3,11 @@ package rs.luka.android.studygroup.model;
 import android.content.Context;
 import android.content.Loader;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.widget.ImageView;
 
 import java.io.File;
 import java.util.Calendar;
@@ -21,7 +21,7 @@ import rs.luka.android.studygroup.misc.Utils;
 /**
  * Created by Luka on 7/1/2015.
  */
-public class Course implements Parcelable, Comparable<Course>, PastEvents {
+public class Course implements Parcelable, Comparable<Course> {
 
     public static final Parcelable.Creator<Course> CREATOR
             = new Parcelable.Creator<Course>() {
@@ -84,8 +84,8 @@ public class Course implements Parcelable, Comparable<Course>, PastEvents {
         return imageExists;
     }
 
-    public Bitmap getImage(int minDimension) {
-        return DataManager.getImage(id, subject, null, minDimension);
+    public void getImage(Context c, int minDimension, NetworkExceptionHandler exceptionHandler, ImageView view) {
+        DataManager.getCourseImage(c, id, minDimension, exceptionHandler, view);
     }
 
     public Loader<Cursor> getLessonLoader(Context c) {

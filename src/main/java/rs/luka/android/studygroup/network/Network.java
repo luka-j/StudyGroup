@@ -1,19 +1,24 @@
 package rs.luka.android.studygroup.network;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.annotation.Nullable;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Map;
@@ -30,7 +35,7 @@ import rs.luka.android.studygroup.model.User;
  */
 public class Network {
 
-    private static final int BUFFER_SIZE = 102_400;
+    private static final int BUFFER_SIZE = 102_400; //100kb
 
     private static URL                  DOMAIN; //catch in static block complains if this is made final
 
@@ -45,6 +50,11 @@ public class Network {
 
     public static URL getDomain() {
         return DOMAIN;
+    }
+
+    public interface NetworkCallbacks<T> {
+        void onRequestCompleted(int id, Response<T> response);
+        void onExceptionThrown(int id, Throwable ex);
     }
 
     public static class Response<T> {
@@ -131,19 +141,17 @@ public class Network {
     }
 
     protected static abstract class Request<T> implements Callable<Response<T>> {
-        private int                              requestId;
-        private URL                              url;
-        private String                           token;
-        private Map<String, String>              data;
-        private String                           httpVerb;
-        private NetworkRequests.NetworkCallbacks<T> callback;
+        private int                 requestId;
+        private URL                 url;
+        private String              token;
+        private String              httpVerb;
+        private NetworkCallbacks<T> callback;
 
-        private Request(int requestId, URL url, String token, Map<String, String> data, String httpVerb,
-                             NetworkRequests.NetworkCallbacks<T> callback) {
+        private Request(int requestId, URL url, String token, String httpVerb,
+                             NetworkCallbacks<T> callback) {
             this.requestId = requestId;
             this.url = url;
             this.token = token;
-            this.data = data;
             this.httpVerb = httpVerb;
             this.callback = callback;
         }
@@ -152,27 +160,12 @@ public class Network {
         public Response<T> call() throws IOException {
             HttpURLConnection conn;
             conn = (HttpURLConnection) url.openConnection();
-            StringBuilder urlParams = new StringBuilder();
-            for (Map.Entry<String, String> param : data.entrySet()) {
-                urlParams.append(URLEncoder.encode(param.getKey(), "UTF-8")).append('=')
-                         .append(URLEncoder.encode(param.getValue(), "UTF-8")).append('&');
-            }
-
             try {
                 conn.setRequestMethod(httpVerb);
                 if (token != null) {
                     conn.setRequestProperty("Authorization", token);
                 }
-                //conn.setRequestProperty( "Accept-Encoding", "" );
-                if (urlParams.length() > 0) {
-                    conn.setDoOutput(true);
-                    urlParams.deleteCharAt(urlParams.length() - 1); //trailing &
-                    conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                    conn.setRequestProperty("Content-Length", String.valueOf(urlParams.length()));
-                    OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-                    writer.write(urlParams.toString());
-                    writer.close();
-                }
+                uploadData(conn);
                 conn.connect();
 
                 int responseCode = conn.getResponseCode();
@@ -185,26 +178,27 @@ public class Network {
                     conn.disconnect();
                     int end = 0;
                     while (end < 256 && errorMsg[end] != '\0') end++;
-                    Response<T> response = new Response<>(this,
-                                                          responseCode,
-                                                          null, //no response body, error
-                                                          String.valueOf(errorMsg).substring(0, end));
+                    final Response<T> response = new Response<>(this,
+                                                                responseCode,
+                                                                null, //no response body, error
+                                                                String.valueOf(errorMsg).substring(0, end));
                     if (callback != null) {
                         callback.onRequestCompleted(requestId, response);
                     }
                     return response;
                 } else {
                     String encoding = conn.getContentEncoding();
-                    Response<T> response = new Response<>(this,
-                                                          responseCode,
-                                                          getData(Utils.wrapStream(encoding, conn.getInputStream())),
-                                                          null); //no error message, everything's ok
+                    final Response<T> response = new Response<>(this,
+                                                                responseCode,
+                                                                getData(Utils.wrapStream(encoding, conn.getInputStream())),
+                                                                null); //no error message, everything's ok
                     conn.disconnect();
-                    if (callback != null)
+                    if (callback != null) {
                         callback.onRequestCompleted(requestId, response);
+                    }
                     return response;
                 }
-            } catch (Throwable ex) {
+            } catch (final Throwable ex) {
                 if (callback != null) {
                     callback.onExceptionThrown(requestId, ex);
                     return null;
@@ -219,13 +213,17 @@ public class Network {
         }
 
         protected abstract T getData(InputStream stream) throws IOException;
+        protected abstract void uploadData(URLConnection connection) throws IOException;
     }
 
     protected static class StringRequest extends Request<String> {
 
+        private Map<String, String> data;
+
         public StringRequest(int requestId, URL url, String token, Map<String, String> data, String httpVerb,
-                             NetworkRequests.NetworkCallbacks<String> callback) {
-            super(requestId, url, token, data, httpVerb, callback);
+                             NetworkCallbacks<String> callback) {
+            super(requestId, url, token, httpVerb, callback);
+            this.data = data;
         }
 
         @Override
@@ -235,27 +233,81 @@ public class Network {
             reader.close();
             return responseMsg;
         }
+
+        @Override
+        protected void uploadData(URLConnection conn) throws IOException {
+            StringBuilder urlParams = new StringBuilder(data.size()*16);
+            for (Map.Entry<String, String> param : data.entrySet()) {
+                    urlParams.append(URLEncoder.encode(param.getKey(), "UTF-8")).append('=')
+                            .append(URLEncoder.encode(param.getValue(), "UTF-8")).append('&');
+            }
+            if (urlParams.length() > 0) {
+                conn.setDoOutput(true);
+                urlParams.deleteCharAt(urlParams.length() - 1); //trailing &
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                conn.setRequestProperty("Content-Length", String.valueOf(urlParams.length()));
+                OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+                writer.write(urlParams.toString());
+                writer.close();
+            }
+        }
     }
 
     protected static class FileRequest extends Request<File> {
 
-        private File dest;
+        private File saveTo;
+        private File data;
 
-        public FileRequest(int requestId, URL url, String token, Map<String, String> data, String httpVerb,
-                           NetworkRequests.NetworkCallbacks<File> callback, File dest) {
-            super(requestId, url, token, data, httpVerb, callback);
-            this.dest = dest;
+        public FileRequest(int requestId, URL url, String token, File data, String httpVerb,
+                           NetworkCallbacks<File> callback, File saveTo) {
+            super(requestId, url, token, httpVerb, callback);
+            this.saveTo = saveTo;
+            this.data = data;
         }
 
         @Override
         protected File getData(InputStream stream) throws IOException {
-            FileOutputStream out = new FileOutputStream(dest);
-            byte[] buff = new byte[BUFFER_SIZE];
-            int readBytes;
-            while((readBytes = stream.read(buff)) != -1) {
-                out.write(buff, 0, readBytes);
+            if(saveTo != null) {
+                FileOutputStream out  = new FileOutputStream(saveTo);
+                byte[]           buff = new byte[BUFFER_SIZE];
+                int              readBytes;
+                while ((readBytes = stream.read(buff)) != -1) {
+                    out.write(buff, 0, readBytes);
+                }
+                out.close();
+                stream.close();
             }
-            return dest;
+            return saveTo;
+        }
+
+        @Override
+        protected void uploadData(URLConnection connection) throws IOException {
+            if(data != null) {
+                connection.setRequestProperty("Content-Type", "application/octet-stream");
+                byte[] buff = new byte[BUFFER_SIZE];
+                int readBytes;
+                OutputStream out = connection.getOutputStream();
+                FileInputStream in = new FileInputStream(data);
+                while((readBytes = in.read(buff)) != -1) {
+                    out.write(buff, 0, readBytes);
+                }
+                out.close(); in.close();
+            }
+        }
+    }
+
+    public static class Status {
+        private static boolean online = true;
+        public static boolean isOnline() {return online;}
+        public static void setOnline() {online=true;}
+        public static void setOffline() {online=false;}
+        public static boolean checkNetworkStatus(Context context) {
+            ConnectivityManager cm =
+                    (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            return activeNetwork != null &&
+                                  activeNetwork.isConnectedOrConnecting();
         }
     }
 }

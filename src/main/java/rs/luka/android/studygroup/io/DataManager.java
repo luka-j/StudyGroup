@@ -6,14 +6,19 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.ImageView;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+import rs.luka.android.studygroup.exceptions.FileIOException;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
@@ -37,19 +42,35 @@ public class DataManager {
     public static final int LOADER_ID_QUESTIONS = 3;
     public static final int LOADER_ID_EXAMS = 4;
     public static final int LOADER_ID_LESSONS = 5;
+
     private static final String TAG                  = "studygroup.DataManager";
     private static final String PREFS_NAME           = "fetchHistory";
+
     private static final String LAST_FETCH_GROUPS    = "lfGroups";
     private static final String LAST_FETCH_COURSES   = "lfCourses";
     private static final String LAST_FETCH_LESSONS   = "lfLessons";
     private static final String LAST_FETCH_NOTES     = "lfNotes";
     private static final String LAST_FETCH_QUESTIONS = "lfQuestions";
     private static final String LAST_FETCH_EXAMS     = "lfExams";
-    private static final int   FETCH_TIMEOUT_GROUPS  = 1000 * 60 * 60 * 12; //1d
-    private static final int   FETCH_TIMEOUT_COURSES = 1000 * 60 * 60 * 6; //6h
-    private static final int   FETCH_TIMEOUT_LESSONS = 1000 * 60 * 60 * 2; //2h
-    private static final int   FETCH_TIMEOUT_ITEMS   = 1000 * 60 * 20; //20min
-    private static ExecutorService executor = Executors.newCachedThreadPool();
+
+    private static final String LAST_FETCH_GROUP_THUMB     = "lfGThumb";
+    private static final String LAST_FETCH_COURSE_THUMB    = "lfCThumb";
+    private static final String LAST_FETCH_NOTE_THUMBS     = "lfNThumbs";
+    private static final String LAST_FETCH_QUESTION_THUMBS = "lfQThumbs";
+
+    private static final int FETCH_TIMEOUT_THUMBS  = 1000 * 60 * 15; //15min
+    private static final int FETCH_TIMEOUT_GROUPS  = 1000 * 60 * 60 * 12; //12h
+    private static final int FETCH_TIMEOUT_COURSES = 1000 * 60 * 60 * 3; //3h
+    private static final int FETCH_TIMEOUT_LESSONS = 1000 * 60 * 30; //30min
+    private static final int FETCH_TIMEOUT_ITEMS   = 1000 * 60 * 5; //5min
+
+    private static final int THUMB_THRESHOLD = 250;
+
+    private static ThreadPoolExecutor executor;
+    static {
+        executor = new ThreadPoolExecutor(6, 6, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        executor.allowCoreThreadTimeOut(true);
+    }
 
     private static long getLastFetch(Context context, String key) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -120,8 +141,11 @@ public class DataManager {
                     Long groupId = Groups.createGroup(name, place, handler);
                     if(groupId != null) {
                         ID id = new ID(groupId);
+                        if (image != null && image.exists()) {
+                            Groups.updateImage(groupId, image, handler);
+                            LocalImages.saveGroupImage(id, image);
+                        }
                         Database.getInstance(c).insertGroup(id, name, place, image != null);
-                        if (image != null) { LocalImages.saveGroupImage(id, name, image); }
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Groups#createGroup returned null; exception should have been handled");
@@ -146,8 +170,10 @@ public class DataManager {
                     boolean success = Groups.updateGroup(id.getGroupIdValue(), name, place, exceptionHandler);
                     if(success) {
                         Database.getInstance(c).updateGroup(id, name, place, image != null);
-                        if(image != null)
-                            LocalImages.saveGroupImage(id, name, image);
+                        if(image != null) {
+                            Groups.updateImage(id.getGroupIdValue(), image, exceptionHandler);
+                            LocalImages.saveGroupImage(id, image);
+                        }
                         exceptionHandler.finished();
                     } else {
                         Log.w(TAG, "network.groups#updateGroup returned false; exception should have been handled");
@@ -159,7 +185,7 @@ public class DataManager {
         });
     }
 
-    public static void getCourses(final Context c, final long groupId, final LoaderManager.LoaderCallbacks<Cursor> callbacks,
+    public static void getCourses(final Context c, final Group group, final LoaderManager.LoaderCallbacks<Cursor> callbacks,
                                   final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
         final long currentTime = System.currentTimeMillis();
         executor.execute(new Runnable() {
@@ -167,7 +193,7 @@ public class DataManager {
             public void run() {
                 if((currentTime-getLastFetch(c, LAST_FETCH_COURSES)) > FETCH_TIMEOUT_COURSES) {
                     try {
-                        Courses.getCourses(c, groupId,exceptionHandler);
+                        Courses.getCourses(c, group,exceptionHandler);
                         exceptionHandler.finished();
                         writeLastFetch(c, LAST_FETCH_COURSES);
                     } catch (IOException e) {
@@ -189,14 +215,14 @@ public class DataManager {
         return Database.getInstance(c).queryCourse(id);
     }
 
-    public static void refreshCourses(final Context c, final long groupId,
+    public static void refreshCourses(final Context c, final Group group,
                                       final LoaderManager.LoaderCallbacks<Cursor> callbacks,
                                       final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Courses.getCourses(c, groupId, exceptionHandler);
+                    Courses.getCourses(c, group, exceptionHandler);
                     exceptionHandler.finished();
                     writeLastFetch(c, LAST_FETCH_COURSES);
                 } catch (IOException e) {
@@ -217,7 +243,10 @@ public class DataManager {
                     if(courseId != null) {
                         ID id = new ID(groupId, courseId);
                         Database.getInstance(c).insertCourse(id, subject, teacher, year, image!=null);
-                        if (image != null) { LocalImages.saveCourseImage(id, subject, image); }
+                        if (image != null) {
+                            Courses.updateImage(courseId, image, handler);
+                            LocalImages.saveCourseImage(id, image);
+                        }
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Courses#createCourse returned null; exception should have been handled");
@@ -238,7 +267,10 @@ public class DataManager {
                     boolean success = Courses.updateCourse(id.getCourseIdValue(), subject, teacher, year, handler);
                     if(success) {
                         Database.getInstance(c).updateCourse(id, subject, teacher, year, image!=null);
-                        if(image != null) LocalImages.saveCourseImage(id, subject, image);
+                        if(image != null) {
+                            Courses.updateImage(id.getCourseIdValue(), image, handler);
+                            LocalImages.saveCourseImage(id, image);
+                        }
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Courses#updateCourse returned false; exception should have been handled");
@@ -390,8 +422,10 @@ public class DataManager {
                     if(noteId != null) {
                         ID id = new ID(courseId, noteId);
                         Database.getInstance(c).insertNote(id, lesson, text, image!=null, audio!=null);
-                        if (image != null)
-                            LocalImages.saveItemImage(id, courseName, lesson, image);
+                        if (image != null) {
+                            Notes.updateImage(noteId, image, handler);
+                            LocalImages.saveNoteImage(id, courseName, lesson, image); //erases temp
+                        }
                         if (audio != null)
                             LocalAudio.saveNoteAudio(id, courseName, lesson, audio);
                         handler.finished();
@@ -414,8 +448,10 @@ public class DataManager {
                     boolean success = Notes.updateNote(id.getItemIdValue(), lesson, text, handler);
                     if(success) {
                         Database.getInstance(c).updateNote(id, lesson, text, imageFile!=null, audioFile!=null);
-                        if(imageFile != null)
-                            LocalImages.saveItemImage(id, getCourse(c, id).getSubject(), lesson, imageFile);
+                        if(imageFile != null) {
+                            Notes.updateImage(id.getItemIdValue(), imageFile, handler);
+                            LocalImages.saveNoteImage(id, getCourse(c, id).getSubject(), lesson, imageFile);
+                        }
                         if(audioFile != null)
                             LocalAudio.saveNoteAudio(id, getCourse(c, id).getSubject(), lesson, audioFile);
                         handler.finished();
@@ -454,7 +490,10 @@ public class DataManager {
             public void run() {
                 if((currentTime-getLastFetch(c, LAST_FETCH_QUESTIONS)) > FETCH_TIMEOUT_ITEMS) {
                     try {
-                        Questions.getQuestions(c, courseId, lesson, exceptionHandler);
+                        if(!lesson.startsWith(Question.EXAM_PREFIX))
+                            Questions.getQuestions(c, courseId, lesson, exceptionHandler);
+                        else
+                            Questions.getExamQuestions(c, courseId, lesson, exceptionHandler);
                         writeLastFetch(c, LAST_FETCH_QUESTIONS);
                         exceptionHandler.finished();
                     } catch (IOException e) {
@@ -498,7 +537,8 @@ public class DataManager {
                         ID id = new ID(courseId, questionId);
                         Database.getInstance(c).insertQuestion(id, lesson, question, answer, image!=null);
                         if (image != null) {
-                            LocalImages.saveItemImage(id, courseName, lesson, image);
+                            Questions.updateImage(questionId, image, handler);
+                            LocalImages.saveQuestionImage(id, courseName, lesson, image);
                         }
                         handler.finished();
                     } else {
@@ -526,8 +566,10 @@ public class DataManager {
                     boolean success = Questions.updateQuestion(id.getItemIdValue(), lesson, question, answer, handler);
                     if(success) {
                         Database.getInstance(c).updateQuestion(id, lesson, question, answer, imageFile!=null);
-                        if(imageFile != null)
-                            LocalImages.saveItemImage(id, getCourse(c, id).getSubject(), lesson, imageFile);
+                        if(imageFile != null) {
+                            Questions.updateImage(id.getItemIdValue(), imageFile, handler);
+                            LocalImages.saveQuestionImage(id, getCourse(c, id).getSubject(), lesson, imageFile);
+                        }
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Questions#updateQuestion returned false; exception should have been handled");
@@ -545,7 +587,7 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    boolean success = Notes.hideNote(questionId.getItemIdValue(), exceptionHandler);
+                    boolean success = Questions.hideQuestion(questionId.getItemIdValue(), exceptionHandler);
                     exceptionHandler.finished();
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);
@@ -642,7 +684,7 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    boolean success = Notes.hideNote(id.getItemIdValue(), exceptionHandler);
+                    boolean success = Exams.hideExam(id.getItemIdValue(), exceptionHandler);
                     exceptionHandler.finished();
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);
@@ -659,18 +701,205 @@ public class DataManager {
     }
 
 
-
-
-    public static Bitmap getImage(ID id, String name, String lessonName, int scaleTo) {
-        if (id.isGroupId()) {
-            return LocalImages.getGroupImage(id, name, scaleTo);
-        } else if (id.isCourseId()) {
-            return LocalImages.getCourseImage(id, name, scaleTo);
-        } else if (id.isItemId()) {
-            return LocalImages.getItemImage(name, lessonName, id, scaleTo);
-        }
-        throw new IllegalArgumentException("Invalid id: " + id.toString());
+    public static void getGroupImage(final Context c, final ID id, final int scaleTo,
+                                     final NetworkExceptionHandler handler, final ImageView insertInto) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    long currentTime = System.currentTimeMillis();
+                    boolean exists = LocalImages.groupImageExists(id);
+                    if(!exists || currentTime - getLastFetch(c, LAST_FETCH_GROUP_THUMB) > FETCH_TIMEOUT_THUMBS) {
+                        Groups.loadImage(id.getGroupIdValue(), scaleTo, LocalImages.generateGroupImageFile(id), handler);
+                        writeLastFetch(c, LAST_FETCH_GROUP_THUMB);
+                    }
+                    final Bitmap image = LocalImages.getGroupImage(id, scaleTo);
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            insertInto.setImageBitmap(image);
+                        }
+                    });
+                } catch (IOException e) {
+                    handler.handleIOException(e);
+                }
+            }
+        });
     }
+
+    public static void getCourseImage(final Context c, final ID id, final int scaleTo,
+                                      final NetworkExceptionHandler handler, final ImageView insertInto) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    long currentTime = System.currentTimeMillis();
+                    boolean exists = LocalImages.courseImageExists(id);
+                    if(!exists || currentTime - getLastFetch(c, LAST_FETCH_COURSE_THUMB) > FETCH_TIMEOUT_THUMBS) {
+                        Courses.loadImage(id.getCourseIdValue(),
+                                          scaleTo,
+                                          LocalImages.generateCourseImageFile(id),
+                                          handler);
+                        writeLastFetch(c, LAST_FETCH_COURSE_THUMB);
+                    }
+                    final Bitmap image = LocalImages.getCourseImage(id, scaleTo);
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            insertInto.setImageBitmap(image);
+                        }
+                    });
+                } catch (IOException e) {
+                    handler.handleIOException(e);
+                }
+            }
+        });
+    }
+
+    public static void getNoteImage(final Context c, final ID id, final String courseName, final String lessonName,
+                                    final int scaleTo, final NetworkExceptionHandler handler, final ImageView insertInto) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                if(scaleTo > THUMB_THRESHOLD)
+                    getNoteFullsizeImage(id, courseName, lessonName, scaleTo, handler, insertInto);
+                else
+                    getNoteThumb(c, id, courseName, lessonName, scaleTo, handler, insertInto);
+            }
+        });
+    }
+
+    private static void getNoteFullsizeImage(final ID id, final String courseName, final String lessonName,
+                                             final int scaleTo, final NetworkExceptionHandler handler,
+                                             final ImageView insertInto) {
+        try {
+            boolean exists = LocalImages.noteImageExists(courseName, lessonName, id);
+            if(!exists) {
+                Notes.loadImage(id.getItemIdValue(),
+                                LocalImages.generateNoteImageFile(courseName, lessonName, id),
+                                handler);
+            }
+            final Bitmap image = LocalImages.getNoteImage(courseName, lessonName, id, scaleTo);
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    insertInto.setImageBitmap(image);
+                }
+            });
+        } catch (IOException e) {
+            handler.handleIOException(e);
+        }
+    }
+
+
+    public static void getNoteThumb(final Context c, final ID id, final String courseName, final String lessonName,
+                                    final int scaleTo, final NetworkExceptionHandler exceptionHandler,
+                                    final ImageView insertInto) {
+        try {
+            long currentTime = System.currentTimeMillis();
+            boolean exists = LocalImages.noteThumbExists(courseName, lessonName, id);
+            final Bitmap image;
+            if(!exists) {
+                Notes.loadThumb(id.getItemIdValue(),
+                                scaleTo,
+                                LocalImages.generateNoteThumbFile(courseName, lessonName, id),
+                                exceptionHandler);
+                writeLastFetch(c, LAST_FETCH_NOTE_THUMBS);
+            } else if(currentTime - getLastFetch(c, LAST_FETCH_NOTE_THUMBS) > FETCH_TIMEOUT_THUMBS) {
+                File current = LocalImages.generateNoteThumbFile(courseName, lessonName, id);
+                File old = LocalImages.invalidateThumb(current);
+                Notes.loadThumb(id.getItemIdValue(), scaleTo, current, exceptionHandler);
+                boolean same = LocalImages.thumbsEqual(old, current);
+                if(!old.delete()) throw new FileIOException(old, "Cannot delete");
+                if(!same) {
+                    LocalImages.deleteNoteImage(courseName, lessonName, id);
+                }
+                writeLastFetch(c, LAST_FETCH_NOTE_THUMBS);
+            }
+            image = LocalImages.getNoteThumb(courseName, lessonName, id, scaleTo);
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    insertInto.setImageBitmap(image);
+                }
+            });
+        } catch (IOException e) {
+            exceptionHandler.handleIOException(e);
+        }
+    }
+
+
+    public static void getQuestionImage(final Context c, final ID id, final String courseName, final String lessonName,
+                                    final int scaleTo, final NetworkExceptionHandler handler, final ImageView insertInto) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                if(scaleTo > THUMB_THRESHOLD)
+                    getQuestionFullsizeImage(id, courseName, lessonName, scaleTo, handler, insertInto);
+                else
+                    getQuestionThumb(c, id, courseName, lessonName, scaleTo, handler, insertInto);
+            }
+        });
+    }
+
+    private static void getQuestionFullsizeImage(final ID id, final String courseName, final String lessonName,
+                                             final int scaleTo, final NetworkExceptionHandler handler,
+                                             final ImageView insertInto) {
+        try {
+            boolean exists = LocalImages.questionImageExists(courseName, lessonName, id);
+            if(!exists) {
+                Questions.loadImage(id.getItemIdValue(),
+                                LocalImages.generateQuestionImageFile(courseName, lessonName, id),
+                                handler);
+            }
+            final Bitmap image = LocalImages.getQuestionImage(courseName, lessonName, id, scaleTo);
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    insertInto.setImageBitmap(image);
+                }
+            });
+        } catch (IOException e) {
+            handler.handleIOException(e);
+        }
+    }
+
+    public static void getQuestionThumb(final Context c, final ID id, final String courseName, final String lessonName,
+                                    final int scaleTo, final NetworkExceptionHandler exceptionHandler,
+                                    final ImageView insertInto) {
+        try {
+            long currentTime = System.currentTimeMillis();
+            boolean exists = LocalImages.questionThumbExists(courseName, lessonName, id);
+            final Bitmap image;
+            if(!exists) {
+                Questions.loadThumb(id.getItemIdValue(),
+                                    scaleTo,
+                                    LocalImages.generateQuestionThumbFile(courseName, lessonName, id),
+                                    exceptionHandler);
+                writeLastFetch(c, LAST_FETCH_QUESTION_THUMBS);
+            } else if(currentTime - getLastFetch(c, LAST_FETCH_QUESTION_THUMBS) > FETCH_TIMEOUT_THUMBS) {
+                File current = LocalImages.generateQuestionThumbFile(courseName, lessonName, id);
+                File old = LocalImages.invalidateThumb(current);
+                Questions.loadThumb(id.getItemIdValue(), scaleTo, current, exceptionHandler);
+                boolean same = LocalImages.thumbsEqual(old, current);
+                if(!old.delete()) throw new FileIOException(old, "Cannot delete");
+                if(!same) {
+                    LocalImages.deleteQuestionImage(courseName, lessonName, id);
+                }
+                writeLastFetch(c, LAST_FETCH_QUESTION_THUMBS);
+            }
+            image = LocalImages.getQuestionThumb(courseName, lessonName, id, scaleTo);
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    insertInto.setImageBitmap(image);
+                }
+            });
+        } catch (IOException e) {
+            exceptionHandler.handleIOException(e);
+        }
+    }
+
 
     public static File getAudio(ID noteId, String courseName, String lessonName) {
         return LocalAudio.getNoteAudio(noteId, courseName, lessonName);

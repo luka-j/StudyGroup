@@ -19,6 +19,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
+
 import java.io.File;
 
 import rs.luka.android.studygroup.R;
@@ -28,6 +30,8 @@ import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 
 /**
@@ -42,6 +46,7 @@ public class AddGroupActivity extends AppCompatActivity {
     private TextInputLayout placeTil;
     private CardView        add;
     private ImageView       image;
+    private CircularProgressView progressView;
     private File imageFile = new File(LocalImages.APP_IMAGE_DIR, "groupimage.temp");
     private Group   group;
     private boolean editing;
@@ -55,7 +60,23 @@ public class AddGroupActivity extends AppCompatActivity {
         exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
             @Override
             public void finishedSuccessfully() {
+                super.finishedSuccessfully();
                 AddGroupActivity.this.onBackPressed();
+            }
+            @Override
+            public void handleOffline() {
+                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
+                                       getString(R.string.error_offline_edit_text))
+                          .show(getSupportFragmentManager(), "");
+                Network.Status.setOffline();
+                progressView.setVisibility(View.GONE);
+                add.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void finishedUnsuccessfully() {
+                super.finishedUnsuccessfully();
+                progressView.setVisibility(View.GONE);
+                add.setVisibility(View.VISIBLE);
             }
         };
         group = getIntent().getParcelableExtra(GroupActivity.EXTRA_GROUP);
@@ -73,11 +94,14 @@ public class AddGroupActivity extends AppCompatActivity {
         placeTil = (TextInputLayout) findViewById(R.id.add_group_place_til);
         add = (CardView) findViewById(R.id.button_add);
         image = (ImageView) findViewById(R.id.add_group_image);
+        progressView = (CircularProgressView) findViewById(R.id.add_group_cpv);
         if (editing) {
             name.setText(group.getName());
             place.setText(group.getPlace());
             if (group.hasImage()) {
-                image.setImageBitmap(group.getImage(getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
+                group.getImage(this,
+                               getResources().getDimensionPixelOffset(R.dimen.addview_image_size),
+                               exceptionHandler, image);
             }
             name.setSelection(name.getText().length());
         }
@@ -164,6 +188,8 @@ public class AddGroupActivity extends AppCompatActivity {
             } else {
                 DataManager.addGroup(this, nameStr, placeStr, imageFile, exceptionHandler);
             }
+            add.setVisibility(View.GONE);
+            progressView.setVisibility(View.VISIBLE);
         }
     }
 

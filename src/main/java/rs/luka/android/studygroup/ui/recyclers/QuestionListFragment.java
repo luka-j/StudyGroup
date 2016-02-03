@@ -283,8 +283,10 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
             questionTextView.setText(question.getQuestion());
             answerTextView.setText(question.getAnswer());
             if (this.question.hasImage()) {
-                thumbnail.setImageBitmap(question.getImage(course.getSubject(),
-                                                           getResources().getDimensionPixelSize(R.dimen.list_item_thumbnail_size)));
+                question.getImage(getContext(),
+                                  course.getSubject(),
+                                  getResources().getDimensionPixelSize(R.dimen.list_item_thumbnail_size),
+                                  exceptionHandler, thumbnail);
             } else {
                 thumbnail.setImageBitmap(null);
             }

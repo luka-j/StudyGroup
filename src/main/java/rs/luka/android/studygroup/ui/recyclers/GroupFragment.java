@@ -27,6 +27,8 @@ import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
+import java.io.IOException;
+
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
@@ -35,17 +37,17 @@ import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.network.Courses;
 import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
 import rs.luka.android.studygroup.ui.Snackbar;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 
 /**
  * Created by Luka on 7/1/2015.
  */
 public class GroupFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
-                                                       NetworkRequests.NetworkCallbacks<String> {
+                                                       Network.NetworkCallbacks<String> {
 
     protected static final int    REQUEST_EDIT_COURSE   = 1;
     protected static final int      REQUEST_REMOVE_COURSE = 2; //network request
@@ -163,7 +165,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     protected void refresh() {
         Log.i(TAG, "refreshing fragment");
         swipe.setRefreshing(true);
-        DataManager.refreshCourses(getContext(), group.getIdValue(), this, getActivity().getLoaderManager(),
+        DataManager.refreshCourses(getContext(), group, this, getActivity().getLoaderManager(),
                                    exceptionHandler);
     }
 
@@ -212,7 +214,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             adapter = new CourseAdapter(getActivity(), null);
             courseRecyclerView.setAdapter(adapter);
         }
-        DataManager.getCourses(getContext(), group.getIdValue(), this, getActivity().getLoaderManager(),
+        DataManager.getCourses(getContext(), group, this, getActivity().getLoaderManager(),
                                exceptionHandler);
     }
 
@@ -263,8 +265,21 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onExceptionThrown(int id, Throwable ex) {
-        ex.printStackTrace();
-        //todo
+        if(ex instanceof Error)
+            throw new Error(ex);
+        if(ex instanceof IOException)
+            exceptionHandler.handleIOException((IOException)ex);
+        else {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                           getString(R.string.error_unknown_ex_text))
+                              .show(getFragmentManager(), "");
+                }
+            });
+            Log.e(TAG, "Unknown Throwable caught", ex);
+        }
     }
 
     public interface Callbacks {
@@ -350,7 +365,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                                                               course.getYear().toString()));
             } else { yearTextView.setText(""); }
             if (course.hasImage()) {
-                imageView.setImageBitmap(course.getImage(getResources().getDimensionPixelSize(R.dimen.card_image_size)));
+                course.getImage(getContext(), getResources().getDimensionPixelSize(R.dimen.card_image_size), exceptionHandler, imageView);
             } else {
                 imageView.setImageResource(R.drawable.placeholder);
             }

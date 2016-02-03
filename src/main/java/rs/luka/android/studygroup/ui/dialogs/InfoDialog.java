@@ -53,13 +53,13 @@ public class InfoDialog extends DialogFragment {
                           @Override
                           public void onClick(@NonNull MaterialDialog materialDialog,
                                               @NonNull DialogAction dialogAction) {
-                              if(callbacks!=null) callbacks.onErrorDialogClosed(InfoDialog.this);
+                              if(callbacks!=null) callbacks.onInfoDialogClosed(InfoDialog.this);
                           }
                       })
                       .show();
     }
 
     public interface Callbacks {
-        void onErrorDialogClosed(InfoDialog dialog);
+        void onInfoDialogClosed(InfoDialog dialog);
     }
 }

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/activity_vertical_margin"
+    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+    android:layout_marginRight="@dimen/activity_horizontal_margin">
+
+    <TextView
+        android:id="@+id/header_label_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/name"
+        android:textSize="@dimen/list_item_text_size"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"/>
+
+    <TextView
+        android:id="@+id/header_label_member"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/role_member_abbrev"
+        android:textSize="@dimen/list_item_text_size"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"/>
+
+    <TextView
+        android:id="@+id/header_label_mod"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/role_mod"
+        android:textSize="@dimen/list_item_text_size"
+        android:layout_toLeftOf="@id/header_label_member"
+        android:layout_toStartOf="@id/header_label_member"
+        android:paddingLeft="@dimen/memberlist_header_padding"
+        android:paddingRight="@dimen/memberlist_header_padding"/>
+
+    <TextView
+        android:id="@+id/header_label_owner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/role_owner_abbrev"
+        android:textSize="@dimen/list_item_text_size"
+        android:layout_toLeftOf="@id/header_label_mod"
+        android:layout_toStartOf="@id/header_label_mod"/>
+</RelativeLayout>

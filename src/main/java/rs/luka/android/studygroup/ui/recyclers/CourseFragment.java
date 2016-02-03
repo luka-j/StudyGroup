@@ -22,6 +22,8 @@ import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
+import java.io.IOException;
+
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
@@ -30,16 +32,16 @@ import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.network.Lessons;
 import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
 import rs.luka.android.studygroup.ui.Snackbar;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 
 /**
  * Created by luka on 3.7.15..
  */
 public class CourseFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
-                                                        NetworkRequests.NetworkCallbacks<String> {
+                                                        Network.NetworkCallbacks<String> {
 
     protected static final int REQUEST_REMOVE_LESSON = 1;
     private static final int REQUEST_SHOW_ALL      = 0;
@@ -230,8 +232,21 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onExceptionThrown(int id, Throwable ex) {
-        ex.printStackTrace();
-        //todo
+        if(ex instanceof Error)
+            throw new Error(ex);
+        if(ex instanceof IOException)
+            exceptionHandler.handleIOException((IOException)ex);
+        else {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                           getString(R.string.error_unknown_ex_text))
+                            .show(getFragmentManager(), "");
+                }
+            });
+            Log.e(TAG, "Unknown Throwable caught", ex);
+        }
     }
 
     public interface Callbacks {

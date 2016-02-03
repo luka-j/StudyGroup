@@ -23,7 +23,7 @@ public class UserManager {
     private static final String KEY_LOGIN_EMAIL = "email";
     private static final String KEY_LOGIN_PASSWORD = "pass";
 
-    public static void register(int requestId, String email, String username, String password, NetworkRequests.NetworkCallbacks callback) {
+    public static void register(int requestId, String email, String username, String password, Network.NetworkCallbacks callback) {
         Map<String, String> params = new HashMap<>(3);
         params.put(KEY_REGISTER_USERNAME, username);
         params.put(KEY_REGISTER_PASSWORD, password);
@@ -36,7 +36,7 @@ public class UserManager {
         }
     }
 
-    public static void login(int requestId, String email, String password, NetworkRequests.NetworkCallbacks callback) {
+    public static void login(int requestId, String email, String password, Network.NetworkCallbacks callback) {
         Map<String, String> params = new HashMap<>(2);
         params.put(KEY_LOGIN_EMAIL, email);
         params.put(KEY_LOGIN_PASSWORD, password);
@@ -48,13 +48,16 @@ public class UserManager {
         }
     }
 
-    public static void refreshToken(int requestId, String token, NetworkRequests.NetworkCallbacks callback) {
+    public static URL getRefreshTokenUrl(String token) {
         try {
-            URL refreshUrl = new URL(Network.getDomain(), USERS + token + "/refresh");
-            NetworkRequests.postDataAsync(requestId, refreshUrl, NetworkRequests.emptyMap, callback);
-        } catch (MalformedURLException ex) {
-            throw new RuntimeException(ex); //should NOT happen
+            return new URL(Network.getDomain(), USERS + token + "/refresh");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
         }
+    }
+    public static void refreshToken(int requestId, String token, Network.NetworkCallbacks<String> callback) {
+        URL refreshUrl = getRefreshTokenUrl(token);
+        NetworkRequests.postDataAsync(requestId, refreshUrl, NetworkRequests.emptyMap, callback);
     }
 
     /**
@@ -64,17 +67,32 @@ public class UserManager {
      */
     public static void handleTokenError(Network.Response response)
             throws NotLoggedInException {
-        if(response.errorMessage.equals("Expired")) {
-            try {
-                URL refreshUrl = new URL(Network.getDomain(), USERS + User.getToken() + "/refresh");
-                User.getLoggedInUser().refreshToken(NetworkRequests.requestPostData(refreshUrl, NetworkRequests.emptyMap).responseData);
-                Log.i(TAG, "token refreshed");
-            } catch (MalformedURLException ex) {
-                throw new RuntimeException(ex); //should NOT happen
-            } catch (IOException ex) {
-                ex.printStackTrace(); //todo
-            }
-        } else
-            throw new NotLoggedInException(UserManager.class, "handleTokenError(Response): server token error");
+        if(User.getLoggedInUser() == null) {
+            User.recoverUser();
+        } else {
+            if ("Expired".equals(response.errorMessage)) {
+                try {
+                    URL refreshUrl = new URL(Network.getDomain(), USERS + User.getToken() + "/refresh");
+                    User.getLoggedInUser()
+                        .refreshToken(NetworkRequests.requestPostData(refreshUrl,
+                                                                      NetworkRequests.emptyMap).responseData);
+                    Log.i(TAG, "token refreshed");
+                } catch (MalformedURLException ex) {
+                    throw new RuntimeException(ex); //should NOT happen
+                } catch (IOException ex) {
+                    ex.printStackTrace(); //todo
+                }
+            } else
+                throw new NotLoggedInException(UserManager.class, "handleTokenError(Response): server token error");
+        }
+    }
+
+    public static void getMyMembership(int requestId, long groupId, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            URL url = new URL(Network.getDomain(), "groups/" + groupId + "/me");
+            NetworkRequests.getDataAsync(requestId, url, callbacks);
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

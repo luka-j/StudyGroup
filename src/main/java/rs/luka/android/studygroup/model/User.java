@@ -1,8 +1,10 @@
 package rs.luka.android.studygroup.model;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 
+import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.io.DataManager;
 
 /**
@@ -16,25 +18,31 @@ public class User {
     private String name;
     private String   token;
     private long id;
-    private SharedPreferences prefs;
+    private int permission;
+    private static SharedPreferences prefs; //todo fix mess
 
     public User(String token, SharedPreferences prefs) {
         this.token = token;
-        this.prefs = prefs;
+        User.prefs = prefs; //todo really?
     }
 
-    public User(long id, String name) {
+    public User(long id, String name, int permission) {
         this.name = name;
         this.id = id;
+        this.permission = permission;
     }
 
     public static boolean hasSavedToken(SharedPreferences prefs) {
         return prefs.contains(PREFS_KEY_TOKEN);
     }
 
+    public static void recoverUser() {
+        instance = new User(prefs.getString(PREFS_KEY_TOKEN, null), prefs); //todo I've said it once, and I'll say it again: fix mess
+    }
+
     public static void clearToken() {
-        if(instance.prefs != null)
-            instance.prefs.edit().remove(PREFS_KEY_TOKEN).apply();
+        if(prefs != null)
+            prefs.edit().remove(PREFS_KEY_TOKEN).apply();
         instance.token=null;
     }
     public static void instantiateUser(String token, SharedPreferences prefs) {
@@ -50,7 +58,30 @@ public class User {
     public static String getToken() {
         if(instance != null)
             return instance.token;
+        if(prefs != null && hasSavedToken(prefs)) {
+            instantiateUser(prefs.getString(PREFS_KEY_TOKEN, null), prefs);
+            return instance.token;
+        }
         return null;
+    }
+
+    public long getId() {
+        return id;
+    }
+    public static void setMyId(long id) {
+        instance.id = id;
+    }
+
+    public String getRoleDescription(Context c) {
+        if(permission >= Group.PERM_OWNER)
+            return c.getString(R.string.role_owner);
+        if(permission >= Group.PERM_MODIFY)
+            return c.getString(R.string.role_mod);
+        if(permission >= Group.PERM_WRITE)
+            return c.getString(R.string.role_member);
+        if(permission >= Group.PERM_REQUEST_WRITE)
+            return c.getString(R.string.role_request);
+        return c.getString(R.string.role_stranger);
     }
 
     public static User getLoggedInUser() {
@@ -77,4 +108,9 @@ public class User {
     public boolean hasImage() {
         return DataManager.userImageExists(id);
     }
+
+    public int getPermission() {
+        return permission;
+    }
+    public void setPermission(int permission) {this.permission = permission;}
 }

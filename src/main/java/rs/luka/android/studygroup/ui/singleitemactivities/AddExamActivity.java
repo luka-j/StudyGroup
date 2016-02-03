@@ -15,6 +15,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.text.DateFormat;
@@ -28,6 +29,8 @@ import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 import rs.luka.android.studygroup.ui.recyclers.SelectCourseActivity;
 
@@ -57,6 +60,7 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
     private CardView        date;
     private TextView        dateText;
     private CardView        submit;
+    private CircularProgressView progressView;
 
     private boolean goBack;
     private boolean editing;
@@ -70,7 +74,23 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
         exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
             @Override
             public void finishedSuccessfully() {
+                super.finishedSuccessfully();
                 onBackPressed();
+            }
+            @Override
+            public void handleOffline() {
+                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
+                                       getString(R.string.error_offline_edit_text))
+                          .show(getSupportFragmentManager(), "");
+                Network.Status.setOffline();
+                progressView.setVisibility(View.GONE);
+                submit.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void finishedUnsuccessfully() {
+                super.finishedUnsuccessfully();
+                progressView.setVisibility(View.GONE);
+                submit.setVisibility(View.VISIBLE);
             }
         };
 
@@ -148,6 +168,7 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
                                                                                   : new Date(selectedDate.getTimeInMillis())));
         courseEdit = (EditText) findViewById(R.id.add_exam_course_input);
         lessonEdit = (EditText) findViewById(R.id.add_exam_lesson_input);
+        progressView = (CircularProgressView) findViewById(R.id.add_exam_cpv);
         lessonEdit.requestFocus();
         courseEdit.setText(course.getSubject());
         classEdit.setText(course.getYear() == null ? "" : course.getYear().toString());
@@ -224,6 +245,8 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
                                selectedDate == null ? new GregorianCalendar() : selectedDate,
                                 exceptionHandler);
             }
+            submit.setVisibility(View.GONE);
+            progressView.setVisibility(View.VISIBLE);
         }
     }
 

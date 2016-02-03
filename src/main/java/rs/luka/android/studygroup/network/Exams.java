@@ -111,6 +111,15 @@ public class Exams {
         }
     }
 
+    public static void getEdits(int requestId, long examId, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            URL url = new URL(Network.getDomain(), EXAMS + examId + "/edits");
+            NetworkRequests.getDataAsync(requestId, url, callbacks);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static boolean hideExam(long examId, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
@@ -127,7 +136,7 @@ public class Exams {
         }
     }
 
-    public static void showAllExams(int requestId, long groupId, NetworkRequests.NetworkCallbacks<String> callbacks) {
+    public static void showAllExams(int requestId, long groupId, Network.NetworkCallbacks<String> callbacks) {
         try {
             URL                 url      = new URL(Network.getDomain(), GROUP + groupId + "/showAllExams");
             NetworkRequests.putDataAsync(requestId, url, NetworkRequests.emptyMap, callbacks);
@@ -136,7 +145,7 @@ public class Exams {
         }
     }
 
-    public static void removeExam(int requestId, long examId, NetworkRequests.NetworkCallbacks<String> callbacks) {
+    public static void removeExam(int requestId, long examId, Network.NetworkCallbacks<String> callbacks) {
         try {
             URL url = new URL(Network.getDomain(), EXAMS + examId);
             NetworkRequests.deleteDataAsync(requestId, url, callbacks);

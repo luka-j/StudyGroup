@@ -6,14 +6,17 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
+import java.io.IOException;
+
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.network.UserManager;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.RootActivity;
@@ -21,10 +24,11 @@ import rs.luka.android.studygroup.ui.recyclers.RootActivity;
 /**
  * Created by luka on 30.12.15..
  */
-public class RegisterActivity extends AppCompatActivity implements NetworkRequests.NetworkCallbacks<String> {
+public class RegisterActivity extends AppCompatActivity implements Network.NetworkCallbacks<String> {
     private static final String TAG_DIALOG_UNEXPECTED_ERROR = "studygroup.dialog.unexpectederror";
-    private static final int REQUEST_REGISTER = 0;
-    private static final int REQUEST_LOGIN = 1;
+    private static final int REQUEST_REGISTER               = 0;
+    private static final int REQUEST_LOGIN                  = 1;
+    private static final String TAG                         = "RegisterActivity";
 
     private boolean requestInProgress = false;
     private CardView register;
@@ -121,8 +125,29 @@ public class RegisterActivity extends AppCompatActivity implements NetworkReques
 
     @Override
     public void onExceptionThrown(int id, Throwable ex) {
-        //todo generic exception handling
-        ex.printStackTrace();
+        if(ex instanceof Error)
+            throw new Error(ex);
+        NetworkExceptionHandler handler = new NetworkExceptionHandler.DefaultHandler(this) {
+            @Override
+            public void handleOffline() {
+                InfoDialog.newInstance(getString(R.string.error_offline_register_title),
+                                       getString(R.string.error_offline_register_text))
+                        .show(getSupportFragmentManager(), "");
+            }
+        };
+        if(ex instanceof IOException)
+            handler.handleIOException((IOException)ex);
+        else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                           getString(R.string.error_unknown_ex_text))
+                              .show(getSupportFragmentManager(), "");
+                }
+            });
+            Log.e(TAG, "Unknown Throwable caught", ex);
+        }
         requestInProgress = false;
     }
 }

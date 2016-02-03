@@ -97,7 +97,7 @@ public class Lessons {
         }
     }
 
-    public static void showAllLessons(int requestId, long courseId, NetworkRequests.NetworkCallbacks<String> callbacks) {
+    public static void showAllLessons(int requestId, long courseId, Network.NetworkCallbacks<String> callbacks) {
         try {
             URL                 url      = new URL(Network.getDomain(), COURSE + courseId + "/showAllLessons");
             NetworkRequests.putDataAsync(requestId, url, NetworkRequests.emptyMap, callbacks);
@@ -107,7 +107,7 @@ public class Lessons {
     }
 
     public static void removeLesson(int requestId, long courseId, String name,
-                                    NetworkRequests.NetworkCallbacks<String> callbacks) {
+                                    Network.NetworkCallbacks<String> callbacks) {
         try {
             URL url = new URL(Network.getDomain(), COURSE + courseId + LESSON + URLEncoder.encode(name, "UTF-8"));
             NetworkRequests.deleteDataAsync(requestId, url, callbacks);

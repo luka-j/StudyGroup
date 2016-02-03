@@ -1,18 +1,21 @@
 package rs.luka.android.studygroup.model;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.widget.ImageView;
 
 import java.io.File;
+import java.io.IOException;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.network.Notes;
 
 /**
  * Created by luka on 2.7.15..
@@ -77,12 +80,13 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
      * @param courseName ime predmeta (potrebno za folder)
      * @return putanju do slike
      */
-    public String getImagePath(String courseName) {
-        return LocalImages.getItemImagePath(courseName, lesson, id);
+    public String getImagePath(String courseName) throws IOException {
+        return LocalImages.getNoteImagePath(courseName, lesson, id);
     }
 
-    public Bitmap getImage(String courseName, int widerDimension) {
-        return DataManager.getImage(id, courseName, lesson, widerDimension);
+    public void getImage(final Context context, String courseName, int widerDimension,
+                         NetworkExceptionHandler exceptionHandler, ImageView view) {
+        DataManager.getNoteImage(context, id, courseName, lesson, widerDimension, exceptionHandler, view);
     }
 
     public void hide(Context c, NetworkExceptionHandler exceptionHandler) {
@@ -97,9 +101,8 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
         DataManager.editNote(c, id, lesson, text, imageFile, audioFile, handler);
     }
 
-    public String getHistory(Context c) {
-        // TODO: 20.9.15.
-        return null;
+    public void getHistory(int requestId, Network.NetworkCallbacks<String> callbacks) {
+        Notes.getEdits(requestId, id.getItemIdValue(), callbacks);
     }
 
     @Override

@@ -6,9 +6,11 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
@@ -18,9 +20,9 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.NetworkRequests;
 import rs.luka.android.studygroup.network.Questions;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddQuestionActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.QuestionPagerActivity;
 
@@ -29,8 +31,8 @@ import rs.luka.android.studygroup.ui.singleitemactivities.QuestionPagerActivity;
  */
 public class ExamQuestionsActivity extends SingleFragmentActivity
         implements QuestionListFragment.QuestionCallbacks,
-                   NetworkRequests.NetworkCallbacks {
-
+                   Network.NetworkCallbacks {
+    private static final String TAG = "ExamQuestionsActivity";
 
     public static final  String EXTRA_IMMUTABLE_LESSON = "canEditLessonName";
     public static final  String EXTRA_LESSON_REAL_NAME = "realLesson";
@@ -160,7 +162,20 @@ public class ExamQuestionsActivity extends SingleFragmentActivity
 
     @Override
     public void onExceptionThrown(int id, Throwable ex) {
-        ex.printStackTrace();
-        //todo
+        if(ex instanceof Error)
+            throw new Error(ex);
+        if(ex instanceof IOException)
+            new NetworkExceptionHandler.DefaultHandler(this).handleIOException((IOException)ex);
+        else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                           getString(R.string.error_unknown_ex_text))
+                              .show(getSupportFragmentManager(), "");
+                }
+            });
+            Log.e(TAG, "Unknown Throwable caught", ex);
+        }
     }
 }

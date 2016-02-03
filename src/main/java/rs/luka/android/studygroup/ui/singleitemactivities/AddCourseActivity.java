@@ -19,6 +19,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
+
 import java.io.File;
 
 import rs.luka.android.studygroup.R;
@@ -28,6 +30,8 @@ import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.CourseActivity;
 import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 
@@ -49,6 +53,7 @@ public class AddCourseActivity extends AppCompatActivity {
     private TextInputLayout yearTil;
     private CardView        add;
     private ImageView       image;
+    private CircularProgressView progressView;
     private File imageFile = new File(LocalImages.APP_IMAGE_DIR, "courseimg.temp");
     private Group           group;
     private Course          course;
@@ -63,7 +68,23 @@ public class AddCourseActivity extends AppCompatActivity {
         exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
             @Override
             public void finishedSuccessfully() {
+                super.finishedSuccessfully();
                 AddCourseActivity.this.onBackPressed();
+            }
+            @Override
+            public void handleOffline() {
+                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
+                                       getString(R.string.error_offline_edit_text))
+                        .show(getSupportFragmentManager(), "");
+                Network.Status.setOffline();
+                progressView.setVisibility(View.GONE);
+                add.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void finishedUnsuccessfully() {
+                super.finishedUnsuccessfully();
+                progressView.setVisibility(View.GONE);
+                add.setVisibility(View.VISIBLE);
             }
         };
         group = getIntent().getParcelableExtra(EXTRA_GROUP);
@@ -85,6 +106,7 @@ public class AddCourseActivity extends AppCompatActivity {
         year = (EditText) findViewById(R.id.add_course_year_input);
         yearTil = (TextInputLayout) findViewById(R.id.add_course_year_til);
         add = (CardView) findViewById(R.id.button_add);
+        progressView = (CircularProgressView) findViewById(R.id.add_course_cpv);
         image = (ImageView) findViewById(R.id.add_course_image);
         if (editing) {
             subject.setText(course.getSubject());
@@ -93,7 +115,9 @@ public class AddCourseActivity extends AppCompatActivity {
                 year.setText(String.format("%d", course.getYear()));
             }
             if (course.hasImage()) {
-                image.setImageBitmap(course.getImage(getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
+                course.getImage(this,
+                                getResources().getDimensionPixelOffset(R.dimen.addview_image_size),
+                                exceptionHandler, image);
             }
             subject.setSelection(subject.getText().length());
         }
@@ -193,6 +217,8 @@ public class AddCourseActivity extends AppCompatActivity {
                     group.addCourse(this, subjectText, teacherText, yearText, null, exceptionHandler);
                 }
             }
+            add.setVisibility(View.GONE);
+            progressView.setVisibility(View.VISIBLE);
         }
     }
 
