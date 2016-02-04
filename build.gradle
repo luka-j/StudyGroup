@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23"
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
         applicationId "rs.luka.android.studygroup"
@@ -24,7 +24,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.+'
     compile 'com.android.support:cardview-v7:23.+'
     compile 'com.android.support:recyclerview-v7:23.+'
-    compile 'com.android.support:design:22.+' //dok ne napravim Snackbar kako treba, ovo mora da ostane na v22
+    compile 'com.android.support:design:23.+'
     compile('com.github.afollestad.material-dialogs:core:0.8.5.2@aar') {
         transitive = true
     }

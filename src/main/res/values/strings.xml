@@ -185,4 +185,13 @@
     <string name="confirm_revoke_write_title">Kick member?</string>
     <string name="confirm_revoke_write_text">This will remove user from the group. Are you sure you want to proceed?</string>
     <string name="confirm_revoke_write_positive">Yes, kick</string>
+    <string name="navbar_view_courses">View courses</string>
+    <string name="navbar_view_exams">View exams</string>
+    <string name="navbar_view_members">View members</string>
+    <string name="create_group">Create group</string>
+    <string name="error_offline_search_title">You\'re offline</string>
+    <string name="error_offline_search_text">Search is unavailable while you\'re offline. Please connect to the internet and try again.</string>
+    <string name="search_groups">Search groups...</string>
+    <string name="search">Search</string>
+    <string name="search_results">Search results</string>
 </resources>

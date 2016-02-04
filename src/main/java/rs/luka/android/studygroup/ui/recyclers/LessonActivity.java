@@ -224,7 +224,7 @@ public class LessonActivity extends AppCompatActivity
                 setSize = 0;
             }
         } else {
-            response.handleException(exceptionHandler);
+            response.handleErrorCode(exceptionHandler);
         }
     }
 

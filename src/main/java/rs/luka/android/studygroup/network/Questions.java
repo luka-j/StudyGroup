@@ -58,7 +58,7 @@ public class Questions {
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);
 
-                Network.Response handled = response.handleException(handler);
+                Network.Response handled = response.handleErrorCode(handler);
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -71,13 +71,6 @@ public class Questions {
             throws IOException {
         URL url      = new URL(Network.getDomain(), COURSE + courseId + "/" +
                                                     (lesson.isEmpty()?"%20":lesson) + "/" + QUESTIONS);
-        getQuestions(c, url, courseId, lesson, exceptionHandler);
-    }
-
-    public static void getExamQuestions(Context c, long courseId, String lesson, NetworkExceptionHandler exceptionHandler)
-            throws IOException {
-        URL url      = new URL(Network.getDomain(), COURSE + courseId + "/" +
-                                                    (lesson.isEmpty()?" ":lesson) + "/examQuestions");
         getQuestions(c, url, courseId, lesson, exceptionHandler);
     }
 
@@ -95,7 +88,7 @@ public class Questions {
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
                 return Long.parseLong(response.responseData);
 
-            Network.Response handled = response.handleException(exceptionHandler);
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
                 if(handled.responseCode == Network.Response.RESPONSE_CREATED)
                     return Long.parseLong(response.responseData);
             return null;
@@ -118,7 +111,7 @@ public class Questions {
                 return true;
 
 
-            Network.Response handled = response.handleException(exceptionHandler);
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -134,7 +127,7 @@ public class Questions {
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
 
-            Network.Response handled = response.handleException(exceptionHandler);
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -181,7 +174,7 @@ public class Questions {
 
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
-            Network.Response<File> handled = response.handleException(exceptionHandler);
+            Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_OK;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -196,7 +189,7 @@ public class Questions {
 
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
-            Network.Response<File> handled = response.handleException(exceptionHandler);
+            Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_OK;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -211,7 +204,7 @@ public class Questions {
 
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
                 return true;
-            Network.Response<File> handled = response.handleException(exceptionHandler);
+            Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);

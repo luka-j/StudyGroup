@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -36,12 +37,14 @@ import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.network.Courses;
+import rs.luka.android.studygroup.network.Groups;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
-import rs.luka.android.studygroup.ui.Snackbar;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
+
+//import rs.luka.android.studygroup.ui.Snackbar;
 
 /**
  * Created by Luka on 7/1/2015.
@@ -95,7 +98,6 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         View view = inflater.inflate(R.layout.fragment_group, container, false);
 
         AppCompatActivity ac = (AppCompatActivity) getActivity();
-        ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ac.getSupportActionBar().setTitle(group.getName());
 
         progress = (CircularProgressView) view.findViewById(R.id.progress_view);
@@ -163,8 +165,8 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
     protected void refresh() {
-        Log.i(TAG, "refreshing fragment");
         swipe.setRefreshing(true);
+        Groups.getGroupsInBackground(getContext(), exceptionHandler);
         DataManager.refreshCourses(getContext(), group, this, getActivity().getLoaderManager(),
                                    exceptionHandler);
     }
@@ -196,11 +198,6 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case android.R.id.home:
-                Intent i = new Intent(getActivity(), RootActivity.class);
-                i.putExtra(GroupActivity.EXTRA_SHOW_LIST, true);
-                startActivity(i);
-                return true;
             case R.id.show_all:
                 Log.i(TAG, "Show all selected");
                 Courses.showAllCourses(REQUEST_SHOW_ALL, group.getIdValue(), this);
@@ -214,8 +211,14 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             adapter = new CourseAdapter(getActivity(), null);
             courseRecyclerView.setAdapter(adapter);
         }
+        Groups.getGroupsInBackground(getContext(), exceptionHandler);
         DataManager.getCourses(getContext(), group, this, getActivity().getLoaderManager(),
                                exceptionHandler);
+    }
+
+    protected void changeGroup(Group group) {
+        this.group = group;
+        setData();
     }
 
     @Override
@@ -240,7 +243,12 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        adapter.swapCursor(null);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.swapCursor(null);
+            }
+        });
     }
 
     @Override
@@ -256,7 +264,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                         }
                     });
                 } else {
-                    response.handleException(exceptionHandler);
+                    response.handleErrorCode(exceptionHandler);
                 }
                 break;
             default: Log.w(TAG, "Unknown requestId: " + id);
@@ -307,24 +315,27 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             final Course course   = ((CourseHolder) viewHolder).course;
             course.shallowHide(getActivity());
             getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_COURSES, null, GroupFragment.this);
-            Snackbar.make(coordinator, R.string.course_hidden, Snackbar.LENGTH_LONG)
-                    .setOnHideListener(new Snackbar.OnHideListener() {
-                        @Override
-                        public void onHide() {
-                            course.hide(getContext(), exceptionHandler);
-                        }
-                    })
-                    .setAction(R.string.undo, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            course.show(getActivity());
-                            refresh();
-                        }
-                    })
-                    .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
-                    .colorTheFuckingTextToWhite(getActivity())
-                    .doStuffThatGoogleDidntFuckingDoProperly(getActivity(), fab)
-                    .show();
+            Snackbar snackbar = Snackbar.make(coordinator, R.string.course_hidden, Snackbar.LENGTH_LONG)
+                                        .setCallback(new Snackbar.Callback() {
+                                            @Override
+                                            public void onDismissed(Snackbar snackbar, int event) {
+                                                course.hide(getContext(), exceptionHandler);
+                                            }
+                                        })
+                                        .setAction(R.string.undo, new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                course.show(getActivity());
+                                                refresh();
+                                            }
+                                        })
+                                        .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
+                    //.colorTheFuckingTextToWhite(getActivity())
+                    //.doStuffThatGoogleDidntFuckingDoProperly(getActivity(), fab)
+                    ;
+            ((TextView)snackbar.getView().findViewById(android.support.design.R.id.snackbar_text))
+                    .setTextColor(getActivity().getResources().getColor(R.color.white));
+            snackbar.show();
             // ((TextView)(coordinator.findViewById(android.support.design.R.id.snackbar_text)))
             //       .setTextColor(getActivity().getResources().getColor(R.color.white)); //fuck you Google
             // doesn't actually work

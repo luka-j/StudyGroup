@@ -163,6 +163,14 @@
         </activity>
         <activity android:name=".ui.recyclers.HistoryActivity"
                   android:label="@string/recent_edits" />
+
+        <activity android:name=".ui.recyclers.GroupSearchActivity"
+                  android:label="@string/search_results"
+                  android:parentActivityName=".ui.recyclers.GroupActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="rs.luka.android.studygroup.ui.recyclers.GroupActivity" />
+        </activity>
     </application>
 
 </manifest>

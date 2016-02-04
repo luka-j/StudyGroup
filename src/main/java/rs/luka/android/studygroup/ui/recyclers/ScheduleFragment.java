@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -41,9 +42,10 @@ import rs.luka.android.studygroup.network.Exams;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
-import rs.luka.android.studygroup.ui.Snackbar;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddExamActivity;
+
+//import rs.luka.android.studygroup.ui.Snackbar;
 
 /**
  * Created by luka on 29.7.15..
@@ -247,7 +249,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
                     }
                 });
                 } else {
-                    response.handleException(exceptionHandler);
+                    response.handleErrorCode(exceptionHandler);
                 }
                 break;
             default:
@@ -297,24 +299,27 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             final Exam exam   = ((ExamHolder) viewHolder).exam;
             exam.shallowHide(getActivity());
             getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_EXAMS, null, ScheduleFragment.this);
-            Snackbar.make(coordinator, R.string.exam_hidden, Snackbar.LENGTH_LONG)
-                    .setOnHideListener(new Snackbar.OnHideListener() {
-                        @Override
-                        public void onHide() {
-                            exam.hide(getContext(), exceptionHandler);
-                        }
-                    })
-                    .setAction(R.string.undo, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            exam.show(getActivity());
-                            refresh();
-                        }
-                    })
-                    .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
-                    .colorTheFuckingTextToWhite(getActivity())
-                    .doStuffThatGoogleDidntFuckingDoProperly(getActivity(), fab)
-                    .show();
+            Snackbar snackbar = Snackbar.make(coordinator, R.string.exam_hidden, Snackbar.LENGTH_LONG)
+                                        .setCallback(new Snackbar.Callback() {
+                                            @Override
+                                            public void onDismissed(Snackbar snackbar, int event) {
+                                                exam.hide(getContext(), exceptionHandler);
+                                            }
+                                        })
+                                        .setAction(R.string.undo, new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                exam.show(getActivity());
+                                                refresh();
+                                            }
+                                        })
+                                        .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
+                    //.colorTheFuckingTextToWhite(getActivity())
+                    //.doStuffThatGoogleDidntFuckingDoProperly(getActivity(), fab)
+                    ;
+            ((TextView)snackbar.getView().findViewById(android.support.design.R.id.snackbar_text))
+                    .setTextColor(getActivity().getResources().getColor(R.color.white));
+            snackbar.show();
         }
     }
 

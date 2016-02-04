@@ -17,7 +17,8 @@
             android:id="@+id/note_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/siview_text_size" />
+            android:textSize="@dimen/siview_text_size"
+            android:textIsSelectable="true"/>
 
         <TextView
             android:id="@+id/play_audio"

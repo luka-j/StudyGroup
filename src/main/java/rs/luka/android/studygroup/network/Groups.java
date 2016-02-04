@@ -9,10 +9,14 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Database;
@@ -32,6 +36,8 @@ public class Groups  {
     private static final String JSON_KEY_HASIMAGE = "hasImage";
     private static final String JSON_KEY_YEARS = "courseYears";
     private static final String JSON_KEY_PERMISSION = "permission";
+
+    private static ExecutorService background = Executors.newSingleThreadExecutor();
 
     /**
      * Retrieves groups from server and overwrites those in the database
@@ -61,7 +67,7 @@ public class Groups  {
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);
 
-                Network.Response handled = response.handleException(exceptionHandler);
+                Network.Response handled = response.handleErrorCode(exceptionHandler);
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -70,6 +76,20 @@ public class Groups  {
         }
     }
 
+    public static void getGroupsInBackground(final Context c, final NetworkExceptionHandler exceptionHandler) {
+        if(Network.Status.checkNetworkStatus(c)) {
+            background.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        getGroups(c, exceptionHandler);
+                    } catch (IOException e) {
+                        exceptionHandler.handleIOException(e);
+                    }
+                }
+            });
+        }
+    }
 
     public static Long createGroup(String name, String place, NetworkExceptionHandler exceptionHandler)
             throws IOException {
@@ -84,7 +104,7 @@ public class Groups  {
                 return Long.parseLong(response.responseData);
 
 
-            Network.Response handled = response.handleException(exceptionHandler);
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
             if(handled.responseCode == Network.Response.RESPONSE_CREATED)
                 return Long.parseLong(response.responseData);
             return null;
@@ -105,7 +125,37 @@ public class Groups  {
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
 
-            Network.Response handled = response.handleException(exceptionHandler);
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_CREATED;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean loadImage(long id, int size, File loadInto, NetworkExceptionHandler exceptionHandler)
+            throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), GROUPS + id + "/image?size=" + size);
+            Network.Response<File> response = NetworkRequests.requestGetFile(url, loadInto);
+
+            if(response.responseCode == Network.Response.RESPONSE_OK)
+                return true;
+            Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_OK;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean updateImage(long id, File image, NetworkExceptionHandler exceptionHandler)
+            throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), GROUPS + id + "/image");
+            Network.Response<File> response = NetworkRequests.requestPutFile(url, image);
+
+            if(response.responseCode == Network.Response.RESPONSE_CREATED)
+                return true;
+            Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -165,32 +215,13 @@ public class Groups  {
         }
     }
 
-    public static boolean loadImage(long id, int size, File loadInto, NetworkExceptionHandler exceptionHandler)
-            throws IOException {
+    public static void search(int requestId, String name, Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL url = new URL(Network.getDomain(), GROUPS + id + "/image?size=" + size);
-            Network.Response<File> response = NetworkRequests.requestGetFile(url, loadInto);
-
-            if(response.responseCode == Network.Response.RESPONSE_OK)
-                return true;
-            Network.Response<File> handled = response.handleException(exceptionHandler);
-            return handled.responseCode == Network.Response.RESPONSE_OK;
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static boolean updateImage(long id, File image, NetworkExceptionHandler exceptionHandler)
-            throws IOException {
-        try {
-            URL url = new URL(Network.getDomain(), GROUPS + id + "/image");
-            Network.Response<File> response = NetworkRequests.requestPutFile(url, image);
-
-            if(response.responseCode == Network.Response.RESPONSE_CREATED)
-                return true;
-            Network.Response<File> handled = response.handleException(exceptionHandler);
-            return handled.responseCode == Network.Response.RESPONSE_CREATED;
-        } catch (MalformedURLException e) {
+            NetworkRequests.getDataAsync(requestId, new URL(Network.getDomain(), GROUPS +
+                                                                                 URLEncoder.encode(name, "UTF-8")
+                                                                                 + "/search"
+            ), callbacks);
+        } catch (MalformedURLException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }

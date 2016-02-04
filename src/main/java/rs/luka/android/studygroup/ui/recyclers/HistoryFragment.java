@@ -138,7 +138,7 @@ public class HistoryFragment extends Fragment implements Network.NetworkCallback
                 }
             });
         } else {
-            response.handleException(exceptionHandler);
+            response.handleErrorCode(exceptionHandler);
         }
         getActivity().runOnUiThread(new Runnable() {
             @Override

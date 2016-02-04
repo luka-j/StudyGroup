@@ -13,13 +13,13 @@ import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.network.Lessons;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
-import rs.luka.android.studygroup.ui.dialogs.RenameLessonDialog;
+import rs.luka.android.studygroup.ui.dialogs.InputDialog;
 
 /**
  * Created by luka on 2.7.15..
  */
 public class CourseActivity extends SingleFragmentActivity implements CourseFragment.Callbacks,
-                                                                      RenameLessonDialog.Callbacks,
+                                                                      InputDialog.Callbacks,
                                                                       ConfirmDialog.Callbacks {
 
     public static final String    EXTRA_LESSON_NAME = "lessonName";
@@ -74,7 +74,11 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
     @Override
     public void onEdit(String title) {
         oldLessonName = title;
-        RenameLessonDialog.newInstance(title).show(getSupportFragmentManager(), TAG_DIALOG_RENAME);
+        InputDialog.newInstance(R.string.rename_lesson,
+                                R.string.rename,
+                                R.string.cancel,
+                                title)
+                   .show(getSupportFragmentManager(), TAG_DIALOG_RENAME);
     }
 
     @Override
@@ -83,7 +87,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
     }
 
     @Override
-    public void onRenamed(String s) {
+    public void onFinishedInput(String s) {
         ((Course) getIntent().getParcelableExtra(EXTRA_COURSE)).renameLesson(this, oldLessonName, s, exceptionHandler);
         fragment.refresh();
     }

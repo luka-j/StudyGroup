@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import rs.luka.android.studygroup.exceptions.FileIOException;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
+import rs.luka.android.studygroup.misc.TextUtils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
@@ -200,6 +201,7 @@ public class DataManager {
                         exceptionHandler.handleIOException(e);
                     }
                 }
+                manager.destroyLoader(LOADER_ID_COURSES);
                 manager.initLoader(LOADER_ID_COURSES, null, callbacks);
             }
         });
@@ -359,9 +361,10 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    boolean success = Lessons.renameLesson(courseId.getCourseIdValue(), oldName, newName, handler);
+                    String newNameReal = TextUtils.replaceGreekEscapes(newName);
+                    boolean success = Lessons.renameLesson(courseId.getCourseIdValue(), oldName, newNameReal, handler);
                     if(success) {
-                        Database.getInstance(c).renameLesson(courseId, oldName, newName);
+                        Database.getInstance(c).renameLesson(courseId, oldName, newNameReal);
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Lessons#renameLesson returned false; exception should have been handled");
@@ -418,16 +421,18 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    Long noteId = Notes.createNote(courseId.getCourseIdValue(), lesson, text, handler);
+                    String realText = TextUtils.replaceGreekEscapes(text);
+                    String realLesson = TextUtils.replaceGreekEscapes(lesson);
+                    Long noteId = Notes.createNote(courseId.getCourseIdValue(), realLesson, realText, handler);
                     if(noteId != null) {
                         ID id = new ID(courseId, noteId);
-                        Database.getInstance(c).insertNote(id, lesson, text, image!=null, audio!=null);
+                        Database.getInstance(c).insertNote(id, realLesson, realText, image!=null, audio!=null);
                         if (image != null) {
                             Notes.updateImage(noteId, image, handler);
-                            LocalImages.saveNoteImage(id, courseName, lesson, image); //erases temp
+                            LocalImages.saveNoteImage(id, courseName, realLesson, image); //erases temp
                         }
                         if (audio != null)
-                            LocalAudio.saveNoteAudio(id, courseName, lesson, audio);
+                            LocalAudio.saveNoteAudio(id, courseName, realLesson, audio);
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Notes#createNote returned null; exception should have been handled");
@@ -445,15 +450,17 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    boolean success = Notes.updateNote(id.getItemIdValue(), lesson, text, handler);
+                    String realText = TextUtils.replaceGreekEscapes(text);
+                    String realLesson = TextUtils.replaceGreekEscapes(lesson);
+                    boolean success = Notes.updateNote(id.getItemIdValue(), realLesson, realText, handler);
                     if(success) {
-                        Database.getInstance(c).updateNote(id, lesson, text, imageFile!=null, audioFile!=null);
+                        Database.getInstance(c).updateNote(id, realLesson, realText, imageFile!=null, audioFile!=null);
                         if(imageFile != null) {
                             Notes.updateImage(id.getItemIdValue(), imageFile, handler);
-                            LocalImages.saveNoteImage(id, getCourse(c, id).getSubject(), lesson, imageFile);
+                            LocalImages.saveNoteImage(id, getCourse(c, id).getSubject(), realLesson, imageFile);
                         }
                         if(audioFile != null)
-                            LocalAudio.saveNoteAudio(id, getCourse(c, id).getSubject(), lesson, audioFile);
+                            LocalAudio.saveNoteAudio(id, getCourse(c, id).getSubject(), realLesson, audioFile);
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Notes#updateNote returned false; exception should have been handled");
@@ -490,10 +497,7 @@ public class DataManager {
             public void run() {
                 if((currentTime-getLastFetch(c, LAST_FETCH_QUESTIONS)) > FETCH_TIMEOUT_ITEMS) {
                     try {
-                        if(!lesson.startsWith(Question.EXAM_PREFIX))
-                            Questions.getQuestions(c, courseId, lesson, exceptionHandler);
-                        else
-                            Questions.getExamQuestions(c, courseId, lesson, exceptionHandler);
+                        Questions.getQuestions(c, courseId, lesson, exceptionHandler);
                         writeLastFetch(c, LAST_FETCH_QUESTIONS);
                         exceptionHandler.finished();
                     } catch (IOException e) {
@@ -530,15 +534,18 @@ public class DataManager {
             @Override
             public void run() {
                 try {
+                    String realQuestion = TextUtils.replaceGreekEscapes(question);
+                    String realAnswer = TextUtils.replaceGreekEscapes(answer);
+                    String realLesson = TextUtils.replaceGreekEscapes(lesson);
                     Long questionId = Questions.createQuestion(courseId.getCourseIdValue(),
-                                                               (isExam?lesson.substring(Question.EXAM_PREFIX.length()):lesson),
-                                                               question, answer, handler, isExam);
+                                                               (isExam?realLesson.substring(Question.EXAM_PREFIX.length()):realLesson),
+                                                               realQuestion, realAnswer, handler, isExam);
                     if(questionId != null) {
                         ID id = new ID(courseId, questionId);
-                        Database.getInstance(c).insertQuestion(id, lesson, question, answer, image!=null);
+                        Database.getInstance(c).insertQuestion(id, realLesson, realQuestion, realAnswer, image!=null);
                         if (image != null) {
                             Questions.updateImage(questionId, image, handler);
-                            LocalImages.saveQuestionImage(id, courseName, lesson, image);
+                            LocalImages.saveQuestionImage(id, courseName, realLesson, image);
                         }
                         handler.finished();
                     } else {
@@ -563,12 +570,15 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    boolean success = Questions.updateQuestion(id.getItemIdValue(), lesson, question, answer, handler);
+                    String realQuestion = TextUtils.replaceGreekEscapes(question);
+                    String realAnswer = TextUtils.replaceGreekEscapes(answer);
+                    String realLesson = TextUtils.replaceGreekEscapes(lesson);
+                    boolean success = Questions.updateQuestion(id.getItemIdValue(), realLesson, realQuestion, realAnswer, handler);
                     if(success) {
-                        Database.getInstance(c).updateQuestion(id, lesson, question, answer, imageFile!=null);
+                        Database.getInstance(c).updateQuestion(id, realLesson, realQuestion, realAnswer, imageFile!=null);
                         if(imageFile != null) {
                             Questions.updateImage(id.getItemIdValue(), imageFile, handler);
-                            LocalImages.saveQuestionImage(id, getCourse(c, id).getSubject(), lesson, imageFile);
+                            LocalImages.saveQuestionImage(id, getCourse(c, id).getSubject(), realLesson, imageFile);
                         }
                         handler.finished();
                     } else {

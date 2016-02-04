@@ -51,7 +51,7 @@ public class Lessons {
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);
 
-                Network.Response handled = response.handleException(exceptionHandler);
+                Network.Response handled = response.handleErrorCode(exceptionHandler);
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -72,7 +72,7 @@ public class Lessons {
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
 
-            Network.Response handled = response.handleException(exceptionHandler);
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -90,7 +90,7 @@ public class Lessons {
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
 
-            Network.Response handled = response.handleException(exceptionHandler);
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);

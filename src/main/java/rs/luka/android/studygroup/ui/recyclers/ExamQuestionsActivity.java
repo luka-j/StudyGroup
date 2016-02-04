@@ -156,7 +156,7 @@ public class ExamQuestionsActivity extends SingleFragmentActivity
                 count=0; setSize=0;
             }
         } else {
-            response.handleException(new NetworkExceptionHandler.DefaultHandler(this));
+            response.handleErrorCode(new NetworkExceptionHandler.DefaultHandler(this));
         }
     }
 

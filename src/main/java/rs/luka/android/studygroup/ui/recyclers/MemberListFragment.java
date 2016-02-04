@@ -86,6 +86,10 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.group = getArguments().getParcelable(ARG_GROUP);
+
+        int perm = group.getPermission();
+        User.getLoggedInUser().setPermission(perm);
+        ownerMode = perm >= Group.PERM_OWNER;
     }
 
     @Override
@@ -168,9 +172,6 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
                         case REQUEST_GET_PERMISSION:
                             try {
                                 JSONObject me = new JSONObject(response.responseData);
-                                int perm = me.getInt("permission");
-                                User.getLoggedInUser().setPermission(perm);
-                                ownerMode = perm >= Group.PERM_OWNER;
                                 if(!ownerMode) {
                                     root.findViewById(R.id.member_list_header).setVisibility(View.GONE);
                                 }
@@ -186,7 +187,7 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
                 }
             });
         } else {
-            response.handleException(exceptionHandler);
+            response.handleErrorCode(exceptionHandler);
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

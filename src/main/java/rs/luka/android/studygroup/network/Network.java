@@ -102,14 +102,14 @@ public class Network {
             }
         }
 
-        public Response<T> handleException(NetworkExceptionHandler handler) {
+        public Response<T> handleErrorCode(NetworkExceptionHandler handler) {
             switch (responseCode) {
                 case RESPONSE_UNAUTHORIZED:
                     try {
                         UserManager.handleTokenError(this);
                         request.swapToken(User.getToken());
                         Response<T> handled = request.call();
-                        handled.handleException(handler);
+                        handled.handleErrorCode(handler);
                         return handled;
                     } catch (NotLoggedInException ex) {
                         handler.handleUserNotLoggedIn();

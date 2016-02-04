@@ -134,19 +134,6 @@ public class GroupListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.join_group:
-                // TODO: 9.9.15.
-                return true;
-            case R.id.settings:
-                // TODO: 9.9.15.
-                return true;
-        }
-        return false;
-    }
-
-    @Override
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.context_edit:

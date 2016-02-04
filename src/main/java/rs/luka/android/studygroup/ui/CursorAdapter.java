@@ -25,6 +25,8 @@ package rs.luka.android.studygroup.ui;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DataSetObserver;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.widget.RecyclerView;
 
 /**
@@ -153,7 +155,16 @@ public abstract class CursorAdapter<VH extends RecyclerView.ViewHolder> extends 
         public void onInvalidated() {
             super.onInvalidated();
             mDataValid = false;
-            notifyDataSetChanged();
+            Runnable invalidate = new Runnable() {
+                @Override
+                public void run() {
+                    notifyDataSetChanged();
+                }
+            };
+            if(Looper.getMainLooper().equals(Looper.myLooper()))
+                invalidate.run();
+            else
+                new Handler(Looper.getMainLooper()).post(invalidate);
             //There is no notifyDataSetInvalidated() method in RecyclerView.Adapter
         }
     }

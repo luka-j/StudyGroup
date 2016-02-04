@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
@@ -37,7 +38,7 @@ import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
-import rs.luka.android.studygroup.ui.Snackbar;
+//import rs.luka.android.studygroup.ui.Snackbar;
 
 /**
  * Created by luka on 11.7.15..
@@ -206,10 +207,13 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
                                                                     (callbacks.getFab()));
         snackbar.show();*/
 
-        Snackbar.make(questionsRecycler, R.string.questions_hidden, Snackbar.LENGTH_SHORT)
-                .colorTheFuckingTextToWhite(getContext())
-                .doStuffThatGoogleDidntFuckingDoProperly(getContext(), callbacks.getFab())
-                .show();
+        snackbar = Snackbar.make(questionsRecycler, R.string.questions_hidden, Snackbar.LENGTH_SHORT)
+                //.colorTheFuckingTextToWhite(getContext())
+                //.doStuffThatGoogleDidntFuckingDoProperly(getContext(), callbacks.getFab())
+                ;
+        ((TextView)snackbar.getView().findViewById(android.support.design.R.id.snackbar_text))
+                .setTextColor(getActivity().getResources().getColor(R.color.white));
+        snackbar.show();
     }
 
     protected void dismissSnackbar() {

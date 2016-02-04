@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -34,8 +35,9 @@ import rs.luka.android.studygroup.network.Lessons;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
-import rs.luka.android.studygroup.ui.Snackbar;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
+
+//import rs.luka.android.studygroup.ui.Snackbar;
 
 /**
  * Created by luka on 3.7.15..
@@ -222,7 +224,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                     }
                 });
                 } else {
-                    response.handleException(exceptionHandler);
+                    response.handleErrorCode(exceptionHandler);
                 }
                 break;
             default:
@@ -280,27 +282,30 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             course.shallowHideLesson(getActivity(), lesson);
             getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_LESSONS, null, CourseFragment.this);
             // TODO: 4.9.15. http://stackoverflow.com/questions/32406144/hiding-and-re-showing-cards-in-recyclerview-backed-by-cursor
-            Snackbar.make(lessonsRecyclerView,
-                          R.string.lesson_hidden,
-                          Snackbar.LENGTH_LONG)
-                    .setOnHideListener(new Snackbar.OnHideListener() {
-                        @Override
-                        public void onHide() {
-                            course.hideLesson(getContext(), swipedHolder.title, exceptionHandler);
-                        }
-                    })
-                    .setAction(R.string.undo,
-                               new View.OnClickListener() {
-                                   @Override
-                                   public void onClick(View v) {
-                                       course.showLesson(getActivity(), _id, lesson, noteCount, questionCount);
-                                       refresh();
-                                   }
-                               })
-                    .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
-                    .colorTheFuckingTextToWhite(getActivity())
-                    .doStuffThatGoogleDidntFuckingDoProperly(getActivity(), null)
-                    .show();
+            Snackbar snackbar = Snackbar.make(lessonsRecyclerView,
+                                              R.string.lesson_hidden,
+                                              Snackbar.LENGTH_LONG)
+                                        .setCallback(new Snackbar.Callback() {
+                                            @Override
+                                            public void onDismissed(Snackbar snackbar, int event) {
+                                                course.hideLesson(getContext(), swipedHolder.title, exceptionHandler);
+                                            }
+                                        })
+                                        .setAction(R.string.undo,
+                                                   new View.OnClickListener() {
+                                                       @Override
+                                                       public void onClick(View v) {
+                                                           course.showLesson(getActivity(), _id, lesson, noteCount, questionCount);
+                                                           refresh();
+                                                       }
+                                                   })
+                                        .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
+                    //.colorTheFuckingTextToWhite(getActivity())
+                    //.doStuffThatGoogleDidntFuckingDoProperly(getActivity(), null)
+                    ;
+            ((TextView)snackbar.getView().findViewById(android.support.design.R.id.snackbar_text))
+                    .setTextColor(getActivity().getResources().getColor(R.color.white));
+            snackbar.show();
             //viewHolder.itemView.setVisibility(View.GONE); //ne radi
         }
     }

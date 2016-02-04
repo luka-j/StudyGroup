@@ -62,7 +62,7 @@ public class Notes {
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);
 
-                Network.Response handled = response.handleException(exceptionHandler);
+                Network.Response handled = response.handleErrorCode(exceptionHandler);
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -85,7 +85,7 @@ public class Notes {
                 return Long.parseLong(response.responseData);
 
 
-            Network.Response handled = response.handleException(exceptionHandler);
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
                 if(handled.responseCode == Network.Response.RESPONSE_CREATED)
                     return Long.parseLong(response.responseData);
             return null;
@@ -107,7 +107,7 @@ public class Notes {
                 return true;
 
 
-            Network.Response handled = response.handleException(exceptionHandler);
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -123,7 +123,7 @@ public class Notes {
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
 
-            Network.Response handled = response.handleException(exceptionHandler);
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -169,7 +169,7 @@ public class Notes {
 
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
-            Network.Response<File> handled = response.handleException(exceptionHandler);
+            Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_OK;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -184,7 +184,7 @@ public class Notes {
 
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
-            Network.Response<File> handled = response.handleException(exceptionHandler);
+            Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_OK;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -199,7 +199,7 @@ public class Notes {
 
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
                 return true;
-            Network.Response<File> handled = response.handleException(exceptionHandler);
+            Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
