@@ -109,6 +109,12 @@ public abstract class CursorAdapter<VH extends RecyclerView.ViewHolder> extends 
         return mCursor.getPosition();
     }
 
+    private final Runnable notify = new Runnable() {
+        @Override
+        public void run() {
+            notifyDataSetChanged();
+        }
+    };
     /**
      * Swap in a new Cursor, returning the old Cursor.  Unlike
      * {@link #changeCursor(Cursor)}, the returned old Cursor is <em>not</em>
@@ -133,7 +139,12 @@ public abstract class CursorAdapter<VH extends RecyclerView.ViewHolder> extends 
         } else {
             mRowIdColumn = -1;
             mDataValid = false;
-            notifyDataSetChanged();
+
+            if(!Looper.getMainLooper().equals(Looper.myLooper())) {
+                new Handler(Looper.getMainLooper()).post(notify);
+            } else {
+                notify.run();
+            }
             //There is no notifyDataSetInvalidated() method in RecyclerView.Adapter
         }
         return oldCursor;

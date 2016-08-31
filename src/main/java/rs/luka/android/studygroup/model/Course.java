@@ -1,12 +1,12 @@
 package rs.luka.android.studygroup.model;
 
 import android.content.Context;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.Loader;
 import android.widget.ImageView;
 
 import java.io.File;
@@ -134,8 +134,9 @@ public class Course implements Parcelable, Comparable<Course> {
         Database.getInstance(c).showLesson(id, _id, lesson, noteCount, questionCount);
     }
 
-    public void addNote(Context c, String lesson, String text, File image, File audio, NetworkExceptionHandler handler) {
-        DataManager.addNote(c, id, subject, lesson, text, image, audio, handler);
+    public void addNote(Context c, String lesson, String text, File image, File audio, boolean isExam,
+                        NetworkExceptionHandler handler) {
+        DataManager.addNote(c, id, subject, lesson, text, image, audio, isExam, handler);
     }
 
     public void addQuestion(Context c, String lesson, String question, String answer, File image,

@@ -13,7 +13,6 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
-import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.dialogs.ExamDetailsDialog;
@@ -62,7 +61,7 @@ public class ScheduleActivity extends SingleFragmentActivity implements Schedule
     }
 
     public String[] getItems() {
-        filterYears = ((Group) getIntent().getParcelableExtra(EXTRA_GROUP)).getCourseYears();
+        filterYears = (getIntent().<Group>getParcelableExtra(EXTRA_GROUP)).getCourseYears();
         Collections.sort(filterYears);
         String[] items = new String[filterYears.size()];
         for (int i = 0; i < items.length; i++) {
@@ -76,7 +75,7 @@ public class ScheduleActivity extends SingleFragmentActivity implements Schedule
      * @return
      */
     public int[] getSelectedItems() {
-        Group group = getIntent().<Group>getParcelableExtra(EXTRA_GROUP);
+        Group group = getIntent().getParcelableExtra(EXTRA_GROUP);
         List<Integer> filteringYears = group.getFilteringYears();
         int[] selected = new int[filteringYears.size()];
         for(int i=0; i<selected.length; i++)
@@ -96,11 +95,12 @@ public class ScheduleActivity extends SingleFragmentActivity implements Schedule
     }
 
     @Override
-    public void onShowQuestions(Exam exam) {
-        startActivity(new Intent(this, ExamQuestionsActivity.class)
-                              .putExtra(ExamQuestionsActivity.EXTRA_COURSE, exam.getCourse())
-                              .putExtra(ExamQuestionsActivity.EXTRA_LESSON, Question.EXAM_PREFIX + exam.getLesson())
-                              .putExtra(ExamQuestionsActivity.EXTRA_PERMISSION, getIntent().getParcelableExtra(EXTRA_GROUP)));
+    public void onShowLesson(Exam exam) {
+        startActivity(new Intent(this, LessonActivity.class)
+                     .putExtra(LessonActivity.EXTRA_IS_EXAM, true)
+                     .putExtra(LessonActivity.EXTRA_PERMISSION, getIntent().<Group>getParcelableExtra(EXTRA_GROUP).getPermission())
+                     .putExtra(LessonActivity.EXTRA_COURSE, exam.getCourse())
+                     .putExtra(LessonActivity.EXTRA_LESSON, exam.getUserFriendlyLesson()));
     }
 
     @Override

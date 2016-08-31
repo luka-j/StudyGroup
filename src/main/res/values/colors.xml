@@ -6,7 +6,7 @@
     <color name="color_primary_dark">#303F9F</color>
     <color name="color_accent">#FF5722</color>
     <color name="color_primary_light">#C5CAE9</color>
-    <color name="tabsScrollColor">#1d2763</color>
+    <color name="tabsScrollColor">#bbbbdd</color>
     <color name="primary_text">#212121</color>
     <color name="refresh_progress_1">@color/color_accent</color>
     <color name="refresh_progress_2">@color/color_primary_light</color>
@@ -14,4 +14,5 @@
     <color name="card_selected">@color/color_primary_light</color>
     <color name="actionmode_background">@color/color_primary_dark</color>
     <color name="secondary_text">#414141</color>
+    <color name="light_text">#aaaaaa</color>
 </resources>

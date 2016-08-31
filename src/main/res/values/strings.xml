@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">StudyGroup</string>
+    <string name="app_name" translatable="false">Notekeeper</string>
     <string name="settings">Settings</string>
     <string name="lessons_title">Lessons</string>
     <string name="details_title">Lesson details</string>
@@ -80,12 +80,11 @@
     <string name="note_image_desc">Image attached to the note</string>
     <string name="question_image_desc">Image attached to the question</string>
     <string name="play_audio">Play recording</string>
-    <string name="title_activity_member_list">MemberListActivity</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="member_list">Group members</string>
-    <string name="register">Sign Up</string>
+    <string name="register">Register</string>
     <string name="email">Email</string>
 
     <string name="email_duplicate">There is an account with this email</string>
@@ -120,34 +119,12 @@
     <string name="error_json_text">Server is drunk (or I messed up something badly). Please report this.</string>
     <string name="error_offline_title">You\'re offline</string>
     <string name="error_offline_text">That means you won\'t see any new changes, though you can still browse any data you have already seen</string>
-    <string name="confirm_join_group_title">Join group?</string>
-    <string name="confirm_join_group_message">Only members can add new items and see exams and audio recordings</string>
-    <string name="join">Join</string>
-    <string name="join_request_sent_title">Request sent</string>
-    <string name="join_request_sent_text">Your request has been sent. You\'ll be a group member as soon as one of the owners accepts your request.</string>
-    <string name="remove">Remove</string>
-    <string name="confirm_remove_notes_title">Are you sure you want to remove these notes?</string>
-    <string name="confirm_remove_notes_message">If you remove them, they are gone forever; no one will be able to see them anymore (you can use the hide button to remove them only for you)</string>
-    <string name="confirm_remove_plural">I\'m sure, remove them</string>
-    <string name="confirm_remove_singular">I\'m sure, remove it</string>
-    <string name="confirm_remove_questions_title">Are you sure you want to remove these questions?</string>
-    <string name="confirm_remove_questions_message">If you remove them, they are gone forever; no one will be able to see them anymore (you can use the hide button to remove them only for you)</string>
-    <string name="confirm_remove_lesson_title">Are you sure you want to remove this lesson?</string>
-    <string name="confirm_remove_lesson_message">If you remove it, all its data is gone forever, including all notes and questions; no one will be able to see it anymore (you can swipe it away to hide it only for you)</string>
-    <string name="confirm_remove_course_title">Are you sure you want to remove this course?</string>
-    <string name="confirm_remove_course_message">If you remove it, all its data is gone forever, including all lessons, notes and questions; no one will be able to see it anymore (you can swipe it away to hide it only for you)</string>
-    <string name="remove_course_disabled_title">You can\'t remove course from here</string>
-    <string name="remove_course_disabled_message">Removing courses from here isn\'t supported yet, but I\'m glad you tried!</string>
-    <string name="role_owner">Owner</string>
-    <string name="role_mod">Mod</string>
-    <string name="role_member">Member</string>
-    <string name="role_request">Membership requested</string>
     <string name="error_changed_offline_title">You have gone offline</string>
     <string name="error_changed_offline_text">This means you won\'t be able to add new stuff or refresh until you reconnect</string>
     <string name="error_socketex_title">Network exception</string>
     <string name="error_socketex_text">Something is wrong with the network, or the server is unavailable. Please report this.</string>
     <string name="error_fileex_title">File exception</string>
-    <string name="error_fileex_text">I\'m having some troubles with files... Please report this.</string>
+    <string name="error_fileex_text">I\'m having some troubles with files… Please report this.</string>
     <string name="error_unknown_ioex_title">Unknown I/O Exception</string>
     <string name="error_unknown_ioex_text">Something is wrong with the files or the network. Please report this.</string>
     <string name="error_offline_edit_title">You\'re offline</string>
@@ -160,8 +137,45 @@
     <string name="error_offline_register_text">To register a new account, you need to be online. Please connect to the internet and try again.</string>
     <string name="error_login_socketex_title">Server unreachable</string>
     <string name="error_login_socketex_text">Something is wrong with the network. You will be logged in as an offline user. Please report this.</string>
-    <string name="error_login_unknownex_title">Something is wrong...</string>
+    <string name="error_login_unknownex_title">Something is wrong…</string>
     <string name="error_login_unknownex_text">And I don\'t know what. You\'ll be logged in as an offline user. Please report this.</string>
+    <string name="error_wrong_password_title">Wrong password</string>
+    <string name="error_wrong_password_text">The password you entered is incorrect.</string><string name="error_offline_search_title">You\'re offline</string>
+    <string name="error_offline_search_text">Search is unavailable while you\'re offline. Please connect to the internet and try again.</string>
+    <string name="confirm_join_group_title">Join group?</string>
+    <string name="confirm_join_group_message">Only members can add new items and see exams and audio recordings</string>
+    <string name="confirm_remove_notes_title">Are you sure you want to remove these notes?</string>
+    <string name="confirm_remove_notes_message">If you remove them, they are gone forever; no one will be able to see them anymore (you can use the hide button to remove them only for you)</string>
+    <string name="confirm_remove_plural">I\'m sure, remove them</string>
+    <string name="confirm_remove_singular">I\'m sure, remove it</string>
+    <string name="confirm_remove_questions_title">Are you sure you want to remove these questions?</string>
+    <string name="confirm_remove_questions_message">If you remove them, they are gone forever; no one will be able to see them anymore (you can use the hide button to remove them only for you)</string>
+    <string name="confirm_remove_lesson_title">Are you sure you want to remove this lesson?</string>
+    <string name="confirm_remove_lesson_message">If you remove it, all its data is gone forever, including all notes and questions; no one will be able to see it anymore (you can swipe it away to hide it only for you)</string>
+    <string name="confirm_remove_course_title">Are you sure you want to remove this course?</string>
+    <string name="confirm_remove_course_message">If you remove it, all its data is gone forever, including all lessons, notes and questions; no one will be able to see it anymore (you can swipe it away to hide it only for you)</string>
+    <string name="confirm_revoke_write_title">Kick member?</string>
+    <string name="confirm_revoke_write_text">This will remove user from the group. Are you sure you want to proceed?</string>
+    <string name="confirm_revoke_write_positive">Yes, kick</string>
+    <string name="confirm_leave_group_title">Leave group?</string>
+    <string name="confirm_leave_group_text">After you leave the group, you won\'t be able to add new items or view exam notes and questions</string>
+    <string name="remove_course_disabled_title">You can\'t remove course from here</string>
+    <string name="remove_course_disabled_message">Removing courses from here isn\'t supported yet, but I\'m glad you tried!</string>
+    <string name="enter_current_password">Enter current password:</string>
+    <string name="enter_new_pass">Enter new password:</string>
+    <string name="info_pass_changed_title">Password changed</string>
+    <string name="info_pass_changed_text">Your password has been successfully changed!</string>
+
+    <string name="join">Join</string>
+    <string name="join_request_sent_title">Request sent</string>
+    <string name="join_request_sent_text">Your request has been sent. You\'ll be a group member as soon as one of the owners or mods accepts your request.</string>
+    <string name="remove">Remove</string>
+
+    <string name="role_owner">Owner</string>
+    <string name="role_mod">Mod</string>
+    <string name="role_member">Member</string>
+    <string name="role_request">Membership requested</string>
+
     <string name="edit_edit_text">edited the item content</string>
     <string name="edit_replace_image">changed image</string>
     <string name="edit_add_image">added image</string>
@@ -173,6 +187,7 @@
     <string name="edit_remove_audio">removed the audio</string>
     <string name="edit_replace_audio">replaced the audio</string>
     <string name="edit_unknown">made an unknown edit</string>
+
     <string name="view_recent_edits">View recent edits</string>
     <string name="error_offline_history_title">You\'re offline</string>
     <string name="error_offline_history_text">You can\'t view recent edits while you\'re offline. Please connect to the internet and try again.</string>
@@ -182,16 +197,31 @@
     <string name="role_member_abbrev">Mem</string>
     <string name="role_owner_abbrev">Own</string>
     <string name="role_stranger">Stranger</string>
-    <string name="confirm_revoke_write_title">Kick member?</string>
-    <string name="confirm_revoke_write_text">This will remove user from the group. Are you sure you want to proceed?</string>
-    <string name="confirm_revoke_write_positive">Yes, kick</string>
+
     <string name="navbar_view_courses">View courses</string>
     <string name="navbar_view_exams">View exams</string>
     <string name="navbar_view_members">View members</string>
+    <string name="navbar_invite">Invite people</string>
+    <string name="navbar_leave">Leave group</string>
+    <string name="navbar_edit">Edit group details</string>
     <string name="create_group">Create group</string>
-    <string name="error_offline_search_title">You\'re offline</string>
-    <string name="error_offline_search_text">Search is unavailable while you\'re offline. Please connect to the internet and try again.</string>
-    <string name="search_groups">Search groups...</string>
+    <string name="search_groups">Search groups…</string>
+
     <string name="search">Search</string>
     <string name="search_results">Search results</string>
+    <string name="your_profile_image">Your profile image</string>
+    <string name="my_info">My info</string>
+    <string name="edit_my_info">Edit my info</string>
+    <string name="error_invalid_email">This isn\'t a valid email address</string>
+    <string name="invite">Invite</string>
+    <string name="send_invitation">Send an invitation</string>
+    <string name="dialog_invite_hint">Enter friend\'s email address</string>
+    <string name="dialog_invite_text">Enter your friend\'s email address. If he/she isn\'t using %1$s already, they will be sent an invitation to sign up for the app, along with the group invitation.</string>
+    <string name="invite_sent">Invitation sent</string>
+    <string name="leave">Leave</string>
+    <string name="change_password">Change password</string>
+    <string name="title_activity_member_list">Member List</string>
+    <string name="register_underlined"><u>Register</u></string>
+    <string name="register_legal_text">By registering for an account, I agree to the
+        <a href="http://192.168.0.15:9000/eula">EULA</a> and <a href="http://192.168.0.15:9000/pp">Privacy Policy</a></string>
 </resources>

@@ -8,6 +8,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import java.net.SocketException;
 
@@ -17,7 +20,6 @@ import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.network.UserManager;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
-import rs.luka.android.studygroup.ui.recyclers.RootActivity;
 
 /**
  * Created by luka on 25.7.15..
@@ -30,11 +32,13 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
     private static final String TAG_DIALOG_NO_NETWORK = "studygroup.LoginActivity.errorNetwork";
     private boolean requestInProgress              = false;
 
-    private CardView login, register;
+    private CardView login;
+    private TextView register;
     private TextInputLayout emailTil;
     private TextInputLayout passwordTil;
     private EditText email;
     private EditText password;
+    private CircularProgressView progressView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,11 +53,12 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
         }
 
         login = (CardView) findViewById(R.id.button_login);
-        register = (CardView) findViewById(R.id.button_register);
+        register = (TextView) findViewById(R.id.button_register);
         emailTil = (TextInputLayout) findViewById(R.id.login_email_til);
         email = (EditText) findViewById(R.id.login_email_input);
         passwordTil = (TextInputLayout) findViewById(R.id.login_password_til);
         password = (EditText) findViewById(R.id.login_password_input);
+        progressView = (CircularProgressView) findViewById(R.id.login_cpv);
 
         login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,16 +77,23 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
 
     private void login() {
         requestInProgress = true;
+        boolean hasErrors = false;
         if( email.getText().length() > Limits.USER_EMAIL_MAX_LENGTH) {
             emailTil.setError(getString(R.string.error_too_long));
+            hasErrors=true;
         } else emailTil.setError(null);
         if(password.getText().length() > Limits.USER_PASSWORD_MAX_LENGTH) {
             passwordTil.setError(getString(R.string.error_too_long));
+            hasErrors=true;
         } else passwordTil.setError(null);
-        UserManager.login(REQUEST_LOGIN,
-                          email.getText().toString(),
-                          password.getText().toString(),
-                          this);
+        if(!hasErrors) {
+            UserManager.login(REQUEST_LOGIN,
+                              email.getText().toString(),
+                              password.getText().toString(),
+                              this);
+            //login.setVisibility(View.GONE);
+            //progressView.setVisibility(View.VISIBLE); todo
+        }
     }
 
     @Override
@@ -94,7 +106,8 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
         if(dialog.getTag().equals(TAG_DIALOG_ERROR))
             password.setText("");
         else if(dialog.getTag().equals(TAG_DIALOG_NO_NETWORK))
-            startActivity(new Intent(LoginActivity.this, RootActivity.class));
+            if(User.hasSavedToken(getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE)))
+                startActivity(new Intent(LoginActivity.this, LoadingActivity.class));
     }
 
     @Override
@@ -108,26 +121,30 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
                             User.instantiateUser(response.responseData,
                                                  LoginActivity.this.getSharedPreferences(User.PREFS_NAME,
                                                                                          MODE_PRIVATE));
-                            startActivity(new Intent(LoginActivity.this, RootActivity.class));
+                            startActivity(new Intent(LoginActivity.this, LoadingActivity.class));
                             break;
                         case Network.Response.RESPONSE_UNAUTHORIZED:
-                            InfoDialog.newInstance                                (getString(R.string.wrong_creds_title),
+                            InfoDialog.newInstance(getString(R.string.wrong_creds_title),
                                                    getString(R.string.wrong_creds))
                                       .registerCallbacks(LoginActivity.this)
                                       .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
+                            //progressView.setVisibility(View.GONE);
+                            //login.setVisibility(View.VISIBLE);
                             break;
                         default:
-                            InfoDialog.newInstance                                                    (getString(R.string.unexpected_server_error),
+                            InfoDialog.newInstance(getString(R.string.unexpected_server_error),
                                                    response.getDefaultErrorMessage(LoginActivity.this))
                                       .registerCallbacks(LoginActivity.this)
                                       .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
+                            //progressView.setVisibility(View.GONE);
+                            //login.setVisibility(View.VISIBLE);
                     }
                 } else if(id == REQUEST_REFRESH) {
                     switch (response.responseCode) {
                         case Network.Response.RESPONSE_OK:
                             User.instantiateUser(response.responseData,
                                                  LoginActivity.this.getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
-                            startActivity(new Intent(LoginActivity.this, RootActivity.class));
+                            startActivity(new Intent(LoginActivity.this, LoadingActivity.class));
                             break;
                         case Network.Response.RESPONSE_UNAUTHORIZED: break; //proceed to login
                         default: ; // todo ?
@@ -145,26 +162,20 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                InfoDialog.Callbacks callbacks = new InfoDialog.Callbacks() {
-                    @Override
-                    public void onInfoDialogClosed(InfoDialog dialog) {
-                        startActivity(new Intent(LoginActivity.this, RootActivity.class));
-                    }
-                };
                 if(ex instanceof SocketException && !Network.Status.checkNetworkStatus(LoginActivity.this)) {
                     InfoDialog.newInstance(getString(R.string.error_offline_title),
                                            getString(R.string.error_offline_text))
-                              .registerCallbacks(callbacks)
+                              .registerCallbacks(LoginActivity.this)
                               .show(getSupportFragmentManager(), TAG_DIALOG_NO_NETWORK);
                 } else if (ex instanceof SocketException) {
                     InfoDialog.newInstance(getString(R.string.error_login_socketex_title),
                                            getString(R.string.error_login_socketex_text))
-                            .registerCallbacks(callbacks)
+                            .registerCallbacks(LoginActivity.this)
                             .show(getSupportFragmentManager(), TAG_DIALOG_NO_NETWORK);
                 } else {
                     InfoDialog.newInstance(getString(R.string.error_login_unknownex_title),
                                            getString(R.string.error_login_unknownex_text))
-                            .registerCallbacks(callbacks)
+                            .registerCallbacks(LoginActivity.this)
                             .show(getSupportFragmentManager(), TAG_DIALOG_NO_NETWORK);
                 }
                 User.setOfflineUser(getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));

@@ -1,13 +1,13 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
-import android.app.LoaderManager;
 import android.content.Context;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NavUtils;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -132,7 +132,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
 
     protected void refresh() {
         DataManager.refreshLessons(getContext(), course.getIdValue(),
-                                   this, getActivity().getLoaderManager(), exceptionHandler);
+                                   this, getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -177,7 +177,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             adapter = new LessonsAdapter(getActivity(), null);
             lessonsRecyclerView.setAdapter(adapter);
         }
-        DataManager.getLessons(getContext(), course.getIdValue(), this, getActivity().getLoaderManager(), exceptionHandler);
+        DataManager.getLessons(getContext(), course.getIdValue(), this, getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -275,12 +275,12 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
 
         @Override
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
-            final LessonHolder swipedHolder = (LessonHolder) viewHolder;
+            LessonHolder swipedHolder = (LessonHolder) viewHolder;
             final String       lesson       = swipedHolder.title;
             final int noteCount = swipedHolder.noteCount, questionCount = swipedHolder.questionCount, _id
                     = swipedHolder._id;
             course.shallowHideLesson(getActivity(), lesson);
-            getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_LESSONS, null, CourseFragment.this);
+            getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_LESSONS, null, CourseFragment.this);
             // TODO: 4.9.15. http://stackoverflow.com/questions/32406144/hiding-and-re-showing-cards-in-recyclerview-backed-by-cursor
             Snackbar snackbar = Snackbar.make(lessonsRecyclerView,
                                               R.string.lesson_hidden,
@@ -288,7 +288,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                                         .setCallback(new Snackbar.Callback() {
                                             @Override
                                             public void onDismissed(Snackbar snackbar, int event) {
-                                                course.hideLesson(getContext(), swipedHolder.title, exceptionHandler);
+                                                course.hideLesson(getContext(), lesson, exceptionHandler);
                                             }
                                         })
                                         .setAction(R.string.undo,
@@ -357,7 +357,8 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v,
                                         ContextMenu.ContextMenuInfo menuInfo) {
-            getActivity().getMenuInflater().inflate(R.menu.context_course, menu);
+            if(permission >= Group.PERM_MODIFY)
+                getActivity().getMenuInflater().inflate(R.menu.context_course, menu);
         }
     }
 

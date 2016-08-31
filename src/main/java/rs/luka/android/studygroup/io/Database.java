@@ -28,7 +28,7 @@ import rs.luka.android.studygroup.model.Question;
 public class Database extends SQLiteOpenHelper {
     private static final String TAG           = "studygroup.Database";
     private static final String DB_NAME       = "base.sqlite";
-    private static final int    VERSION       = 13;
+    private static final int    VERSION       = 14;
     private static final String DROP          = "DROP TABLE IF EXISTS ";
     private static final String CREATE        = "CREATE TABLE ";
     private static final String TYPE_VARCHAR  = " VARCHAR";
@@ -87,12 +87,13 @@ public class Database extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void insertGroup(ID id, String name, String place, boolean hasImage) {
+    public void insertGroup(ID id, String name, String place, boolean hasImage, int permission) {
         ContentValues cv = new ContentValues(4);
         cv.put(Groups.GroupEntry.COLUMN_NAME_ID, id.getGroupIdValue());
         cv.put(Groups.GroupEntry.COLUMN_NAME_SCHOOL, name);
         cv.put(Groups.GroupEntry.COLUMN_NAME_PLACE, place);
         cv.put(Groups.GroupEntry.COLUMN_NAME_IMAGE, hasImage);
+        cv.put(Groups.GroupEntry.COLUMN_NAME_PERMISSION, permission);
         SQLiteDatabase db   = getWritableDatabase();
         long           code = db.insert(Groups.TABLE_NAME, null, cv);
     }
@@ -324,16 +325,16 @@ public class Database extends SQLiteOpenHelper {
                   null);
     }
 
-    public void insertLessons(long courseId, String[] names, int[] noteNos, int[] questionNos) {
+    public void insertLessons(long courseId, rs.luka.android.studygroup.network.Lessons.Lesson[] lessons) {
         SQLiteDatabase db = getWritableDatabase();
         SQLiteStatement stmt = db.compileStatement(Lessons.SQL_INSERT);
         db.beginTransaction();
-        int len = names.length;
-        for (int i=0; i<len; i++) {
+        int len = lessons.length;
+        for (rs.luka.android.studygroup.network.Lessons.Lesson lesson : lessons) {
             stmt.bindLong(1, courseId);
-            stmt.bindString(2, names[i]);
-            stmt.bindLong(3, noteNos[i]);
-            stmt.bindLong(4, questionNos[i]);
+            stmt.bindString(2, lesson.name);
+            stmt.bindLong(3, lesson.noteNo);
+            stmt.bindLong(4, lesson.questionNo);
             stmt.executeInsert();
             stmt.clearBindings();
         }
@@ -378,7 +379,7 @@ public class Database extends SQLiteOpenHelper {
                   null);
     }
 
-    public void insertNote(ID id, String lesson, String text, boolean hasImage, boolean hasAudio) {
+    public void insertNote(ID id, String lesson, String text, boolean hasImage, boolean hasAudio, long order) {
         ContentValues cv = new ContentValues(5);
         cv.put(Notes.NoteEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
         cv.put(Notes.NoteEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
@@ -387,17 +388,43 @@ public class Database extends SQLiteOpenHelper {
         cv.put(Notes.NoteEntry.COLUMN_NAME_TEXT, text);
         cv.put(Notes.NoteEntry.COLUMN_NAME_IMAGE, hasImage);
         cv.put(Notes.NoteEntry.COLUMN_NAME_AUDIO, hasAudio);
+        if(order != 0)
+            cv.put(Notes.NoteEntry.COLUMN_NAME_ORDER, order);
+        else
+            cv.put(Notes.NoteEntry.COLUMN_NAME_ORDER, Integer.MAX_VALUE);
         SQLiteDatabase db   = getWritableDatabase();
         long           code = db.insert(Notes.TABLE_NAME, null, cv);
     }
 
     public void updateNote(ID id, String lesson, String text, boolean hasImage, boolean hasAudio) {
-        ContentValues cv = new ContentValues(2);
+        ContentValues cv = new ContentValues(4);
         cv.put(Notes.NoteEntry.COLUMN_NAME_LESSON, lesson);
         cv.put(Notes.NoteEntry.COLUMN_NAME_TEXT, text);
         cv.put(Notes.NoteEntry.COLUMN_NAME_IMAGE, hasImage);
         cv.put(Notes.NoteEntry.COLUMN_NAME_AUDIO, hasAudio);
         SQLiteDatabase db = getWritableDatabase();
+        db.update(Notes.TABLE_NAME, cv, Notes.NoteEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
+    }
+
+    public void reorderNote(ID id, String lesson, int newPosition, int currentPosition) { //todo fix occasional off-by-1
+        SQLiteDatabase db = getWritableDatabase();
+        if(newPosition < currentPosition) {
+            db.rawQuery("UPDATE " + Notes.TABLE_NAME + " SET " +
+                        Notes.NoteEntry.COLUMN_NAME_ORDER + " = " + Notes.NoteEntry.COLUMN_NAME_ORDER + "+1 "
+                        + "WHERE " + Notes.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
+                        " AND " + Notes.NoteEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
+                        Notes.NoteEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
+                        null);
+        } else if(newPosition > currentPosition) {
+            db.rawQuery("UPDATE " + Notes.TABLE_NAME + " SET " +
+                        Notes.NoteEntry.COLUMN_NAME_ORDER + " = " + Notes.NoteEntry.COLUMN_NAME_ORDER + "-1 "
+                        + "WHERE " + Notes.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
+                        " AND " + Notes.NoteEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
+                        Notes.NoteEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
+                        null);
+        }
+        ContentValues cv = new ContentValues(1);
+        cv.put(Notes.NoteEntry.COLUMN_NAME_ORDER, newPosition);
         db.update(Notes.TABLE_NAME, cv, Notes.NoteEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
     }
 
@@ -429,6 +456,7 @@ public class Database extends SQLiteOpenHelper {
             stmt.bindString(5, note.getText());       //text
             stmt.bindLong(6, note.hasImage()?1:0);    //hasImage
             stmt.bindLong(7, note.hasAudio()?1:0);    //hasAudio
+            stmt.bindLong(8, note.getOrder());
             stmt.executeInsert();
             stmt.clearBindings();
         }
@@ -448,11 +476,11 @@ public class Database extends SQLiteOpenHelper {
                                                null,
                                                null,
                                                null,
-                                               Notes.NoteEntry.COLUMN_NAME_ID + " asc"));
+                                               Notes.NoteEntry.COLUMN_NAME_ORDER + " asc"));
         return c;
     }
 
-    public void insertQuestion(ID id, String lesson, String question, String answer, boolean hasImage) {
+    public void insertQuestion(ID id, String lesson, String question, String answer, boolean hasImage, int order) {
         ContentValues cv = new ContentValues(5);
         cv.put(Questions.QuestionEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
         cv.put(Questions.QuestionEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
@@ -461,6 +489,8 @@ public class Database extends SQLiteOpenHelper {
         cv.put(Questions.QuestionEntry.COLUMN_NAME_QUESTION, question);
         cv.put(Questions.QuestionEntry.COLUMN_NAME_ANSWER, answer);
         cv.put(Questions.QuestionEntry.COLUMN_NAME_IMAGE, hasImage);
+        if(order != 0) cv.put(Questions.QuestionEntry.COLUMN_NAME_ORDER, order);
+        else           cv.put(Questions.QuestionEntry.COLUMN_NAME_ORDER, Integer.MAX_VALUE);
         SQLiteDatabase db   = getWritableDatabase();
         long           code = db.insert(Questions.TABLE_NAME, null, cv);
     }
@@ -476,6 +506,28 @@ public class Database extends SQLiteOpenHelper {
                   cv,
                   Questions.QuestionEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
                   null);
+    }
+
+    public void reorderQuestion(ID id, String lesson, int newPosition, int currentPosition) {
+        SQLiteDatabase db = getWritableDatabase();
+        if(newPosition < currentPosition) {
+            db.rawQuery("UPDATE " + Questions.TABLE_NAME + " SET " +
+                        Questions.QuestionEntry.COLUMN_NAME_ORDER + " = " + Questions.QuestionEntry.COLUMN_NAME_ORDER + "+1 "
+                        + "WHERE " + Questions.QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
+                        " AND " + Questions.QuestionEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
+                        Questions.QuestionEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
+                        null);
+        } else if(newPosition > currentPosition) {
+            db.rawQuery("UPDATE " + Questions.TABLE_NAME + " SET " +
+                        Questions.QuestionEntry.COLUMN_NAME_ORDER + " = " + Questions.QuestionEntry.COLUMN_NAME_ORDER + "-1 "
+                        + "WHERE " + Questions.QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
+                        " AND " + Questions.QuestionEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
+                        Questions.QuestionEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
+                        null);
+        }
+        ContentValues cv = new ContentValues(1);
+        cv.put(Questions.QuestionEntry.COLUMN_NAME_ORDER, newPosition);
+        db.update(Questions.TABLE_NAME, cv, Questions.QuestionEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
     }
 
     public void removeQuestion(ID id, String lesson) {
@@ -506,6 +558,7 @@ public class Database extends SQLiteOpenHelper {
             stmt.bindString(5, question.getQuestion());   //question
             stmt.bindString(6, question.getAnswer());     //question
             stmt.bindLong(7, question.hasImage()?1:0);    //hasImage
+            stmt.bindLong(8, question.getOrder());
             stmt.executeInsert();
             stmt.clearBindings();
         }
@@ -526,8 +579,7 @@ public class Database extends SQLiteOpenHelper {
                                                        null,
                                                        null,
                                                        null,
-                                                       Questions.QuestionEntry.COLUMN_NAME_ID
-                                                       + " asc"));
+                                                       Questions.QuestionEntry.COLUMN_NAME_ORDER + " asc"));
         return c;
     }
 
@@ -771,7 +823,8 @@ public class Database extends SQLiteOpenHelper {
                 + TYPE_NONNULL + COMMA_SEP +
                 NoteEntry.COLUMN_NAME_TEXT + TYPE_TEXT + COMMA_SEP +
                 NoteEntry.COLUMN_NAME_IMAGE + TYPE_INT1 + COMMA_SEP +
-                NoteEntry.COLUMN_NAME_AUDIO + TYPE_INT1 +
+                NoteEntry.COLUMN_NAME_AUDIO + TYPE_INT1 + COMMA_SEP +
+                NoteEntry.COLUMN_NAME_ORDER + TYPE_INT4 +
                 ")";
 
         private static final String SQL_DELETE_TABLE = DROP + TABLE_NAME;
@@ -785,8 +838,9 @@ public class Database extends SQLiteOpenHelper {
                                                  NoteEntry.COLUMN_NAME_LESSON + COMMA_SEP +
                                                  NoteEntry.COLUMN_NAME_TEXT + COMMA_SEP +
                                                  NoteEntry.COLUMN_NAME_IMAGE + COMMA_SEP +
-                                                 NoteEntry.COLUMN_NAME_AUDIO  +
-                                                 ")" + VALS + "(?, ?, ?, ?, ?, ?, ?)";
+                                                 NoteEntry.COLUMN_NAME_AUDIO  + COMMA_SEP +
+                                                 NoteEntry.COLUMN_NAME_ORDER +
+                                                 ")" + VALS + "(?, ?, ?, ?, ?, ?, ?, ?)";
 
         public static abstract class NoteEntry implements BaseColumns {
             public static final String COLUMN_NAME_ID        = _ID;
@@ -796,6 +850,7 @@ public class Database extends SQLiteOpenHelper {
             public static final String COLUMN_NAME_TEXT      = "text";
             public static final String COLUMN_NAME_IMAGE     = "image_exists";
             public static final String COLUMN_NAME_AUDIO     = "audio_exists";
+            public static final String COLUMN_NAME_ORDER     = "order_col";
         }
     }
 
@@ -815,7 +870,8 @@ public class Database extends SQLiteOpenHelper {
                             getString(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_LESSON)),
                             getString(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_TEXT)),
                             getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_IMAGE)) != 0,
-                            getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_AUDIO)) != 0);
+                            getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_AUDIO)) != 0,
+                            getInt(getColumnIndex(Notes.NoteEntry.COLUMN_NAME_ORDER)));
         }
     }
 
@@ -833,7 +889,8 @@ public class Database extends SQLiteOpenHelper {
                 + TYPE_NONNULL + COMMA_SEP +
                 QuestionEntry.COLUMN_NAME_QUESTION + TYPE_TEXT + COMMA_SEP +
                 QuestionEntry.COLUMN_NAME_ANSWER + TYPE_TEXT + COMMA_SEP +
-                QuestionEntry.COLUMN_NAME_IMAGE + TYPE_INT1 +
+                QuestionEntry.COLUMN_NAME_IMAGE + TYPE_INT1 + COMMA_SEP +
+                QuestionEntry.COLUMN_NAME_ORDER + TYPE_INT4 +
                 ")";
         private static final String SQL_DELETE_TABLE = DROP + TABLE_NAME;
         /**
@@ -846,8 +903,9 @@ public class Database extends SQLiteOpenHelper {
                                                  QuestionEntry.COLUMN_NAME_LESSON + COMMA_SEP +
                                                  QuestionEntry.COLUMN_NAME_QUESTION + COMMA_SEP +
                                                  QuestionEntry.COLUMN_NAME_ANSWER + COMMA_SEP +
-                                                 QuestionEntry.COLUMN_NAME_IMAGE +
-                                                 ")" + VALS + "(?, ?, ?, ?, ?, ?, ?)";
+                                                 QuestionEntry.COLUMN_NAME_IMAGE + COMMA_SEP +
+                                                 QuestionEntry.COLUMN_NAME_ORDER +
+                                                 ")" + VALS + "(?, ?, ?, ?, ?, ?, ?, ?)";
 
         public static abstract class QuestionEntry implements BaseColumns {
             public static final String COLUMN_NAME_ID        = Notes.NoteEntry.COLUMN_NAME_ID;
@@ -857,6 +915,7 @@ public class Database extends SQLiteOpenHelper {
             public static final String COLUMN_NAME_QUESTION  = "question";
             public static final String COLUMN_NAME_ANSWER    = "answer";
             public static final String COLUMN_NAME_IMAGE     = Notes.NoteEntry.COLUMN_NAME_IMAGE;
+            public static final String COLUMN_NAME_ORDER     = Notes.NoteEntry.COLUMN_NAME_ORDER;
         }
     }
 
@@ -876,7 +935,8 @@ public class Database extends SQLiteOpenHelper {
                                 getString(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_LESSON)),
                                 getString(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_QUESTION)),
                                 getString(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_ANSWER)),
-                                getInt(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_IMAGE)) != 0);
+                                getInt(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_IMAGE)) != 0,
+                                getInt(getColumnIndex(Questions.QuestionEntry.COLUMN_NAME_ORDER)));
         }
     }
 

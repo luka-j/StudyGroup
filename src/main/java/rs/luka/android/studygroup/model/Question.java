@@ -20,8 +20,6 @@ import rs.luka.android.studygroup.network.Questions;
  * Created by luka on 2.7.15..
  */
 public class Question implements Parcelable, Comparable<Question>, PastEvents {
-    public static final String EXAM_PREFIX = "_exam_";
-
     public static final Parcelable.Creator<Question> CREATOR
             = new Parcelable.Creator<Question>() {
         public Question createFromParcel(Parcel in) {
@@ -32,18 +30,20 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
             return new Question[size];
         }
     };
-    private final ID id;
-    private final String lesson;
-    private final String question;
-    private final String answer;
+    private final ID      id;
+    private final String  lesson;
+    private final String  question;
+    private final String  answer;
     private final boolean imageExists;
+    final         int     order;
 
-    public Question(ID id, String lesson, String question, String answer, boolean imageExists) {
+    public Question(ID id, String lesson, String question, String answer, boolean imageExists, int order) {
         this.id = id;
         this.lesson = lesson;
         this.question = question;
         this.answer = answer;
         this.imageExists = imageExists;
+        this.order = order;
     }
 
     private Question(Parcel in) {
@@ -52,6 +52,7 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
         question = in.readString();
         answer = in.readString();
         imageExists = in.readInt()!=0;
+        order = in.readInt();
     }
 
 
@@ -90,7 +91,7 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
     }
 
     public void show(Context c) {
-        Database.getInstance(c).insertQuestion(id, lesson, question, answer, imageExists);
+        Database.getInstance(c).insertQuestion(id, lesson, question, answer, imageExists, order);
     }
 
     public void edit(Context c, String lesson, String question, String answer, File image, NetworkExceptionHandler handler) {
@@ -109,6 +110,15 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
         dest.writeString(question);
         dest.writeString(answer);
         dest.writeInt(imageExists?1:0);
+        dest.writeInt(order);
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void reorder(Context context, int toPosition, NetworkExceptionHandler handler) {
+        DataManager.reorderQuestion(context, id, lesson, toPosition, order, handler);
     }
 
     @Override

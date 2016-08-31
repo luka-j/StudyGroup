@@ -35,7 +35,6 @@ import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.network.Groups;
 import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.UserManager;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 
@@ -48,11 +47,11 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
     private static final String TAG       = "MemberListFragment";
 
     private static final int REQUEST_GET_LIST = 0;
-    private static final int REQUEST_GET_PERMISSION = 1;
     protected static final int REQUEST_CHANGE_PERMISSION = 2;
 
     private Group   group;
     private boolean ownerMode;
+    private boolean modMode;
 
     private View root;
     private CircularProgressView progress;
@@ -90,13 +89,17 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
         int perm = group.getPermission();
         User.getLoggedInUser().setPermission(perm);
         ownerMode = perm >= Group.PERM_OWNER;
+        modMode = perm >= Group.PERM_MODIFY;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         root = inflater.inflate(R.layout.fragment_member_list, container, false);
-        UserManager.getMyMembership(REQUEST_GET_PERMISSION, group.getIdValue(), this);
 
+        if(modMode) {
+            View header = root.findViewById(R.id.member_list_header);
+            header.setVisibility(View.VISIBLE);
+        }
         progress = (CircularProgressView) root.findViewById(R.id.progress_view);
         progress.setVisibility(View.VISIBLE);
         recycler = (RecyclerView) root.findViewById(R.id.members_recycler);
@@ -146,12 +149,17 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
                                     JSONObject jsonUser = array.getJSONObject(i).getJSONObject("user");
                                     list.add(new User(jsonUser.getLong("id"),
                                                       jsonUser.getString("username"),
-                                                      array.getJSONObject(i).getInt("permission")));
+                                                      array.getJSONObject(i).getInt("permission"),
+                                                      jsonUser.getBoolean("hasImage")));
                                 }
                                 Collections.sort(list, new Comparator<User>() {
                                     @Override
                                     public int compare(User lhs, User rhs) {
-                                        if(ownerMode) {
+                                        if(modMode) {
+                                            if(lhs.getPermission() == Group.PERM_INVITED
+                                                    && rhs.getPermission() != Group.PERM_INVITED) return -1;
+                                            if(lhs.getPermission() != Group.PERM_INVITED
+                                               && rhs.getPermission() == Group.PERM_INVITED) return 1;
                                             if(lhs.getPermission() == Group.PERM_REQUEST_WRITE
                                                && rhs.getPermission() != Group.PERM_REQUEST_WRITE) return -1;
                                             if(lhs.getPermission() != Group.PERM_REQUEST_WRITE
@@ -169,17 +177,6 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
                             }
                             progress.setVisibility(View.GONE);
                             break;
-                        case REQUEST_GET_PERMISSION:
-                            try {
-                                JSONObject me = new JSONObject(response.responseData);
-                                if(!ownerMode) {
-                                    root.findViewById(R.id.member_list_header).setVisibility(View.GONE);
-                                }
-                                User.setMyId(me.getJSONObject("user").getLong("id"));
-                                break;
-                            } catch (JSONException e) {
-                                exceptionHandler.handleJsonException();
-                            }
                         case REQUEST_CHANGE_PERMISSION:
                             setData();
                             break;
@@ -285,13 +282,15 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
             owner = (CheckBox)itemView.findViewById(R.id.item_user_owner_box);
             mod = (CheckBox)itemView.findViewById(R.id.item_user_mod_box);
             member = (CheckBox)itemView.findViewById(R.id.item_user_member_box);
-            if(!ownerMode) {
+            if(!modMode) {
                 owner.setVisibility(View.GONE);
                 mod.setVisibility(View.GONE);
                 member.setVisibility(View.GONE);
             } else {
-                owner.setOnClickListener(ownerBoxListener);
-                mod.setOnClickListener(modBoxListener);
+                if(ownerMode) {
+                    owner.setOnClickListener(ownerBoxListener);
+                    mod.setOnClickListener(modBoxListener);
+                }
                 member.setOnClickListener(memberBoxListener);
             }
         }
@@ -300,19 +299,27 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
             this.user = user;
             nameTextView.setText(user.getName());
             roleTextView.setText(user.getRoleDescription(getContext()));
-            if (user.hasImage()) { image.setImageBitmap(user.getImage()); } else { image.setImageBitmap(null); }
-            if(ownerMode) {
+            if (user.hasImage()) {
+                user.getImage(getContext(), image.getWidth(), exceptionHandler, image);
+            } else {
+                image.setImageDrawable(getResources().getDrawable(R.drawable.default_user));
+            }
+            if(modMode) {
                 owner.setChecked(user.getPermission() >= Group.PERM_OWNER);
                 mod.setChecked(user.getPermission() >= Group.PERM_MODIFY);
                 member.setChecked(user.getPermission() >= Group.PERM_WRITE);
+                member.setEnabled(true);
+                if(ownerMode) {
+                    owner.setEnabled(true);
+                    mod.setEnabled(true);
+                } else {
+                    owner.setEnabled(false);
+                    mod.setEnabled(false);
+                }
                 if(user.getId() == User.getLoggedInUser().getId()) {
                     owner.setEnabled(false);
                     mod.setEnabled(false);
                     member.setEnabled(false);
-                } else {
-                    owner.setEnabled(true);
-                    mod.setEnabled(true);
-                    member.setEnabled(true);
                 }
             }
         }

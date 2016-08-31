@@ -11,6 +11,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -26,6 +27,7 @@ import android.widget.TextView;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import java.io.File;
+import java.net.SocketException;
 import java.util.List;
 
 import rs.luka.android.studygroup.R;
@@ -37,14 +39,16 @@ import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
-import rs.luka.android.studygroup.ui.recyclers.ExamQuestionsActivity;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
 
 /**
  * Created by luka on 14.7.15..
  */
 public class AddQuestionActivity extends AppCompatActivity {
+    private static final String TAG = "AddQuestionActivity";
     private NetworkExceptionHandler exceptionHandler;
+
+    public static final String EXTRA_IS_EXAM = "isFromExam";
 
     public static final String STATE_IMAGE_FILE_PATH = "stateimg";
     private static final int  INTENT_IMAGE          = 0;
@@ -84,6 +88,22 @@ public class AddQuestionActivity extends AppCompatActivity {
                 InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
                                        getString(R.string.error_offline_edit_text))
                           .show(getSupportFragmentManager(), "");
+                Network.Status.setOffline();
+            }
+            @Override
+            public void finishedUnsuccessfully() {
+                progressView.setVisibility(View.GONE);
+                if(buttonsLayout!=null) buttonsLayout.setVisibility(View.VISIBLE);
+                else add.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void handleSocketException(SocketException ex) {
+                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
+                                                           hostActivity.getString(R.string.error_socketex_text));
+                if(hostActivity instanceof InfoDialog.Callbacks)
+                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                Log.e(TAG, "Unexpected SocketException", ex);
                 Network.Status.setOffline();
             }
         };
@@ -139,7 +159,7 @@ public class AddQuestionActivity extends AppCompatActivity {
 
         String lessonText = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         lesson.setText(lessonText);
-        if(getIntent().getBooleanExtra(ExamQuestionsActivity.EXTRA_IMMUTABLE_LESSON, false)) {
+        if(getIntent().getBooleanExtra(EXTRA_IS_EXAM, false)) {
             lesson.setEnabled(false);
         }
         if (!lessonText.isEmpty()) { question.requestFocus(); }
@@ -207,11 +227,7 @@ public class AddQuestionActivity extends AppCompatActivity {
     private void doSubmit() {
         boolean error = false;
         String lessonStr;
-        if (getIntent().getStringExtra(ExamQuestionsActivity.EXTRA_LESSON_REAL_NAME) != null) {
-            lessonStr = getIntent().getStringExtra(ExamQuestionsActivity.EXTRA_LESSON_REAL_NAME);
-        } else {
-            lessonStr = lesson.getText().toString();
-        }
+        lessonStr = lesson.getText().toString();
         String questionStr = question.getText().toString(),
                 answerStr = answer.getText().toString();
         if (lessonStr.isEmpty()) {
@@ -234,7 +250,7 @@ public class AddQuestionActivity extends AppCompatActivity {
                 if(buttonsLayout!=null)buttonsLayout.setVisibility(View.GONE);
                 else add.setVisibility(View.GONE);
             } else {
-                if(!getIntent().getBooleanExtra(ExamQuestionsActivity.EXTRA_EXAM_QUESTION, false)) {
+                if(!getIntent().getBooleanExtra(EXTRA_IS_EXAM, false)) {
                     course.addQuestion(this, lessonStr, questionStr, answerStr, imageFile, exceptionHandler);
                 } else {
                     course.addExamQuestion(this, lessonStr, questionStr, answerStr, imageFile, exceptionHandler);

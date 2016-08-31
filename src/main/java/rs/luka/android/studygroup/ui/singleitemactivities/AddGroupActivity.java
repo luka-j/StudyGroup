@@ -38,6 +38,7 @@ import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
  * Created by luka on 18.7.15..
  */
 public class AddGroupActivity extends AppCompatActivity {
+    public static final String EXTRA_GROUP = GroupActivity.EXTRA_GROUP;
     private static final int    INTENT_IMAGE          = 0;
     private static final String STATE_IMAGE_FILE_PATH = "stImage";
     private EditText        name;
@@ -79,7 +80,7 @@ public class AddGroupActivity extends AppCompatActivity {
                 add.setVisibility(View.VISIBLE);
             }
         };
-        group = getIntent().getParcelableExtra(GroupActivity.EXTRA_GROUP);
+        group = getIntent().getParcelableExtra(EXTRA_GROUP);
         editing = group != null;
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);

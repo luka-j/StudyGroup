@@ -24,9 +24,8 @@
             android:name=".ui.singleitemactivities.RegisterActivity"
             android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity
-            android:name=".ui.recyclers.RootActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop">
+            android:name=".ui.singleitemactivities.LoadingActivity"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -36,12 +35,7 @@
         <activity
             android:name=".ui.recyclers.GroupActivity"
             android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:parentActivityName=".ui.recyclers.RootActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.recyclers.RootActivity" />
-        </activity>
+            android:launchMode="singleTop" />
         <activity
             android:name=".ui.recyclers.CourseActivity"
             android:label="@string/lessons_title"
@@ -91,11 +85,11 @@
             android:name=".ui.singleitemactivities.AddGroupActivity"
             android:label="@string/add_group"
             android:launchMode="singleTop"
-            android:parentActivityName=".ui.recyclers.RootActivity"
+            android:parentActivityName=".ui.singleitemactivities.LoadingActivity"
             android:windowSoftInputMode="stateVisible">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.recyclers.RootActivity" />
+                android:value=".ui.singleitemactivities.LoadingActivity" />
         </activity>
         <activity
             android:name=".ui.singleitemactivities.AddCourseActivity"
@@ -137,7 +131,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="rs.luka.android.studygroup.ui.recyclers.ScheduleActivity" />
         </activity>
-        <activity
+        <!--<activity
             android:name=".ui.recyclers.ExamQuestionsActivity"
             android:label="@string/questions"
             android:launchMode="singleTop"
@@ -145,7 +139,7 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="rs.luka.android.studygroup.ui.recyclers.ScheduleActivity" />
-        </activity>
+        </activity>-->
         <activity
             android:name=".ui.recyclers.SelectCourseActivity"
             android:label="@string/select_course"
@@ -171,6 +165,23 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="rs.luka.android.studygroup.ui.recyclers.GroupActivity" />
         </activity>
+        <activity android:name=".ui.singleitemactivities.UserInfoActivity"
+                  android:label="@string/my_info"
+                  android:parentActivityName=".ui.recyclers.GroupActivity"
+                  android:launchMode="singleTop">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="rs.luka.android.studygroup.ui.recyclers.GroupActivity" />
+        </activity>
+        <activity android:name=".ui.singleitemactivities.EditUserInfoActivity"
+                  android:label="@string/edit_my_info"
+                  android:parentActivityName=".ui.singleitemactivities.UserInfoActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="rs.luka.android.studygroup.ui.singleitemactivities.UserInfoActivity" />
+
+        </activity>
+
     </application>
 
 </manifest>

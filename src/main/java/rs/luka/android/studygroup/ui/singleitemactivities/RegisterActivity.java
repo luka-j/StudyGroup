@@ -6,20 +6,22 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Limits;
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.network.UserManager;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
-import rs.luka.android.studygroup.ui.recyclers.RootActivity;
 
 /**
  * Created by luka on 30.12.15..
@@ -51,6 +53,7 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
         email = (EditText) findViewById(R.id.register_email_input);
         username = (EditText) findViewById(R.id.register_username_input);
         password = (EditText) findViewById(R.id.register_password_input);
+        ((TextView)findViewById(R.id.register_legal)).setMovementMethod(LinkMovementMethod.getInstance());
 
         register.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,21 +65,31 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
     }
 
     private void register() {
-        requestInProgress = true;
+        boolean hasErrors = false;
         if( email.getText().length() > Limits.USER_EMAIL_MAX_LENGTH) {
             emailTil.setError(getString(R.string.error_too_long));
+            hasErrors = true;
         } else emailTil.setError(null);
         if(username.getText().length() > Limits.USER_NAME_MAX_LENGTH) {
             usernameTil.setError(getString(R.string.error_too_long));
+            hasErrors = true;
         } else usernameTil.setError(null);
         if(password.getText().length() > Limits.USER_PASSWORD_MAX_LENGTH) {
             passwordTil.setError(getString(R.string.error_too_long));
+            hasErrors = true;
         } else passwordTil.setError(null);
-        UserManager.register(REQUEST_REGISTER,
-                             email.getText().toString(),
-                             username.getText().toString(),
-                             password.getText().toString(),
-                             this);
+        if(!Utils.isEmailValid(email.getText())) {
+            emailTil.setError(getString(R.string.error_invalid_email));
+            hasErrors = true;
+        } else emailTil.setError(null);
+        if(!hasErrors) {
+            requestInProgress = true;
+            UserManager.register(REQUEST_REGISTER,
+                                 email.getText().toString(),
+                                 username.getText().toString(),
+                                 password.getText().toString(),
+                                 this);
+        }
     }
 
     @Override
@@ -90,7 +103,7 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
                         case Network.Response.RESPONSE_CREATED:
                             User.instantiateUser(response.responseData,
                                                  RegisterActivity.this.getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
-                            startActivity(new Intent(RegisterActivity.this, RootActivity.class));
+                            startActivity(new Intent(RegisterActivity.this, LoadingActivity.class));
                             break;
                         case Network.Response.RESPONSE_DUPLICATE:
                             emailTil.setError(getString(R.string.email_duplicate));
@@ -110,7 +123,7 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
                     if(response.responseCode == Network.Response.RESPONSE_OK) {
                         User.instantiateUser(response.responseData,
                                              RegisterActivity.this.getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
-                        startActivity(new Intent(RegisterActivity.this, RootActivity.class).addFlags(
+                        startActivity(new Intent(RegisterActivity.this, LoadingActivity.class).addFlags(
                                 Intent.FLAG_ACTIVITY_CLEAR_TOP));
                     } else {
                         InfoDialog.newInstance                                                       (getString(R.string.unexpected_server_error),

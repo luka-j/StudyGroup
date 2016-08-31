@@ -1,11 +1,11 @@
 package rs.luka.android.studygroup.model;
 
 import android.content.Context;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.v4.content.Loader;
 import android.widget.ImageView;
 
 import java.io.File;
@@ -36,10 +36,11 @@ public class Group implements Parcelable, Comparable<Group> {
     };
     public static final int PERM_READ_PUBLIC = 0;
     public static final int PERM_REQUEST_WRITE = 10;
+    public static final int PERM_INVITED = 50;
     public static final int PERM_WRITE = 100;
     public static final int PERM_MODIFY = 200;
     public static final int PERM_OWNER = 300;
-    private static final String                    TAG = "studygroup.Group";
+    private static final String                    TAG = "Group";
     private List<Integer> years;
     private List<Integer> filtering = new ArrayList<>();
     private final ID id; //private by design (iliti nikada ne napusta ovu klasu)

@@ -1,6 +1,7 @@
 package rs.luka.android.studygroup.network;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -12,11 +13,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.MediaCleanup;
 
 /**
  * Created by luka on 4.1.16..
@@ -27,9 +30,32 @@ public class Lessons {
     private static final String COURSE = "course/";
     private static final String LESSON = "/lesson/";
 
-    private static final String JSON_KEY_NAME = "name";
-    private static final String JSON_KEY_NOTENO = "noteNo";
+    private static final String JSON_KEY_NAME       = "name";
+    private static final String JSON_KEY_NOTENO     = "noteNo";
     private static final String JSON_KEY_QUESTIONNO = "questionNo";
+    private static final String JSON_KEY_PERMISSION = "requiredPermission";
+
+    public static class Lesson implements Comparable<Lesson> {
+        public final String name;
+        public final int noteNo;
+        public final int questionNo;
+        public final int permission;
+
+        public Lesson(String name, int noteNo, int questionNo, int permission) {
+            this.name = name;
+            this.noteNo = noteNo;
+            this.questionNo = questionNo;
+            this.permission = permission;
+        }
+
+        @Override
+        @NonNull
+        public int compareTo(@NonNull Lesson another) {
+            if(permission < another.permission) return -1;
+            if(permission > another.permission) return 1;
+            return 0;
+        }
+    }
 
     public static void getLessons(Context c, long courseId, NetworkExceptionHandler exceptionHandler)
             throws IOException {
@@ -39,15 +65,16 @@ public class Lessons {
             if(response.responseCode == Network.Response.RESPONSE_OK) {
                 JSONArray array   = new JSONArray(response.responseData);
                 int       len     = array.length();
-                String[] names = new String[len]; int[] noteNo = new int[len]; int[] questionNo = new int[len];
+                Lesson[] lessons = new Lesson[len];
                 for(int i=0; i<len; i++) {
                     JSONObject jsonLesson = array.getJSONObject(i);
-                    names[i] = jsonLesson.getString(JSON_KEY_NAME);
-                    noteNo[i] = jsonLesson.getInt(JSON_KEY_NOTENO);
-                    questionNo[i] = jsonLesson.getInt(JSON_KEY_QUESTIONNO);
+                    lessons[i] = new Lesson(jsonLesson.getString(JSON_KEY_NAME), jsonLesson.getInt(JSON_KEY_NOTENO),
+                                            jsonLesson.getInt(JSON_KEY_QUESTIONNO), jsonLesson.getInt(JSON_KEY_PERMISSION));
                 }
+                Arrays.sort(lessons);
                 Database.getInstance(c).clearLessons(courseId);
-                Database.getInstance(c).insertLessons(courseId, names, noteNo, questionNo);
+                Database.getInstance(c).insertLessons(courseId, lessons);
+                MediaCleanup.cleanupLessons(c, courseId, lessons);
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);
 
@@ -63,7 +90,8 @@ public class Lessons {
     public static boolean renameLesson(long courseId, String oldName, String newName,
                                     NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
-            oldName = URLEncoder.encode(oldName, "UTF-8"); newName = URLEncoder.encode(newName, "UTF-8");
+            oldName = URLEncoder.encode(oldName, "UTF-8").replace("+", "%20");
+            newName = URLEncoder.encode(newName, "UTF-8").replace("+", "%20");
             URL              url      = new URL(Network.getDomain(), COURSE + courseId + LESSON + oldName);
             Map<String, String> params = new HashMap<>(1);
             params.put(JSON_KEY_NAME, newName);
@@ -82,9 +110,8 @@ public class Lessons {
     public static boolean hideLesson(long courseId, String lesson, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            lesson = URLEncoder.encode(lesson, "UTF-8");
-            URL              url      = new URL(Network.getDomain(), COURSE + courseId + "/" +
-                                                                     URLEncoder.encode(lesson, "UTF-8") + "/hide");
+            lesson = URLEncoder.encode(lesson, "UTF-8").replace("+", "%20");
+            URL              url      = new URL(Network.getDomain(), COURSE + courseId + "/" + lesson + "/hide");
 
             Network.Response    response = NetworkRequests.requestPutData(url, NetworkRequests.emptyMap);
             if(response.responseCode == Network.Response.RESPONSE_OK)

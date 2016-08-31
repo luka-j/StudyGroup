@@ -1,8 +1,6 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
-import android.app.LoaderManager;
 import android.content.Context;
-import android.content.Loader;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.os.Build;
@@ -10,11 +8,14 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -151,6 +152,9 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
         questionsRecycler = (RecyclerView) view.findViewById(R.id.questions_recycler);
         final LinearLayoutManager lm = new LinearLayoutManager(getActivity());
         questionsRecycler.setLayoutManager(lm);
+        new ItemTouchHelper(new TouchHelperCallbacks(ItemTouchHelper.UP | ItemTouchHelper.DOWN,
+                                                     ItemTouchHelper.LEFT))
+                .attachToRecyclerView(questionsRecycler);
         setData();
 
         swipe = (PoliteSwipeRefreshLayout) view.findViewById(R.id.questions_swipe);
@@ -180,7 +184,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
     public void refresh() {
         swipe.setRefreshing(true);
         DataManager.refreshQuestions(getContext(), course.getIdValue(), lessonName, this,
-                                     getActivity().getLoaderManager(), exceptionHandler);
+                                     getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -191,7 +195,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
 
     private void hide() {
         for (Question q : selected) { q.hide(getActivity(), exceptionHandler); }
-        getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_QUESTIONS, null, QuestionListFragment.this);
+        getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_QUESTIONS, null, QuestionListFragment.this);
         /*final Set<Question> selected = new HashSet<>(this.selected); //selected se briše kad se actionmode zatvori
         snackbar = Snackbar.make(questionsRecycler, R.string.questions_hidden, Snackbar.LENGTH_LONG)
                            .setAction(R.string.undo, new View.OnClickListener() {
@@ -226,7 +230,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
             questionsRecycler.setAdapter(adapter);
         }
         DataManager.getQuestions(getContext(), course.getIdValue(), lessonName, this,
-                                 getActivity().getLoaderManager(), exceptionHandler);
+                                 getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -260,6 +264,52 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
         void onQuestionsEdit(Set<Question> questions);
         void onQuestionsRemove(Set<Long> questionIds);
         FloatingActionButton getFab();
+    }
+
+    private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
+
+        public TouchHelperCallbacks(int dragDirs, int swipeDirs) {
+            super(dragDirs, swipeDirs);
+        }
+
+        private Question movedQuestion;
+        private int movedToPosition = -1;
+
+        @Override
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
+                              RecyclerView.ViewHolder target) {
+            QuestionHolder srcHolder = (QuestionHolder) viewHolder;
+            //NoteHolder destHolder = (NoteHolder)target;
+            if(movedToPosition == -1) movedQuestion = srcHolder.question;
+            movedToPosition = target.getAdapterPosition();
+            /*if(!destHolder.itemView.isSelected()) srcHolder.itemView.setSelected(false);
+            srcHolder.bindNote(destHolder.note);
+            destHolder.bindNote(movedNote);*/ //doesn't work as expected (swaps everything to movedQuestion)
+            return true;
+        }
+
+        @Override
+        public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
+            QuestionHolder holder = (QuestionHolder)viewHolder;
+            holder.question.hide(getActivity(), exceptionHandler);
+            getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_NOTES, null, QuestionListFragment.this);
+            snackbar = Snackbar.make(questionsRecycler, R.string.notes_hidden, Snackbar.LENGTH_SHORT);
+            ((TextView)snackbar.getView().findViewById(android.support.design.R.id.snackbar_text))
+                    .setTextColor(getActivity().getResources().getColor(R.color.white));
+            snackbar.show();
+        }
+
+        @Override
+        public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+            super.clearView(recyclerView, viewHolder);
+            if(movedToPosition > -1) {
+                movedQuestion.reorder(getActivity(), movedToPosition + 1, exceptionHandler); //1-based ordering
+                getActivity().getSupportLoaderManager()
+                             .restartLoader(DataManager.LOADER_ID_NOTES, null, QuestionListFragment.this);
+                movedToPosition = -1;
+                movedQuestion = null;
+            }
+        }
     }
 
     private class QuestionHolder extends RecyclerView.ViewHolder

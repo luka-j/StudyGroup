@@ -25,7 +25,7 @@ import java.util.zip.InflaterInputStream;
 public class Utils {
     private static final String TAG = "studygroup.Utils";
 
-    private static final int COPY_BUFFER_SIZE = 10240;
+    private static final int COPY_BUFFER_SIZE = 1024 * 50; //50kB
 
     public static String getRealPathFromUri(Context c, Uri uri) {
         return FilePathUtils.getPath(c, uri);
@@ -175,5 +175,9 @@ public class Utils {
         for(int i=0; i<arr.length; i++)
             ret[i] = (Integer)arr[i];
         return ret;
+    }
+
+    public static boolean isEmailValid(CharSequence email) {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 }

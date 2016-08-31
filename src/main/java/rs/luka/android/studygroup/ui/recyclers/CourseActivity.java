@@ -74,10 +74,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
     @Override
     public void onEdit(String title) {
         oldLessonName = title;
-        InputDialog.newInstance(R.string.rename_lesson,
-                                R.string.rename,
-                                R.string.cancel,
-                                title)
+        InputDialog.newInstance(R.string.rename_lesson, null, R.string.rename, R.string.cancel, title, 0)
                    .show(getSupportFragmentManager(), TAG_DIALOG_RENAME);
     }
 
@@ -87,7 +84,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
     }
 
     @Override
-    public void onFinishedInput(String s) {
+    public void onFinishedInput(DialogFragment dialog, String s) {
         ((Course) getIntent().getParcelableExtra(EXTRA_COURSE)).renameLesson(this, oldLessonName, s, exceptionHandler);
         fragment.refresh();
     }

@@ -56,6 +56,15 @@
                 android:textColorHint="@color/light_grey"/>
         </android.support.design.widget.TextInputLayout>
 
+        <TextView
+            android:id="@+id/register_legal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/register_legal_text"
+            android:textColor="@color/color_accent"
+            android:textSize="@dimen/register_legal_text_size"
+            android:layout_marginTop="@dimen/register_legal_text_margin_top"/>
+
         <include
             style="@style/long_button_position"
             layout="@layout/button_register"

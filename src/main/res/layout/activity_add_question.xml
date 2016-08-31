@@ -72,16 +72,14 @@
                 android:layout_height="@dimen/addview_image_height"
                 android:layout_below="@id/add_question_answer_til"
                 android:layout_marginTop="@dimen/addview_image_margin_top"
-                android:src="@drawable/empty"/>
+                android:src="@drawable/camera"/>
 
             <com.github.rahatarmanahmed.cpv.CircularProgressView
                 android:id="@+id/add_question_cpv"
                 android:visibility="gone"
                 android:layout_width="@dimen/addview_cpv_size"
                 android:layout_height="@dimen/addview_cpv_size"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_gravity="right|end"
+                android:layout_gravity="end"
                 android:layout_marginTop="@dimen/addview_cpv_marginTop"
                 android:layout_marginRight="@dimen/addview_cpv_marginEnd"
                 android:layout_marginEnd="@dimen/addview_cpv_marginEnd"

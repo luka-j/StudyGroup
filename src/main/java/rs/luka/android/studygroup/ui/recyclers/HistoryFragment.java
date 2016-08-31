@@ -126,7 +126,7 @@ public class HistoryFragment extends Fragment implements Network.NetworkCallback
                         for(int i=0; i<jsonArray.length(); i++) {
                             jsonEdit = jsonArray.getJSONObject(i);
                             jsonUser = jsonEdit.getJSONObject("editor");
-                            User u = new User(jsonUser.getLong("id"), jsonUser.getString("username"), 0);
+                            User u = new User(jsonUser.getLong("id"), jsonUser.getString("username"), 0, jsonUser.getBoolean("hasImage"));
                             edits.add(new Edit(u,  jsonEdit.getInt("action"), jsonEdit.getLong("time")));
                         }
                         Collections.reverse(edits);

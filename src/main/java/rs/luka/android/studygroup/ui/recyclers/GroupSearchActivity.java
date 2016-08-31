@@ -34,6 +34,7 @@ import rs.luka.android.studygroup.network.Groups;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
+import rs.luka.android.studygroup.ui.singleitemactivities.LoadingActivity;
 
 /**
  * Created by luka on 3.2.16..
@@ -108,7 +109,7 @@ public class GroupSearchActivity extends AppCompatActivity implements Network.Ne
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case REQUEST_ADD_GROUP:
-                startActivity(new Intent(this, RootActivity.class));
+                startActivity(new Intent(this, LoadingActivity.class));
         }
     }
 

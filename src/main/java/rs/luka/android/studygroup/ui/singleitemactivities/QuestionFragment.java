@@ -20,7 +20,9 @@ import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
+import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
 
 /**
@@ -35,7 +37,6 @@ public class QuestionFragment extends Fragment {
     private TextView questionText;
     private TextView answerText;
     private ImageView image;
-    private TextView history;
     private NetworkExceptionHandler exceptionHandler;
 
     public static QuestionFragment newInstance(String courseName, Question question) {
@@ -77,7 +78,6 @@ public class QuestionFragment extends Fragment {
         questionText = (TextView) view.findViewById(R.id.question_text);
         answerText = (TextView) view.findViewById(R.id.answer_text);
         image = (ImageView) view.findViewById(R.id.question_image);
-        history = (TextView) view.findViewById(R.id.question_history);
         image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -106,6 +106,8 @@ public class QuestionFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_question, menu);
+        if(User.getLoggedInUser().getPermission() < Group.PERM_WRITE)
+            menu.removeItem(R.id.question_history);
     }
 
     @Override

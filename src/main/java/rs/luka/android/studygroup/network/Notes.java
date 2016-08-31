@@ -11,12 +11,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.MediaCleanup;
 import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Note;
 
@@ -28,20 +30,23 @@ public class Notes {
     private static final String TAG = "studygroup.net.Notes";
     private static final String COURSE = "course/";
 
-    private static final String JSON_KEY_ID = "id";
-    private static final String JSON_KEY_GROUPID = "groupId";
-    private static final String JSON_KEY_COURSEID = "courseId";
-    private static final String JSON_KEY_TEXT = "text";
-    private static final String JSON_KEY_LESSON = "lesson";
-    private static final String JSON_KEY_HASIMAGE = "hasImage";
-    private static final String JSON_KEY_HASAUDIO = "hasAudio";
+    private static final String JSON_KEY_ID         = "id";
+    private static final String JSON_KEY_GROUPID    = "groupId";
+    private static final String JSON_KEY_COURSEID   = "courseId";
+    private static final String JSON_KEY_TEXT       = "text";
+    private static final String JSON_KEY_LESSON     = "lesson";
+    private static final String JSON_KEY_HASIMAGE   = "hasImage";
+    private static final String JSON_KEY_HASAUDIO   = "hasAudio";
+    private static final String JSON_KEY_PERMISSION = "requiredPermission";
+    private static final String JSON_KEY_ORDER      = "order";
 
 
     public static void getNotes(Context c, long courseId, String lesson, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
             URL              url      = new URL(Network.getDomain(), COURSE + courseId + "/" +
-                                                                     (lesson.isEmpty()?"%20":lesson) + "/" + NOTES);
+                                                                     (lesson.isEmpty()? "%20": URLEncoder.encode(lesson, "UTF-8")).replace("+", "%20")
+                                                                     + "/" + NOTES);
             Network.Response<String> response = NetworkRequests.requestGetData(url);
             if(response.responseCode == Network.Response.RESPONSE_OK) {
                 JSONArray array = new JSONArray(response.responseData);
@@ -55,10 +60,12 @@ public class Notes {
                                         lesson,
                                         jsonNote.getString(JSON_KEY_TEXT),
                                         jsonNote.getBoolean(JSON_KEY_HASIMAGE),
-                                        jsonNote.getBoolean(JSON_KEY_HASAUDIO));
+                                        jsonNote.getBoolean(JSON_KEY_HASAUDIO),
+                                        jsonNote.getInt(JSON_KEY_ORDER));
                 }
                 Database.getInstance(c).clearNotes(courseId, lesson);
                 Database.getInstance(c).insertNotes(notes);
+                MediaCleanup.cleanupNotes(c, courseId, notes);
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);
 
@@ -72,13 +79,14 @@ public class Notes {
     }
 
     public static Long createNote(long courseId, String lesson, String text,
-                                    NetworkExceptionHandler exceptionHandler) throws IOException {
+                                    NetworkExceptionHandler exceptionHandler, int permission) throws IOException {
         try {
             URL                 url    = new URL(Network.getDomain(), NOTES);
-            Map<String, String> params = new HashMap<>(3);
+            Map<String, String> params = new HashMap<>(4);
             params.put(JSON_KEY_COURSEID, String.valueOf(courseId));
             params.put(JSON_KEY_LESSON, lesson);
             params.put(JSON_KEY_TEXT, text);
+            params.put(JSON_KEY_PERMISSION, String.valueOf(permission));
 
             Network.Response<String> response = NetworkRequests.requestPostData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
@@ -108,7 +116,7 @@ public class Notes {
 
 
             Network.Response handled = response.handleErrorCode(exceptionHandler);
-            return handled.responseCode == Network.Response.RESPONSE_CREATED;
+            return handled.responseCode == Network.Response.RESPONSE_OK;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
@@ -124,7 +132,7 @@ public class Notes {
                 return true;
 
             Network.Response handled = response.handleErrorCode(exceptionHandler);
-            return handled.responseCode == Network.Response.RESPONSE_CREATED;
+            return handled.responseCode == Network.Response.RESPONSE_OK;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
@@ -201,6 +209,51 @@ public class Notes {
                 return true;
             Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean loadAudio(long id, File loadInto, NetworkExceptionHandler exceptionHandler)
+            throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), NOTES + id + "/audio");
+            Network.Response<File> response = NetworkRequests.requestGetFile(url, loadInto);
+
+            if(response.responseCode == Network.Response.RESPONSE_OK)
+                return true;
+            Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_OK;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean updateAudio(long id, File audio, NetworkExceptionHandler exceptionHandler) //todo (Zaboravio sam od cega je ovo ostalo)?
+            throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), NOTES + id + "/audio");
+            Network.Response<File> response = NetworkRequests.requestPutFile(url, audio);
+
+            if(response.responseCode == Network.Response.RESPONSE_CREATED)
+                return true;
+            Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_CREATED;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean reorderNote(long id, int newOrder, NetworkExceptionHandler exceptionHandler) throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), NOTES + id + "/reorder/" + newOrder);
+
+            Network.Response    response = NetworkRequests.requestPutData(url, NetworkRequests.emptyMap);
+            if(response.responseCode == Network.Response.RESPONSE_OK)
+                return true;
+
+            Network.Response handled = response.handleErrorCode(exceptionHandler);
+            return handled.responseCode == Network.Response.RESPONSE_OK;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

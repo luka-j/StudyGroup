@@ -1,7 +1,6 @@
 package rs.luka.android.studygroup.model;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -36,13 +35,15 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
     private final String lesson;
     private final boolean imageExists;
     private final boolean audioExists;
+    private final int order;
 
-    public Note(ID id, String lesson, String text, boolean imageExists, boolean audioExists) {
+    public Note(ID id, String lesson, String text, boolean imageExists, boolean audioExists, int order) {
         this.id = id;
         this.text = text;
         this.lesson = lesson;
         this.imageExists = imageExists;
         this.audioExists = audioExists;
+        this.order = order;
     }
 
     private Note(Parcel in) {
@@ -51,6 +52,7 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
         text = in.readString();
         imageExists = in.readInt()!=0;
         audioExists = in.readInt()!=0;
+        order = in.readInt();
     }
 
     public String getLesson() {return lesson;}
@@ -70,8 +72,9 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
         return audioExists;
     }
 
-    public Uri getAudioPath(String courseName) {
-        return Uri.fromFile(DataManager.getAudio(id, courseName, lesson));
+    public void getAudioPath(int requestId, String courseName, NetworkExceptionHandler exceptionHandler,
+                             DataManager.AudioCallbacks callbacks) {
+        DataManager.getAudio(requestId, id, courseName, lesson, exceptionHandler, callbacks);
     }
 
     /**
@@ -94,7 +97,7 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
     }
 
     public void show(Context c) {
-        Database.getInstance(c).insertNote(id, lesson, text, imageExists, audioExists);
+        Database.getInstance(c).insertNote(id, lesson, text, imageExists, audioExists, order);
     }
 
     public void edit(Context c, String lesson, String text, File imageFile, File audioFile, NetworkExceptionHandler handler) {
@@ -117,6 +120,7 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
         dest.writeString(text);
         dest.writeInt(imageExists?1:0);
         dest.writeInt(audioExists?1:0);
+        dest.writeInt(order);
     }
 
     @Override
@@ -132,5 +136,13 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
     @Override
     public int compareTo(@NonNull Note another) {
         return id.compareTo(another.id);
+    }
+
+    public void reorder(Context context, int toPosition, NetworkExceptionHandler handler) {
+        DataManager.reorderNote(context, id, lesson, toPosition, order, handler);
+    }
+
+    public int getOrder() {
+        return order;
     }
 }

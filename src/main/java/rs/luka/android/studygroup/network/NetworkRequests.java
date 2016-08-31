@@ -65,7 +65,7 @@ public class NetworkRequests {
     }
 
     public static Network.Response<String> requestPostData(URL url, Map<String, String> param) throws IOException {
-        return new Network.StringRequest(0, url, User.getToken(), param, VERB_POST, null).call();
+        return new Network.StringRequest(-1, url, User.getToken(), param, VERB_POST, null).call();
     }
 
     public static void getDataAsync(int requestId, URL url, Network.NetworkCallbacks<String> callback) {
@@ -78,7 +78,7 @@ public class NetworkRequests {
     }
 
     public static Network.Response<String> requestGetData(URL url) throws IOException {
-        return new Network.StringRequest(0, url, User.getToken(), emptyMap, VERB_GET, null).call();
+        return new Network.StringRequest(-1, url, User.getToken(), emptyMap, VERB_GET, null).call();
     }
 
     public static void putDataAsync(int requestId, URL url, Map<String, String> data, Network.NetworkCallbacks<String> callback) {
@@ -91,7 +91,7 @@ public class NetworkRequests {
     }
 
     public static Network.Response<String> requestPutData(URL url, Map<String, String> param) throws IOException {
-        return new Network.StringRequest(0, url, User.getToken(), param, VERB_PUT, null).call();
+        return new Network.StringRequest(-1, url, User.getToken(), param, VERB_PUT, null).call();
     }
 
     public static void deleteDataAsync(int requestId, URL url, Network.NetworkCallbacks<String> callback) {
@@ -104,10 +104,10 @@ public class NetworkRequests {
     }
 
     public static Network.Response<File> requestGetFile(URL url, File saveTo) throws IOException {
-        return new Network.FileRequest(0, url, User.getToken(), null, VERB_GET, null, saveTo).call();
+        return new Network.FileRequest(-1, url, User.getToken(), null, VERB_GET, null, saveTo).call();
     }
     public static Network.Response<File> requestPutFile(URL url, File data) throws IOException {
-        return new Network.FileRequest(0, url, User.getToken(), data, VERB_PUT, null, null).call();
+        return new Network.FileRequest(-1, url, User.getToken(), data, VERB_PUT, null, null).call();
     }
 
 }

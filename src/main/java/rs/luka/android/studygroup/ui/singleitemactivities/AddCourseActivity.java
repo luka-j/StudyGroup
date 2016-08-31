@@ -11,6 +11,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +23,7 @@ import android.widget.TextView;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import java.io.File;
+import java.net.SocketException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
@@ -43,7 +45,8 @@ public class AddCourseActivity extends AppCompatActivity {
     public static final  String EXTRA_COURSE          = CourseActivity.EXTRA_COURSE;
     public static final  String EXTRA_GROUP           = GroupActivity.EXTRA_GROUP;
     private static final String STATE_IMAGE_FILE_PATH = "stImage";
-    private static final int  INTENT_IMAGE          = 0;
+    private static final int  INTENT_IMAGE            = 0;
+    private static final String TAG                   = "AddCourseActivity";
 
     private EditText        subject;
     private TextInputLayout subjectTil;
@@ -85,6 +88,15 @@ public class AddCourseActivity extends AppCompatActivity {
                 super.finishedUnsuccessfully();
                 progressView.setVisibility(View.GONE);
                 add.setVisibility(View.VISIBLE);
+            }
+            public void handleSocketException(SocketException ex) {
+                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
+                                                           hostActivity.getString(R.string.error_socketex_text));
+                if(hostActivity instanceof InfoDialog.Callbacks)
+                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                Log.e(TAG, "Unexpected SocketException", ex);
+                Network.Status.setOffline();
             }
         };
         group = getIntent().getParcelableExtra(EXTRA_GROUP);

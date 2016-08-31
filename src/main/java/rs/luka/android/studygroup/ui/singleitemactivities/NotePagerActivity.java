@@ -1,12 +1,12 @@
 package rs.luka.android.studygroup.ui.singleitemactivities;
 
-import android.app.LoaderManager;
 import android.content.Context;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -42,7 +42,7 @@ public class NotePagerActivity extends AppCompatActivity implements LoaderManage
         lesson = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         notePosition = getIntent().getIntExtra(LessonActivity.EXTRA_CURRENT_NOTE_POSITION, 0);
         adapter = new NoteAdapter(this, this.getSupportFragmentManager(), null);
-        DataManager.getNotes(this, course.getIdValue(), lesson, this, this.getLoaderManager(), exceptionHandler);
+        DataManager.getNotes(this, course.getIdValue(), lesson, this, this.getSupportLoaderManager(), exceptionHandler);
 
         viewPager.setAdapter(adapter);
     }

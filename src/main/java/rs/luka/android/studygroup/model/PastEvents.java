@@ -1,11 +1,13 @@
 package rs.luka.android.studygroup.model;
 
+import android.os.Parcelable;
+
 import rs.luka.android.studygroup.network.Network;
 
 /**
- * Pretpostavlja da sve implementacije takodje implementiraju Parcelable
+ *
  * Created by luka on 20.9.15.
  */
-public interface PastEvents {
+public interface PastEvents extends Parcelable {
     void getHistory(int requestId, Network.NetworkCallbacks<String> callbacks);
 }

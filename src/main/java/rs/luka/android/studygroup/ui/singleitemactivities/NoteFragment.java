@@ -17,17 +17,24 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.File;
 import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
+import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Note;
+import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
 
 /**
  * Created by luka on 12.7.15..
  */
-public class NoteFragment extends Fragment {
+public class NoteFragment extends Fragment implements DataManager.AudioCallbacks {
+    private static final int REQUEST_PRELOAD_AUDIO      = 0;
+    private static final int REQUEST_GET_AUDIO_FOR_PLAY = 1;
+
     public static final  String ARG_NOTE          = "anote";
     public static final  String ARG_COURSE_NAME   = "acourse";
     private static int    IMAGE_IDEAL_DIMEN = 720;
@@ -67,13 +74,14 @@ public class NoteFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         View              view = inflater.inflate(R.layout.fragment_note, container, false);
         AppCompatActivity ac   = (AppCompatActivity) getActivity();
         if (NavUtils.getParentActivityIntent(ac) != null) {
             ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+        note.getAudioPath(REQUEST_PRELOAD_AUDIO, courseName, exceptionHandler, this);
 
         text = (TextView) view.findViewById(R.id.note_text);
         image = (ImageView) view.findViewById(R.id.note_image);
@@ -96,12 +104,7 @@ public class NoteFragment extends Fragment {
             audio.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Uri    uri    = note.getAudioPath(courseName);
-                    Intent intent = new Intent();
-                    intent.setAction(android.content.Intent.ACTION_VIEW);
-                    intent.setDataAndType(uri, "audio/*");
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivity(intent);
+                    note.getAudioPath(REQUEST_GET_AUDIO_FOR_PLAY, courseName, exceptionHandler, NoteFragment.this);
                 }
             });
         }
@@ -120,6 +123,8 @@ public class NoteFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         getActivity().getMenuInflater().inflate(R.menu.menu_note, menu);
+        if(User.getLoggedInUser().getPermission() < Group.PERM_WRITE)
+            menu.removeItem(R.id.note_history);
     }
 
     @Override
@@ -133,5 +138,17 @@ public class NoteFragment extends Fragment {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onAudioReady(int requestId, File audioFile) {
+        if(requestId == REQUEST_GET_AUDIO_FOR_PLAY) {
+            Uri    uri    = Uri.fromFile(audioFile);
+            Intent intent = new Intent();
+            intent.setAction(android.content.Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "audio/*");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        }
     }
 }

@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.MediaCleanup;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
@@ -64,6 +65,7 @@ public class Groups  {
                 }
                 Database.getInstance(c).clearGroups();
                 Database.getInstance(c).insertGroups(groups);
+                MediaCleanup.cleanupGroups(groups);
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);
 
@@ -222,6 +224,26 @@ public class Groups  {
                                                                                  + "/search"
             ), callbacks);
         } catch (MalformedURLException | UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void invite(int requestId, long groupId, String email, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            URL url = new URL(Network.getDomain(), GROUPS + groupId + "/invite");
+            Map<String, String> params = new HashMap<>(1);
+            params.put("email", email);
+            NetworkRequests.putDataAsync(requestId, url, params, callbacks);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void leave(int requestId, long groupId, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), GROUPS + groupId + "/leave"),
+                                         NetworkRequests.emptyMap, callbacks);
+        } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }

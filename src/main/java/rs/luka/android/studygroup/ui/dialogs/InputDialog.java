@@ -20,16 +20,20 @@ public class InputDialog extends DialogFragment {
     private static final String ARG_TITLE = "aTitle";
     private static final String ARG_POSITIVE = "aPositive";
     private static final String ARG_NEGATIVE = "aNegative";
+    private static final String ARG_TEXT = "aText";
     private static final String ARG_INITIAL = "aInitialText";
+    private static final String ARG_HINT = "aHint";
 
-    public static InputDialog newInstance(@StringRes int title, @StringRes int positiveText,
-                                          @StringRes int negativeText, String initialText) {
+    public static InputDialog newInstance(@StringRes int title, String text, @StringRes int positiveText,
+                                          @StringRes int negativeText, String initialText, @StringRes int hint) {
         InputDialog f    = new InputDialog();
         Bundle      args = new Bundle();
         args.putInt(ARG_TITLE, title);
         args.putInt(ARG_POSITIVE, positiveText);
         args.putInt(ARG_NEGATIVE, negativeText);
         args.putString(ARG_INITIAL, initialText);
+        args.putString(ARG_TEXT, text);
+        args.putInt(ARG_HINT, hint);
         f.setArguments(args);
         return f;
     }
@@ -44,6 +48,8 @@ public class InputDialog extends DialogFragment {
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Bundle args = getArguments();
+        String text = args.getString(ARG_TEXT);
+        int hintId = args.getInt(ARG_HINT);
         MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity());
         //TextInputLayout til = new TextInputLayout(getActivity());
         final EditText input = new EditText(getActivity());
@@ -51,23 +57,25 @@ public class InputDialog extends DialogFragment {
         input.requestFocus();
         input.setSelection(input.getText().length());
         //til.addView(input);
-        return builder.title(args.getInt(ARG_TITLE))
+        builder.title(args.getInt(ARG_TITLE))
                       .positiveText(args.getInt(ARG_POSITIVE))
                       .negativeText(args.getInt(ARG_NEGATIVE))
-                .input(getString(args.getInt(ARG_TITLE)),
+                .input(hintId == 0? getString(args.getInt(ARG_TITLE)) : getString(hintId),
                        args.getString(ARG_INITIAL),
                        false,
                        new MaterialDialog.InputCallback() {
                            @Override
                            public void onInput(MaterialDialog materialDialog,
                                                CharSequence charSequence) {
-                               callbacks.onFinishedInput(charSequence.toString());
+                               callbacks.onFinishedInput(InputDialog.this, charSequence.toString());
                            }
-                       })
-                      .show();
+                       });
+        if(text != null)
+            builder.content(text);
+        return builder.show();
     }
 
     public interface Callbacks {
-        void onFinishedInput(String s);
+        void onFinishedInput(DialogFragment dialog, String s);
     }
 }

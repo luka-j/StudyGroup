@@ -16,6 +16,7 @@ import java.util.Map;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.MediaCleanup;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
@@ -69,6 +70,7 @@ public class Courses {
                 }
                 db.clearCourses(groupId);
                 db.insertCourses(courses);
+                MediaCleanup.cleanupCourses(courses);
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);
                 Network.Response handled = response.handleErrorCode(exceptionHandler);

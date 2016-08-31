@@ -7,10 +7,15 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
+import android.view.View;
+import android.widget.TextView;
+
+import com.pkmmte.view.CircularImageView;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -23,6 +28,7 @@ import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.network.Courses;
 import rs.luka.android.studygroup.network.Groups;
 import rs.luka.android.studygroup.network.Network;
@@ -33,6 +39,8 @@ import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.dialogs.InputDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddGroupActivity;
+import rs.luka.android.studygroup.ui.singleitemactivities.LoadingActivity;
+import rs.luka.android.studygroup.ui.singleitemactivities.UserInfoActivity;
 
 public class GroupActivity extends SingleFragmentActivity implements GroupFragment.Callbacks,
                                                                      FilterDialog.Callbacks,
@@ -40,30 +48,46 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                                                                      Network.NetworkCallbacks<String>,
                                                                      NavigationView.OnNavigationItemSelectedListener,
                                                                      InputDialog.Callbacks {
+    private static final String TAG                 = "GroupActivity";
 
-    public static final  String EXTRA_GROUP     = "exGroup";
-    public static final  String EXTRA_SHOW_LIST = "showList";
-    private static final String DIALOG_JOIN = "studygroup.dialog.joingroup";
-    private static final String DIALOG_REMOVE = "studygroup.dialog.removecourse";
-    private static final int REQUEST_JOIN_GROUP = 0; //network request
+    public static final  String EXTRA_GROUP         = "exGroup";
+    public static final  String EXTRA_SHOW_LIST     = "showList";
+    private static final String DIALOG_JOIN         = "studygroup.dialog.joingroup";
+    private static final String DIALOG_REMOVE       = "studygroup.dialog.removecourse";
+    private static final String DIALOG_SEARCH       = "studygroup.dialog.searchgroups";
+    private static final String DIALOG_INVITE       = "studygroup.dialog.invitetogroup";
+    private static final String DIALOG_LEAVE        = "studygroup.dialog.leavegroup";
+    private static final int REQUEST_JOIN_GROUP     = 0; //network request
     private static final int REQUEST_FILTER_COURSES = 1; //network request
-    private static final String TAG             = "GroupActivity";
+    private static final int REQUEST_INVITE         = 2; //network request
+    private static final int REQUEST_CREATE_GROUP   = 1000; //intent request
+    private static final int REQUEST_LEAVE          = 3;
     private List<Integer> filterYears;
     private GroupFragment fragment;
     private Course pendingRemove;
 
+    private NetworkExceptionHandler exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
     private Group group;
 
     private DrawerLayout drawer;
     private NavigationView navigation;
     private HashMap<Integer, Group> navbarGroups                 = new HashMap<>();
-    private static final int        NAVBAR_VIEW_COURSES_POSITION = 1;
-    private static final int        NAVBAR_VIEW_EXAMS_POSITION   = 2;
-    private static final int        NAVBAR_VIEW_MEMBERS_POSITION = 0;
+    private static final int NAVBAR_ITEMS = 6;
+    private static final int NAVBAR_VIEW_COURSES_POSITION = 1;
+    private static final int NAVBAR_VIEW_EXAMS_POSITION   = 2;
+    private static final int NAVBAR_VIEW_MEMBERS_POSITION = 3;
+    private static final int NAVBAR_EDIT_POSITION = 4;
+    private static final int NAVBAR_INVITE_POSITION = 5;
+    private static final int NAVBAR_LEAVE_POSITION = 0;
 
     @Override
     protected int getLayoutResId() {
         return R.layout.activity_navbar;
+    }
+
+    @Override
+    protected boolean shouldCreateFragment() {
+        return getIntent().hasExtra(EXTRA_GROUP);
     }
 
     @Override
@@ -72,11 +96,13 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         navigation = (NavigationView) findViewById(R.id.nav_view);
         drawer = (DrawerLayout)findViewById(R.id.group_drawer);
         setNavigationView();
+        if(getSupportActionBar() == null) setSupportActionBar((Toolbar)findViewById(R.id.toolbar));
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         navigation.setNavigationItemSelectedListener(this);
         if(group == null) group = getIntent().getParcelableExtra(EXTRA_GROUP);
-        RootActivity.setPreferredGroup(this, group);
+        if(group == null) drawer.openDrawer(GravityCompat.START);
+        else LoadingActivity.setPreferredGroup(this, group);
     }
 
     private void setNavigationView() {
@@ -93,14 +119,39 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         while(!groups.isAfterLast()) {
             Group   group = groups.getGroup();
             SubMenu groupMenu = navMenu.addSubMenu(group.getName());
-            groupMenu.add(groupId, itemId, groupId*3+itemId, R.string.navbar_view_courses); itemId++;
-            groupMenu.add(groupId, itemId, groupId*3+itemId, R.string.navbar_view_exams); itemId++;
-            groupMenu.add(groupId, itemId, groupId*3+itemId, R.string.navbar_view_members); itemId++;
+            groupMenu.add(groupId, itemId, itemId, R.string.navbar_view_courses); itemId++;
+            groupMenu.add(groupId, itemId, itemId, R.string.navbar_view_exams); itemId++;
+            groupMenu.add(groupId, itemId, itemId, R.string.navbar_view_members); itemId++;
+            if(group.getPermission() >= Group.PERM_OWNER)
+                groupMenu.add(groupId, itemId, itemId, R.string.navbar_edit);
+            itemId++;
+            groupMenu.add(groupId, itemId, itemId, R.string.navbar_invite); itemId++;
+            groupMenu.add(groupId, itemId, itemId, R.string.navbar_leave); itemId++;
             navbarGroups.put(groupId, group);
             groupId++;
             groups.moveToNext();
         }
         groups.close();
+        View headerContainer = navigation.getHeaderView(0);
+
+        TextView          username = (TextView) headerContainer.findViewById(R.id.nav_header_username);
+        TextView          email    = (TextView)headerContainer.findViewById(R.id.nav_header_email);
+        CircularImageView avatar   = (CircularImageView)headerContainer.findViewById(R.id.nav_header_image); //todo set
+        username.setText(User.getLoggedInUser().getName());
+        email.setText(User.getMyEmail());
+        if(User.getLoggedInUser().hasImage())
+            User.getLoggedInUser().getImage(this, avatar.getWidth(), exceptionHandler,
+                                            avatar);
+        else
+            avatar.setImageDrawable(getResources().getDrawable(R.drawable.default_user));
+
+        if(!headerContainer.hasOnClickListeners())
+            headerContainer.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(new Intent(GroupActivity.this, UserInfoActivity.class));
+                }
+            });
     }
 
     @Override
@@ -131,7 +182,8 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                 drawer.openDrawer(GravityCompat.START);
                 return true;
             case R.id.filter_courses:
-                FilterDialog.newInstance(getItems(), getSelectedItems()).show(getSupportFragmentManager(), null);
+                if(group != null)
+                    FilterDialog.newInstance(getItems(), getSelectedItems()).show(getSupportFragmentManager(), null);
                 return true;
             case R.id.settings:
                 // TODO: 19.9.15.
@@ -168,7 +220,10 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
 
     @Override
     public void onBackPressed() {
-        moveTaskToBack(true);
+        if(drawer.isDrawerOpen(GravityCompat.START))
+            drawer.closeDrawers();
+        else
+            moveTaskToBack(true);
     }
 
     public String[] getItems() {
@@ -200,25 +255,32 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
             selectedYears[i] = filterYears.get(selected[i]);
         if(selectedYears.length == 0)
             selectedYears = Utils.integerToIntArray(group.getCourseYears().toArray());
-        group.filter(REQUEST_FILTER_COURSES, selectedYears, this); //todo show spinner
+        group.filter(REQUEST_FILTER_COURSES, selectedYears, this);
+        fragment.showProgressView();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == REQUEST_CREATE_GROUP) {
+            startActivity(new Intent(this, LoadingActivity.class));
+        }
         if(fragment != null)
             fragment.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
     public void onPositive(DialogFragment dialog) {
-        switch (dialog.getTag()) {
+        switch (dialog.getTag().split(":")[0]) {
             case DIALOG_JOIN:
                 Groups.requestJoin(REQUEST_JOIN_GROUP,
                                    group.getIdValue(),
                                    this);
                 break;
             case DIALOG_REMOVE:
-                Courses.removeCourse(GroupFragment.REQUEST_REMOVE_COURSE, pendingRemove.getIdValue(), this);
+                Courses.removeCourse(GroupFragment.REQUEST_REMOVE_COURSE, pendingRemove.getIdValue(), fragment);
+                break;
+            case DIALOG_LEAVE:
+                Groups.leave(REQUEST_LEAVE, Long.parseLong(dialog.getTag().split(":")[1]), this);
                 break;
             default:
         }
@@ -231,23 +293,34 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
 
     @Override
     public void onRequestCompleted(final int id, Network.Response<String> response) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                switch (id) {
-                    case REQUEST_JOIN_GROUP:
-                        InfoDialog.newInstance(getString(R.string.join_request_sent_title),
-                                           getString(R.string.join_request_sent_text))
-                              .show(getSupportFragmentManager(), "");
-                        break;
-                    case REQUEST_FILTER_COURSES:
-                        fragment.refresh();
-                        break;
-                    default:
-                        Log.w(TAG, "Invalid requestId " + id);
+        if(response.responseCode == Network.Response.RESPONSE_OK) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    switch (id) {
+                        case REQUEST_JOIN_GROUP:
+                            InfoDialog.newInstance(getString(R.string.join_request_sent_title),
+                                                   getString(R.string.join_request_sent_text))
+                                      .show(getSupportFragmentManager(), "");
+                            break;
+                        case REQUEST_FILTER_COURSES:
+                            fragment.refresh();
+                            break;
+                        case REQUEST_INVITE:
+                            InfoDialog.newInstance(getString(R.string.invite_sent), "")
+                                      .show(getSupportFragmentManager(), "");
+                            break;
+                        case REQUEST_LEAVE:
+                            startActivity(new Intent(GroupActivity.this, LoadingActivity.class));
+                            break;
+                        default:
+                            Log.w(TAG, "Invalid requestId " + id);
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            response.handleErrorCode(exceptionHandler);
+        }
     }
 
     @Override
@@ -255,7 +328,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         if(ex instanceof Error)
             throw new Error(ex);
         if(ex instanceof IOException)
-            new NetworkExceptionHandler.DefaultHandler(this).handleIOException((IOException)ex);
+            exceptionHandler.handleIOException((IOException)ex);
         else {
             runOnUiThread(new Runnable() {
                 @Override
@@ -272,12 +345,12 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     @Override
     public boolean onNavigationItemSelected(MenuItem menuItem) {
         if(menuItem.getItemId() == R.id.nav_create_group) {
-            startActivity(new Intent(this, AddGroupActivity.class));
+            startActivityForResult(new Intent(this, AddGroupActivity.class), REQUEST_CREATE_GROUP);
         } else if(menuItem.getItemId() == R.id.nav_join_group) {
-            InputDialog.newInstance(R.string.search_groups, R.string.search, R.string.cancel, "")
-                .show(getSupportFragmentManager(), "");
+            InputDialog.newInstance(R.string.search_groups, null, R.string.search, R.string.cancel, "", 0)
+                .show(getSupportFragmentManager(), DIALOG_SEARCH);
         } else {
-            switch (menuItem.getItemId() % 3) {
+            switch (menuItem.getItemId() % NAVBAR_ITEMS) {
                 case NAVBAR_VIEW_COURSES_POSITION:
                     group = navbarGroups.get(menuItem.getGroupId());
                     fragment.changeGroup(group);
@@ -293,6 +366,26 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                                              MemberListActivity.class).putExtra(MemberListActivity.EXTRA_GROUP,
                                                                                 navbarGroups.get(menuItem.getGroupId())));
                     break;
+                case NAVBAR_EDIT_POSITION:
+                    startActivity(new Intent(this, AddGroupActivity.class)
+                            .putExtra(AddGroupActivity.EXTRA_GROUP, navbarGroups.get(menuItem.getGroupId())));
+                    break;
+                case NAVBAR_INVITE_POSITION:
+                    InputDialog.newInstance(R.string.invite,
+                                            getString(R.string.dialog_invite_text, getString(R.string.app_name)),
+                                            R.string.send_invitation,
+                                            R.string.cancel,
+                                            "",
+                                            R.string.dialog_invite_hint)
+                               .show(getSupportFragmentManager(), DIALOG_INVITE + ":" + navbarGroups.get(menuItem.getGroupId()).getIdValue());
+                    break;
+                case NAVBAR_LEAVE_POSITION:
+                    ConfirmDialog.newInstance(R.string.confirm_leave_group_title,
+                                              R.string.confirm_leave_group_text,
+                                              R.string.leave,
+                                              R.string.cancel)
+                            .show(getSupportFragmentManager(), DIALOG_LEAVE + ":" + navbarGroups.get(menuItem.getGroupId()).getIdValue());
+                    break;
             }
         }
         drawer.closeDrawers();
@@ -300,7 +393,15 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     }
 
     @Override
-    public void onFinishedInput(String s) {
-        startActivity(new Intent(this, GroupSearchActivity.class).putExtra(GroupSearchActivity.EXTRA_SEARCH_TERM, s));
+    public void onFinishedInput(DialogFragment dialog, String s) {
+        switch (dialog.getTag().split(":")[0]) {
+            case DIALOG_SEARCH:
+                startActivity(new Intent(this,
+                                         GroupSearchActivity.class).putExtra(GroupSearchActivity.EXTRA_SEARCH_TERM, s));
+                break;
+            case DIALOG_INVITE:
+                Groups.invite(REQUEST_INVITE, Long.parseLong(dialog.getTag().split(":")[1]), s, this);
+                break;
+        }
     }
 }

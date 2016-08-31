@@ -35,7 +35,7 @@ import rs.luka.android.studygroup.model.User;
  */
 public class Network {
 
-    private static final int BUFFER_SIZE = 102_400; //100kb
+    private static final int BUFFER_SIZE = 51_200; //50kb
 
     private static URL                  DOMAIN; //catch in static block complains if this is made final
 
@@ -106,7 +106,7 @@ public class Network {
             switch (responseCode) {
                 case RESPONSE_UNAUTHORIZED:
                     try {
-                        UserManager.handleTokenError(this);
+                        UserManager.handleTokenError(this, handler);
                         request.swapToken(User.getToken());
                         Response<T> handled = request.call();
                         handled.handleErrorCode(handler);

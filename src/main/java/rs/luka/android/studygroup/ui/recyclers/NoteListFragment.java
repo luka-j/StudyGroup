@@ -1,9 +1,7 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
-import android.app.LoaderManager;
 import android.content.Context;
-import android.content.Loader;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.os.Build;
@@ -11,11 +9,14 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -154,7 +155,9 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         notesRecycler = (RecyclerView) view.findViewById(R.id.notes_recycler);
         final LinearLayoutManager lm = new LinearLayoutManager(ac);
         notesRecycler.setLayoutManager(lm);
-        //notesRecycler.addOnScrollListener(new HideShowListener(ac.findViewById(R.id.lesson_container)));
+        new ItemTouchHelper(new TouchHelperCallbacks(ItemTouchHelper.UP | ItemTouchHelper.DOWN,
+                                                     ItemTouchHelper.RIGHT))
+                .attachToRecyclerView(notesRecycler);
         setData();
 
         swipe = (PoliteSwipeRefreshLayout) view.findViewById(R.id.notes_swipe);
@@ -184,7 +187,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
     public void refresh() {
         swipe.setRefreshing(true);
         DataManager.refreshNotes(getContext(), course.getIdValue(), lessonName, this,
-                                 getActivity().getLoaderManager(), exceptionHandler);
+                                 getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -194,7 +197,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
     }
     private void hide() {
         for (Note n : selected) { n.hide(getActivity(), exceptionHandler); }
-        getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_NOTES, null, NoteListFragment.this);
+        getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_NOTES, null, NoteListFragment.this);
         /*final Set<Note> selected = new HashSet<>(this.selected); //selected se briše kad se actionmode zatvori
         snackbar = Snackbar.make(notesRecycler, R.string.notes_hidden, Snackbar.LENGTH_LONG)
                            .setAction(R.string.undo, new View.OnClickListener() {
@@ -217,6 +220,52 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         snackbar.show();
     }
 
+    private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
+
+        public TouchHelperCallbacks(int dragDirs, int swipeDirs) {
+            super(dragDirs, swipeDirs);
+        }
+
+        private Note movedNote;
+        private int movedToPosition = -1;
+
+        @Override
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
+                              RecyclerView.ViewHolder target) {
+            NoteHolder srcHolder = (NoteHolder)viewHolder;
+            //NoteHolder destHolder = (NoteHolder)target;
+            if(movedToPosition == -1) movedNote = srcHolder.note;
+            movedToPosition = target.getAdapterPosition();
+            /*if(!destHolder.itemView.isSelected()) srcHolder.itemView.setSelected(false);
+            srcHolder.bindNote(destHolder.note);
+            destHolder.bindNote(movedNote);*/ //doesn't work as expected (swaps everything to movedNote)
+            return true;
+        }
+
+        @Override
+        public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
+            NoteHolder holder = (NoteHolder)viewHolder;
+            holder.note.hide(getActivity(), exceptionHandler);
+            getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_NOTES, null, NoteListFragment.this);
+            snackbar = Snackbar.make(notesRecycler, R.string.notes_hidden, Snackbar.LENGTH_SHORT);
+            ((TextView)snackbar.getView().findViewById(android.support.design.R.id.snackbar_text))
+                    .setTextColor(getActivity().getResources().getColor(R.color.white));
+            snackbar.show();
+        }
+
+        @Override
+        public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+            super.clearView(recyclerView, viewHolder);
+            if(movedToPosition > -1) {
+                movedNote.reorder(getActivity(), movedToPosition+1, exceptionHandler); //1-based ordering
+                getActivity().getSupportLoaderManager()
+                             .restartLoader(DataManager.LOADER_ID_NOTES, null, NoteListFragment.this);
+                movedToPosition = -1;
+                movedNote = null;
+            }
+        }
+    }
+
     protected void dismissSnackbar() {
         if (snackbar != null) { snackbar.dismiss(); }
         snackbar = null;
@@ -228,7 +277,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
             notesRecycler.setAdapter(adapter);
         }
         DataManager.getNotes(getContext(), course.getIdValue(), lessonName, this,
-                             getActivity().getLoaderManager(), exceptionHandler);
+                             getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override

@@ -33,9 +33,9 @@ public interface NetworkExceptionHandler {
 
     class DefaultHandler implements NetworkExceptionHandler {
         private static final String LOGGING_TAG = "net.defaulthandler";
-        private static final String TAG_DIALOG = "studygroup.dialog.error";
+        protected static final String TAG_DIALOG = "studygroup.dialog.error";
         protected boolean hasErrors = false;
-        private AppCompatActivity hostActivity;
+        protected AppCompatActivity hostActivity;
         public DefaultHandler(AppCompatActivity host) {
             hostActivity = host;
         }
@@ -46,9 +46,11 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    InfoDialog.newInstance(hostActivity.getString(R.string.error_session_expired_title),
-                                           hostActivity.getString(R.string.error_session_expired_text))
-                              .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                    InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_session_expired_title),
+                                           hostActivity.getString(R.string.error_session_expired_text));
+                    if(hostActivity instanceof InfoDialog.Callbacks)
+                        dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                    dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
                     hostActivity.startActivity(new Intent(hostActivity, LoginActivity.class));
                 }
             });
@@ -60,9 +62,11 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    InfoDialog.newInstance(hostActivity.getString(R.string.error_insufficient_permissions_title),
-                                           hostActivity.getString(R.string.error_insufficient_permissions_text))
-                              .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                    InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_insufficient_permissions_title),
+                                           hostActivity.getString(R.string.error_insufficient_permissions_text));
+                    if(hostActivity instanceof InfoDialog.Callbacks)
+                        dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                    dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
                 }
             });
             hasErrors=true;
@@ -73,9 +77,11 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    InfoDialog.newInstance(hostActivity.getString(R.string.error_server_error_title),
-                                           hostActivity.getString(R.string.error_server_error_text))
-                              .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                    InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_server_error_title),
+                                           hostActivity.getString(R.string.error_server_error_text));
+                    if(hostActivity instanceof InfoDialog.Callbacks)
+                        dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                    dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
                 }
             });
             hasErrors=true;
@@ -86,9 +92,11 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    InfoDialog.newInstance(String.valueOf(code) + " " + hostActivity.getString(R.string.error_not_found_title),
-                                           hostActivity.getString(R.string.error_not_found_text))
-                              .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                    InfoDialog dialog = InfoDialog.newInstance(String.valueOf(code) + " " + hostActivity.getString(R.string.error_not_found_title),
+                                           hostActivity.getString(R.string.error_not_found_text));
+                    if(hostActivity instanceof InfoDialog.Callbacks)
+                        dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                    dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
                 }
             });
             hasErrors=true;
@@ -99,9 +107,11 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    InfoDialog.newInstance(hostActivity.getString(R.string.error_duplicate_title),
-                                           hostActivity.getString(R.string.error_duplicate_text))
-                              .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                    InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_duplicate_title),
+                                                       hostActivity.getString(R.string.error_duplicate_text));
+                    if(hostActivity instanceof InfoDialog.Callbacks)
+                        dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                    dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
                 }
             });
             hasErrors=true;
@@ -112,9 +122,11 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    InfoDialog.newInstance(hostActivity.getString(R.string.error_bad_request_title),
-                                           hostActivity.getString(R.string.error_bad_request_text))
-                              .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                    InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_bad_request_title),
+                                           hostActivity.getString(R.string.error_bad_request_text));
+                    if(hostActivity instanceof InfoDialog.Callbacks)
+                        dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                    dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
                 }
             });
             hasErrors=true;
@@ -125,9 +137,11 @@ public interface NetworkExceptionHandler {
             hostActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    InfoDialog.newInstance(hostActivity.getString(R.string.error_json_title),
-                                           hostActivity.getString(R.string.error_json_text))
-                              .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                    InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_json_title),
+                                           hostActivity.getString(R.string.error_json_text));
+                    if(hostActivity instanceof InfoDialog.Callbacks)
+                        dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                    dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
                 }
             });
             hasErrors=true;
@@ -181,39 +195,52 @@ public interface NetworkExceptionHandler {
                 }
             });
             hasErrors = true;
-            finishedUnsuccessfully();
+            hostActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    finishedUnsuccessfully();
+                }
+            });
         }
 
         public void handleFileException(FileIOException ex) {
-            InfoDialog.newInstance(hostActivity.getString(R.string.error_fileex_title),
-                                   hostActivity.getString(R.string.error_fileex_text))
-                      .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+            InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_fileex_title),
+                                   hostActivity.getString(R.string.error_fileex_text));
+            if(hostActivity instanceof InfoDialog.Callbacks)
+                dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+            dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
             Log.e(LOGGING_TAG, "Unexpected FileIOException", ex);
         }
 
         public void handleOffline() {
             if(Network.Status.isOnline()) {
-                InfoDialog.newInstance(hostActivity.getString(R.string.error_changed_offline_title),
-                                       hostActivity.getString(R.string.error_changed_offline_text))
-                          .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_changed_offline_title),
+                                       hostActivity.getString(R.string.error_changed_offline_text));
+                if(hostActivity instanceof InfoDialog.Callbacks)
+                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
                 Network.Status.setOffline();
             }
         }
 
         public void handleSocketException(SocketException ex) {
             if(Network.Status.isOnline()) { //prevents this dialog from popping up multiple times. Should it?
-                InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
-                                       hostActivity.getString(R.string.error_socketex_text))
-                          .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
+                                       hostActivity.getString(R.string.error_socketex_text));
+                if(hostActivity instanceof InfoDialog.Callbacks)
+                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
                 Log.e(LOGGING_TAG, "Unexpected SocketException", ex);
                 Network.Status.setOffline(); //todo ?
             }
         }
 
         public void handleUnknownIOException(IOException ex) {
-            InfoDialog.newInstance(hostActivity.getString(R.string.error_unknown_ioex_title),
-                                   hostActivity.getString(R.string.error_unknown_ioex_text))
-                      .show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+            InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_unknown_ioex_title),
+                                   hostActivity.getString(R.string.error_unknown_ioex_text));
+            if(hostActivity instanceof InfoDialog.Callbacks)
+                dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+            dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
             Log.e(LOGGING_TAG, "Unexpected unknown IOException", ex);
         }
     }

@@ -12,6 +12,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -26,6 +27,7 @@ import android.widget.TextView;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import java.io.File;
+import java.net.SocketException;
 import java.util.List;
 
 import rs.luka.android.studygroup.R;
@@ -44,8 +46,10 @@ import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
  */
 public class AddNoteActivity extends AppCompatActivity {
 
+    private static final String TAG = "AddNoteActivity";
     private NetworkExceptionHandler exceptionHandler;
 
+    public static final String EXTRA_IS_EXAM = "isExam";
     public static final String STATE_IMAGE_FILE_PATH = "stateImg";
     public static final String STATE_AUDIO_FILE_PATH = "stateAudio";
     private static final int  INTENT_IMAGE          = 0;
@@ -90,6 +94,21 @@ public class AddNoteActivity extends AppCompatActivity {
                           .show(getSupportFragmentManager(), "");
                 Network.Status.setOffline();
             }
+            @Override
+            public void finishedUnsuccessfully() {
+                progressView.setVisibility(View.GONE);
+                if(buttonsLayout!=null) buttonsLayout.setVisibility(View.VISIBLE);
+                else submit.setVisibility(View.VISIBLE);
+            }
+            public void handleSocketException(SocketException ex) {
+                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
+                                                           hostActivity.getString(R.string.error_socketex_text));
+                if(hostActivity instanceof InfoDialog.Callbacks)
+                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                Log.e(TAG, "Unexpected SocketException", ex);
+                Network.Status.setOffline();
+            }
         };
 
         course = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE);
@@ -107,7 +126,7 @@ public class AddNoteActivity extends AppCompatActivity {
         text = (EditText) findViewById(R.id.add_note_text_input);
         textTil = (TextInputLayout) findViewById(R.id.add_note_text_til);
         lesson = (EditText) findViewById(R.id.add_note_lesson_input);
-        lessonTil = (TextInputLayout) findViewById(R.id.add_note_lesson_til);
+        lessonTil = (TextInputLayout) findViewById(R.id.edit_user_username_til);
         submit = (CardView) findViewById(R.id.button_add);
         progressView = (CircularProgressView) findViewById(R.id.add_note_cpv);
         if (editing && notes.size() > 1) { //kreiranje dva dugmeta
@@ -120,7 +139,7 @@ public class AddNoteActivity extends AppCompatActivity {
             if(Build.VERSION.SDK_INT >= 17) params.addRule(RelativeLayout.ALIGN_PARENT_END);
             params.addRule(RelativeLayout.BELOW, R.id.add_note_image);
             params.setMargins(0, 14, 0, 10);
-            content = (RelativeLayout) findViewById(R.id.add_note_content);
+            content = (RelativeLayout) findViewById(R.id.edit_user_content);
             content.removeView(submit);
             content.addView(buttonsLayout, params);
             next = (CardView) buttonsLayout.findViewById(R.id.button_next);
@@ -220,7 +239,8 @@ public class AddNoteActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != Activity.RESULT_CANCELED) {
             if (requestCode == INTENT_IMAGE) {
-                if (data != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
+                if (data != null && data.getData() != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
+                                    //osim u Marshmallow-u, tu je data != null, ali je data.getData() == null
                     imageFile = new File(Utils.getRealPathFromUri(this, data.getData()));
                 }
                 image.setImageBitmap(LocalImages.loadImage(imageFile,
@@ -266,7 +286,8 @@ public class AddNoteActivity extends AppCompatActivity {
                 if(buttonsLayout!=null)buttonsLayout.setVisibility(View.GONE);
                 else submit.setVisibility(View.GONE);
             } else {
-                course.addNote(this, lessonStr, noteStr, imageFile, audioFile, exceptionHandler);
+                course.addNote(this, lessonStr, noteStr, imageFile, audioFile,
+                               getIntent().getBooleanExtra(EXTRA_IS_EXAM, false), exceptionHandler);
                 submit.setVisibility(View.GONE);
             }
             progressView.setVisibility(View.VISIBLE);

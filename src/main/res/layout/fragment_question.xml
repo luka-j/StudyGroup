@@ -38,12 +38,6 @@
             android:adjustViewBounds="true"
             android:contentDescription="@string/question_image_desc"
             android:scaleType="centerInside"/>
-
-        <TextView
-            android:id="@+id/question_history"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingTop="@dimen/siview_history_padding_top" />
     </LinearLayout>
 
 </ScrollView>

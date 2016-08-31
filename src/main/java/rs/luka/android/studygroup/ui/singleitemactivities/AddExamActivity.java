@@ -8,6 +8,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
+import java.net.SocketException;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -36,11 +38,12 @@ import rs.luka.android.studygroup.ui.recyclers.SelectCourseActivity;
 
 public class AddExamActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
-    public static final String EXTRA_GROUP = GroupActivity.EXTRA_GROUP;
-    public static final String EXTRA_EXAM  = "exam";
+    public static final String EXTRA_GROUP            = GroupActivity.EXTRA_GROUP;
+    public static final String EXTRA_EXAM             = "exam";
     private static final String DATA_SELECTED_COURSE  = "dCourse";
     private static final String DATA_SELECTED_DATE    = "dDate";
     private static final int    REQUEST_SELECT_COURSE = 0;
+    private static final String TAG                   = "AddExamActivity";
 
     private NetworkExceptionHandler exceptionHandler;
 
@@ -91,6 +94,15 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
                 super.finishedUnsuccessfully();
                 progressView.setVisibility(View.GONE);
                 submit.setVisibility(View.VISIBLE);
+            }
+            public void handleSocketException(SocketException ex) {
+                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
+                                                           hostActivity.getString(R.string.error_socketex_text));
+                if(hostActivity instanceof InfoDialog.Callbacks)
+                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                Log.e(TAG, "Unexpected SocketException", ex);
+                Network.Status.setOffline();
             }
         };
 

@@ -53,8 +53,12 @@ public class LessonActivity extends AppCompatActivity
     public static final  String EXTRA_CURRENT_COURSE            = CourseActivity.EXTRA_COURSE;
     public static final  String EXTRA_SELECTED_NOTES            = "selNotes";
     public static final  String EXTRA_SELECTED_QUESTIONS        = "selQuestions";
+
     public static final  String EXTRA_PERMISSION                = CourseActivity.EXTRA_PERMISSION;
     public static final  String EXTRA_LESSON                    = CourseActivity.EXTRA_LESSON_NAME;
+    public static final  String EXTRA_COURSE                     = CourseActivity.EXTRA_COURSE;
+    public static final  String EXTRA_IS_EXAM                    = "isExam";
+
     private static final String TAG                             = "LessonActivity";
 
     private static final int NOTE_LIST_FRAGMENT_POSITION     = 0;
@@ -72,10 +76,11 @@ public class LessonActivity extends AppCompatActivity
     private static final String DIALOG_REMOVE_NOTES     = "confirmRemoveNotes";
     private static final String DIALOG_REMOVE_QUESTIONS = "confirmRemoveQuestions";
 
-    private static final int TABS_COUNT = 2;
+    private static final int TABS_COUNT   = 2;
     private Course course;
     private String lessonName;
     private int    permission;
+    private boolean isExam;
 
     //for multiple network requests
     private int setSize;
@@ -93,9 +98,11 @@ public class LessonActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lesson);
-        course = getIntent().getParcelableExtra(CourseActivity.EXTRA_COURSE);
-        lessonName = getIntent().getStringExtra(CourseActivity.EXTRA_LESSON_NAME);
+        course = getIntent().getParcelableExtra(EXTRA_COURSE);
+        lessonName = getIntent().getStringExtra(EXTRA_LESSON);
         permission = getIntent().getIntExtra(EXTRA_PERMISSION, 0);
+        isExam = getIntent().getBooleanExtra(EXTRA_IS_EXAM, false);
+
         exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -131,11 +138,13 @@ public class LessonActivity extends AppCompatActivity
                     Intent i = new Intent(This, AddNoteActivity.class);
                     i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
                     i.putExtra(EXTRA_CURRENT_COURSE, course);
+                    i.putExtra(AddNoteActivity.EXTRA_IS_EXAM, isExam);
                     startActivityForResult(i, REQUEST_ADD_NOTE);
                 } else {
                     Intent i = new Intent(This, AddQuestionActivity.class);
                     i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
                     i.putExtra(EXTRA_CURRENT_COURSE, course);
+                    i.putExtra(AddQuestionActivity.EXTRA_IS_EXAM, isExam);
                     startActivityForResult(i, REQUEST_ADD_QUESTION);
                 }
             }
@@ -188,8 +197,7 @@ public class LessonActivity extends AppCompatActivity
                 startActivity(new Intent(this, CourseActivity.class)
                                       .putExtra(CourseActivity.EXTRA_GO_BACKWARD, false)
                                       .putExtra(CourseActivity.EXTRA_COURSE, course)
-                                      .putExtra(CourseActivity.EXTRA_PERMISSION,
-                                                getIntent().getIntExtra(EXTRA_PERMISSION, 0)));
+                                      .putExtra(CourseActivity.EXTRA_PERMISSION, permission));
                 return true;
 
             case R.id.show_all_items:
@@ -252,8 +260,7 @@ public class LessonActivity extends AppCompatActivity
         startActivity(new Intent(this, CourseActivity.class)
                               .putExtra(CourseActivity.EXTRA_GO_BACKWARD, true)
                               .putExtra(CourseActivity.EXTRA_COURSE, course)
-                              .putExtra(CourseActivity.EXTRA_PERMISSION,
-                                        getIntent().getIntExtra(EXTRA_PERMISSION, 0)));
+                              .putExtra(CourseActivity.EXTRA_PERMISSION, permission));
     }
 
     @Override
@@ -281,7 +288,7 @@ public class LessonActivity extends AppCompatActivity
         setSize = ids.size();
         count = 0;
         pendingIds = ids;
-        ConfirmDialog.newInstance                                                (R.string.confirm_remove_notes_title, R.string.confirm_remove_notes_message,
+        ConfirmDialog.newInstance(R.string.confirm_remove_notes_title, R.string.confirm_remove_notes_message,
                                   R.string.confirm_remove_plural, R.string.cancel)
                      .show(getSupportFragmentManager(), DIALOG_REMOVE_NOTES);
     }
@@ -290,7 +297,7 @@ public class LessonActivity extends AppCompatActivity
         setSize = ids.size();
         count = 0;
         pendingIds = ids;
-        ConfirmDialog.newInstance                                                (R.string.confirm_remove_questions_title, R.string.confirm_remove_questions_message,
+        ConfirmDialog.newInstance(R.string.confirm_remove_questions_title, R.string.confirm_remove_questions_message,
                                   R.string.confirm_remove_plural, R.string.cancel)
                      .show(getSupportFragmentManager(), DIALOG_REMOVE_QUESTIONS);
     }

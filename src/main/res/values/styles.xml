@@ -11,6 +11,8 @@
         <item name="android:actionMenuTextColor">@color/white</item>
         <item name="actionModeBackground">@color/color_primary_dark</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat.Light</item>
+
+        <item name="android:textColorHint">@color/light_text</item>
         <!--<item name="android:windowAnimationStyle">@null</item>-->
     </style>
 
@@ -32,7 +34,7 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_alignParentEnd">true</item>
         <item name="android:layout_alignParentRight">true</item>
-        <item name="android:layout_gravity">end|right</item>
+        <item name="android:layout_gravity">end</item>
         <item name="android:layout_below">@id/add_course_image</item>
         <item name="android:layout_marginTop">@dimen/button_margin_top</item>
         <item name="android:layout_marginBottom">@dimen/shadow_space</item>

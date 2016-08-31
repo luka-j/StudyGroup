@@ -1,13 +1,13 @@
 package rs.luka.android.studygroup.io;
 
 import android.app.Activity;
-import android.app.LoaderManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.app.LoaderManager;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -21,16 +21,18 @@ import java.util.concurrent.TimeUnit;
 import rs.luka.android.studygroup.exceptions.FileIOException;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.misc.TextUtils;
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
-import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.network.Courses;
 import rs.luka.android.studygroup.network.Exams;
 import rs.luka.android.studygroup.network.Groups;
 import rs.luka.android.studygroup.network.Lessons;
 import rs.luka.android.studygroup.network.Notes;
 import rs.luka.android.studygroup.network.Questions;
+import rs.luka.android.studygroup.network.UserManager;
 
 /**
  * Created by luka on 18.8.15..
@@ -54,13 +56,14 @@ public class DataManager {
     private static final String LAST_FETCH_QUESTIONS = "lfQuestions";
     private static final String LAST_FETCH_EXAMS     = "lfExams";
 
+    private static final String LAST_FETCH_USER_THUMB      = "lfUThumb";
     private static final String LAST_FETCH_GROUP_THUMB     = "lfGThumb";
     private static final String LAST_FETCH_COURSE_THUMB    = "lfCThumb";
     private static final String LAST_FETCH_NOTE_THUMBS     = "lfNThumbs";
     private static final String LAST_FETCH_QUESTION_THUMBS = "lfQThumbs";
 
+    private static final int FETCH_TIMEOUT_GROUPS  = 1000 * 60 * 2; //2min, non-refreshable
     private static final int FETCH_TIMEOUT_THUMBS  = 1000 * 60 * 15; //15min
-    private static final int FETCH_TIMEOUT_GROUPS  = 1000 * 60 * 60 * 12; //12h
     private static final int FETCH_TIMEOUT_COURSES = 1000 * 60 * 60 * 3; //3h
     private static final int FETCH_TIMEOUT_LESSONS = 1000 * 60 * 30; //30min
     private static final int FETCH_TIMEOUT_ITEMS   = 1000 * 60 * 5; //5min
@@ -106,6 +109,33 @@ public class DataManager {
         });
     }
 
+    public interface GroupLoaderCallbacks {
+        void onGroupsLoaded(Database.GroupCursor groups);
+    }
+    public static void loadGroups(final Context c, final NetworkExceptionHandler exceptionHandler, final GroupLoaderCallbacks callbacks) {
+        final long currentTime = System.currentTimeMillis();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                if((currentTime-getLastFetch(c, LAST_FETCH_GROUPS)) > FETCH_TIMEOUT_GROUPS) {
+                    try {
+                        Groups.getGroups(c, exceptionHandler);
+                        exceptionHandler.finished();
+                        writeLastFetch(c, LAST_FETCH_GROUPS);
+                    } catch (IOException e) {
+                        exceptionHandler.handleIOException(e);
+                    }
+                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callbacks.onGroupsLoaded(Database.getInstance(c).queryGroups());
+                    }
+                });
+            }
+        });
+    }
+
     /**
      * Queries local database for group
      * @param c context used to obtain database
@@ -146,7 +176,7 @@ public class DataManager {
                             Groups.updateImage(groupId, image, handler);
                             LocalImages.saveGroupImage(id, image);
                         }
-                        Database.getInstance(c).insertGroup(id, name, place, image != null);
+                        Database.getInstance(c).insertGroup(id, name, place, image != null, Group.PERM_OWNER);
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Groups#createGroup returned null; exception should have been handled");
@@ -171,7 +201,7 @@ public class DataManager {
                     boolean success = Groups.updateGroup(id.getGroupIdValue(), name, place, exceptionHandler);
                     if(success) {
                         Database.getInstance(c).updateGroup(id, name, place, image != null);
-                        if(image != null) {
+                        if(image != null && !image.equals(LocalImages.generateGroupImageFile(id))) {
                             Groups.updateImage(id.getGroupIdValue(), image, exceptionHandler);
                             LocalImages.saveGroupImage(id, image);
                         }
@@ -186,8 +216,8 @@ public class DataManager {
         });
     }
 
-    public static void getCourses(final Context c, final Group group, final LoaderManager.LoaderCallbacks<Cursor> callbacks,
-                                  final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
+    public static void getCourses(final Context c, final Group group, final android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor> callbacks,
+                                  final android.support.v4.app.LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
         final long currentTime = System.currentTimeMillis();
         executor.execute(new Runnable() {
             @Override
@@ -218,8 +248,8 @@ public class DataManager {
     }
 
     public static void refreshCourses(final Context c, final Group group,
-                                      final LoaderManager.LoaderCallbacks<Cursor> callbacks,
-                                      final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
+                                      final android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor> callbacks,
+                                      final android.support.v4.app.LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -269,7 +299,7 @@ public class DataManager {
                     boolean success = Courses.updateCourse(id.getCourseIdValue(), subject, teacher, year, handler);
                     if(success) {
                         Database.getInstance(c).updateCourse(id, subject, teacher, year, image!=null);
-                        if(image != null) {
+                        if(image != null && !image.equals(LocalImages.generateCourseImageFile(id))) {
                             Courses.updateImage(id.getCourseIdValue(), image, handler);
                             LocalImages.saveCourseImage(id, image);
                         }
@@ -361,7 +391,7 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    String newNameReal = TextUtils.replaceGreekEscapes(newName);
+                    String newNameReal = TextUtils.replaceEscapes(newName);
                     boolean success = Lessons.renameLesson(courseId.getCourseIdValue(), oldName, newNameReal, handler);
                     if(success) {
                         Database.getInstance(c).renameLesson(courseId, oldName, newNameReal);
@@ -416,17 +446,19 @@ public class DataManager {
     }
 
     public static void addNote(final Context c, final ID courseId, final String courseName, final String lesson,
-                               final String text, final File image, final File audio, final NetworkExceptionHandler handler) {
+                               final String text, final File image, final File audio, final boolean isExam,
+                               final NetworkExceptionHandler handler) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    String realText = TextUtils.replaceGreekEscapes(text);
-                    String realLesson = TextUtils.replaceGreekEscapes(lesson);
-                    Long noteId = Notes.createNote(courseId.getCourseIdValue(), realLesson, realText, handler);
+                    String realText = TextUtils.replaceEscapes(text);
+                    String realLesson = TextUtils.replaceEscapes(lesson);
+                    Long noteId = Notes.createNote(courseId.getCourseIdValue(), realLesson, realText,
+                                                   handler, isExam?Group.PERM_WRITE:Group.PERM_READ_PUBLIC);
                     if(noteId != null) {
                         ID id = new ID(courseId, noteId);
-                        Database.getInstance(c).insertNote(id, realLesson, realText, image!=null, audio!=null);
+                        Database.getInstance(c).insertNote(id, realLesson, realText, image!=null, audio!=null, 0);
                         if (image != null) {
                             Notes.updateImage(noteId, image, handler);
                             LocalImages.saveNoteImage(id, courseName, realLesson, image); //erases temp
@@ -450,21 +482,39 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    String realText = TextUtils.replaceGreekEscapes(text);
-                    String realLesson = TextUtils.replaceGreekEscapes(lesson);
+                    String realText = TextUtils.replaceEscapes(text);
+                    String realLesson = TextUtils.replaceEscapes(lesson);
                     boolean success = Notes.updateNote(id.getItemIdValue(), realLesson, realText, handler);
                     if(success) {
+                        Course course = getCourse(c, id);
                         Database.getInstance(c).updateNote(id, realLesson, realText, imageFile!=null, audioFile!=null);
-                        if(imageFile != null) {
+                        if(imageFile != null
+                           && !imageFile.equals(LocalImages.generateNoteImageFile(course.getSubject(), realLesson, id))) {
                             Notes.updateImage(id.getItemIdValue(), imageFile, handler);
-                            LocalImages.saveNoteImage(id, getCourse(c, id).getSubject(), realLesson, imageFile);
+                            LocalImages.saveNoteImage(id, course.getSubject(), realLesson, imageFile);
                         }
-                        if(audioFile != null)
-                            LocalAudio.saveNoteAudio(id, getCourse(c, id).getSubject(), realLesson, audioFile);
+                        if(audioFile != null &&
+                                !audioFile.equals(LocalAudio.generateItemAudioFile(course.getSubject(), realLesson, id)))
+                            LocalAudio.saveNoteAudio(id, course.getSubject(), realLesson, audioFile);
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Notes#updateNote returned false; exception should have been handled");
                     }
+                } catch (IOException ex) {
+                    handler.handleIOException(ex);
+                }
+            }
+        });
+    }
+
+    public static void reorderNote(final Context c, final ID id, final String lesson, final int newOrder, final int order,
+                                   final NetworkExceptionHandler handler) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Database.getInstance(c).reorderNote(id, lesson, newOrder, order);
+                    Notes.reorderNote(id.getItemIdValue(), newOrder, handler);
                 } catch (IOException ex) {
                     handler.handleIOException(ex);
                 }
@@ -478,8 +528,8 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    boolean success = Notes.hideNote(noteId.getItemIdValue(), exceptionHandler);
                     Database.getInstance(c).removeNote(noteId, lesson);
+                    boolean success = Notes.hideNote(noteId.getItemIdValue(), exceptionHandler);
                     exceptionHandler.finished();
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);
@@ -534,15 +584,15 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    String realQuestion = TextUtils.replaceGreekEscapes(question);
-                    String realAnswer = TextUtils.replaceGreekEscapes(answer);
-                    String realLesson = TextUtils.replaceGreekEscapes(lesson);
+                    String realQuestion = TextUtils.replaceEscapes(question);
+                    String realAnswer = TextUtils.replaceEscapes(answer);
+                    String realLesson = TextUtils.replaceEscapes(lesson);
                     Long questionId = Questions.createQuestion(courseId.getCourseIdValue(),
-                                                               (isExam?realLesson.substring(Question.EXAM_PREFIX.length()):realLesson),
+                                                               realLesson,
                                                                realQuestion, realAnswer, handler, isExam);
                     if(questionId != null) {
                         ID id = new ID(courseId, questionId);
-                        Database.getInstance(c).insertQuestion(id, realLesson, realQuestion, realAnswer, image!=null);
+                        Database.getInstance(c).insertQuestion(id, realLesson, realQuestion, realAnswer, image!=null, 0);
                         if (image != null) {
                             Questions.updateImage(questionId, image, handler);
                             LocalImages.saveQuestionImage(id, courseName, realLesson, image);
@@ -570,20 +620,37 @@ public class DataManager {
             @Override
             public void run() {
                 try {
-                    String realQuestion = TextUtils.replaceGreekEscapes(question);
-                    String realAnswer = TextUtils.replaceGreekEscapes(answer);
-                    String realLesson = TextUtils.replaceGreekEscapes(lesson);
+                    String realQuestion = TextUtils.replaceEscapes(question);
+                    String realAnswer = TextUtils.replaceEscapes(answer);
+                    String realLesson = TextUtils.replaceEscapes(lesson);
                     boolean success = Questions.updateQuestion(id.getItemIdValue(), realLesson, realQuestion, realAnswer, handler);
                     if(success) {
+                        Course course = getCourse(c, id);
                         Database.getInstance(c).updateQuestion(id, realLesson, realQuestion, realAnswer, imageFile!=null);
-                        if(imageFile != null) {
+                        if(imageFile != null &&
+                                !imageFile.equals(LocalImages.generateQuestionImageFile(course.getSubject(), realLesson, id))) {
                             Questions.updateImage(id.getItemIdValue(), imageFile, handler);
-                            LocalImages.saveQuestionImage(id, getCourse(c, id).getSubject(), realLesson, imageFile);
+                            LocalImages.saveQuestionImage(id, course.getSubject(), realLesson, imageFile);
                         }
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Questions#updateQuestion returned false; exception should have been handled");
                     }
+                } catch (IOException ex) {
+                    handler.handleIOException(ex);
+                }
+            }
+        });
+    }
+
+    public static void reorderQuestion(final Context context, final ID id, final String lesson, final int newOrder,
+                                       final int order, final NetworkExceptionHandler handler) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Database.getInstance(context).reorderQuestion(id, lesson, newOrder, order);
+                    Questions.reorderQuestion(id.getItemIdValue(), newOrder, handler);
                 } catch (IOException ex) {
                     handler.handleIOException(ex);
                 }
@@ -707,7 +774,7 @@ public class DataManager {
     public static void addExamQuestion(final Context c, final ID courseId, final String courseName,
                                        final String realLesson, final String question, final String answer,
                                        final File image, final NetworkExceptionHandler handler) {
-        addQuestion(c, courseId, courseName, realLesson, question, answer, image, handler, false);
+        addQuestion(c, courseId, courseName, realLesson, question, answer, image, handler, true);
     }
 
 
@@ -723,7 +790,12 @@ public class DataManager {
                         Groups.loadImage(id.getGroupIdValue(), scaleTo, LocalImages.generateGroupImageFile(id), handler);
                         writeLastFetch(c, LAST_FETCH_GROUP_THUMB);
                     }
-                    final Bitmap image = LocalImages.getGroupImage(id, scaleTo);
+                } catch (IOException e) {
+                    handler.handleIOException(e);
+                }
+                try {
+                    final Bitmap image;
+                    image = LocalImages.getGroupImage(id, scaleTo);
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
@@ -752,7 +824,41 @@ public class DataManager {
                                           handler);
                         writeLastFetch(c, LAST_FETCH_COURSE_THUMB);
                     }
+                } catch (IOException e) {
+                    handler.handleIOException(e);
+                }
+                try {
                     final Bitmap image = LocalImages.getCourseImage(id, scaleTo);
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            insertInto.setImageBitmap(image);
+                        }
+                    });
+                } catch (IOException e) {
+                    handler.handleIOException(e);
+                }
+            }
+        });
+    }
+
+    public static void getUserImage(final Context c, final long id, final int scaleTo,
+                                      final NetworkExceptionHandler handler, final ImageView insertInto) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    long currentTime = System.currentTimeMillis();
+                    boolean exists = LocalImages.userThumbExists(id);
+                    if(!exists || currentTime - getLastFetch(c, LAST_FETCH_USER_THUMB) > FETCH_TIMEOUT_THUMBS) {
+                        UserManager.getImage(id, scaleTo, LocalImages.generateUserThumbFile(id), handler);
+                        writeLastFetch(c, LAST_FETCH_USER_THUMB);
+                    }
+                } catch (IOException e) {
+                    handler.handleIOException(e);
+                }
+                try {
+                    final Bitmap image = LocalImages.getUserThumb(id, scaleTo);
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
@@ -789,6 +895,11 @@ public class DataManager {
                                 LocalImages.generateNoteImageFile(courseName, lessonName, id),
                                 handler);
             }
+        } catch (IOException e) {
+            handler.handleIOException(e);
+        }
+
+        try {
             final Bitmap image = LocalImages.getNoteImage(courseName, lessonName, id, scaleTo);
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
@@ -808,7 +919,6 @@ public class DataManager {
         try {
             long currentTime = System.currentTimeMillis();
             boolean exists = LocalImages.noteThumbExists(courseName, lessonName, id);
-            final Bitmap image;
             if(!exists) {
                 Notes.loadThumb(id.getItemIdValue(),
                                 scaleTo,
@@ -826,6 +936,11 @@ public class DataManager {
                 }
                 writeLastFetch(c, LAST_FETCH_NOTE_THUMBS);
             }
+        } catch (IOException e) {
+            exceptionHandler.handleIOException(e);
+        }
+        try {
+            final Bitmap image;
             image = LocalImages.getNoteThumb(courseName, lessonName, id, scaleTo);
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
@@ -862,6 +977,10 @@ public class DataManager {
                                 LocalImages.generateQuestionImageFile(courseName, lessonName, id),
                                 handler);
             }
+        } catch (IOException e) {
+            handler.handleIOException(e);
+        }
+        try {
             final Bitmap image = LocalImages.getQuestionImage(courseName, lessonName, id, scaleTo);
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
@@ -880,7 +999,6 @@ public class DataManager {
         try {
             long currentTime = System.currentTimeMillis();
             boolean exists = LocalImages.questionThumbExists(courseName, lessonName, id);
-            final Bitmap image;
             if(!exists) {
                 Questions.loadThumb(id.getItemIdValue(),
                                     scaleTo,
@@ -898,6 +1016,11 @@ public class DataManager {
                 }
                 writeLastFetch(c, LAST_FETCH_QUESTION_THUMBS);
             }
+        } catch (IOException e) {
+            exceptionHandler.handleIOException(e);
+        }
+        try {
+            final Bitmap image;
             image = LocalImages.getQuestionThumb(courseName, lessonName, id, scaleTo);
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
@@ -910,16 +1033,47 @@ public class DataManager {
         }
     }
 
-
-    public static File getAudio(ID noteId, String courseName, String lessonName) {
-        return LocalAudio.getNoteAudio(noteId, courseName, lessonName);
+    public static void setMyProfile(final String username, final String email, final File image,
+                                    final NetworkExceptionHandler exceptionHandler) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    boolean success = UserManager.updateMyProfile(username, email, exceptionHandler);
+                    if(success) {
+                        User.setMyDetails(0, username, email, image != null);
+                        File thumb = LocalImages.generateUserThumbFile(User.getLoggedInUser().getId());
+                        if(image != null && !image.equals(thumb)) {
+                            UserManager.updateMyImage(image, exceptionHandler);
+                            thumb.delete();
+                            Utils.copyFile(image, thumb);
+                        }
+                        exceptionHandler.finished();
+                    }
+                } catch (IOException e) {
+                    exceptionHandler.handleIOException(e);
+                }
+            }
+        });
     }
 
-    public static Bitmap getUserImage(long id) {
-        return null;
+    public interface AudioCallbacks {
+        void onAudioReady(int requestId, File audioFile);
+    }
+    public static void getAudio(final int requestId, final ID noteId, final String courseName, final String lessonName,
+                                final NetworkExceptionHandler exceptionHandler, final AudioCallbacks callbacks) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                File file = LocalAudio.generateItemAudioFile(courseName, lessonName, noteId);
+                try {
+                    Notes.loadAudio(noteId.getItemIdValue(), file, exceptionHandler);
+                } catch (IOException e) {
+                    exceptionHandler.handleIOException(e);
+                }
+                callbacks.onAudioReady(requestId, file);
+            }
+        });
     }
 
-    public static boolean userImageExists(long id) {
-        return false;
-    }
 }

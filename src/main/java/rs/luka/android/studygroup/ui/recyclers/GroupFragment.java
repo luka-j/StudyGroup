@@ -1,15 +1,15 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
-import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -53,7 +53,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                                                        Network.NetworkCallbacks<String> {
 
     protected static final int    REQUEST_EDIT_COURSE   = 1;
-    protected static final int      REQUEST_REMOVE_COURSE = 2; //network request
+    protected static final int    REQUEST_REMOVE_COURSE = 2; //network request
     private static final   String TAG                   = "studygroup.GroupFrag";
     private static final   int    REQUEST_ADD_COURSE    = 0; //intent request
     private static final int      REQUEST_SHOW_ALL      = 1; //network request
@@ -115,7 +115,10 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                     Intent i = new Intent(getActivity(), AddCourseActivity.class);
                     i.putExtra(AddCourseActivity.EXTRA_GROUP, group);
                     startActivityForResult(i, REQUEST_ADD_COURSE);
-                } else {
+                }/* else if(group.getPermission() >= Group.PERM_INVITED) {
+                    //todo --accept invitation-- show info describing why can't add stuff yet
+                    refresh(); // move to callback
+                }*/ else {
                     callbacks.onRequestJoin(group);
                 }
             }
@@ -160,6 +163,10 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         }
     }
 
+    protected void showProgressView() {
+        progress.setVisibility(View.VISIBLE);
+    }
+
     public void stopRefreshing() {
         swipe.setRefreshing(false);
     }
@@ -167,7 +174,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     protected void refresh() {
         swipe.setRefreshing(true);
         Groups.getGroupsInBackground(getContext(), exceptionHandler);
-        DataManager.refreshCourses(getContext(), group, this, getActivity().getLoaderManager(),
+        DataManager.refreshCourses(getContext(), group, this, getActivity().getSupportLoaderManager(),
                                    exceptionHandler);
     }
 
@@ -212,7 +219,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             courseRecyclerView.setAdapter(adapter);
         }
         Groups.getGroupsInBackground(getContext(), exceptionHandler);
-        DataManager.getCourses(getContext(), group, this, getActivity().getLoaderManager(),
+        DataManager.getCourses(getContext(), group, this, getActivity().getSupportLoaderManager(),
                                exceptionHandler);
     }
 
@@ -243,12 +250,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                adapter.swapCursor(null);
-            }
-        });
+        adapter.swapCursor(null);
     }
 
     @Override
@@ -314,7 +316,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             final Course course   = ((CourseHolder) viewHolder).course;
             course.shallowHide(getActivity());
-            getActivity().getLoaderManager().restartLoader(DataManager.LOADER_ID_COURSES, null, GroupFragment.this);
+            getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_COURSES, null, GroupFragment.this);
             Snackbar snackbar = Snackbar.make(coordinator, R.string.course_hidden, Snackbar.LENGTH_LONG)
                                         .setCallback(new Snackbar.Callback() {
                                             @Override
@@ -378,7 +380,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             if (course.hasImage()) {
                 course.getImage(getContext(), getResources().getDimensionPixelSize(R.dimen.card_image_size), exceptionHandler, imageView);
             } else {
-                imageView.setImageResource(R.drawable.placeholder);
+                //do nothing
             }
         }
 
@@ -397,7 +399,8 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v,
                                         ContextMenu.ContextMenuInfo menuInfo) {
-            getActivity().getMenuInflater().inflate(R.menu.context_group, menu);
+            if(group.getPermission() >= Group.PERM_MODIFY)
+                getActivity().getMenuInflater().inflate(R.menu.context_group, menu);
         }
     }
 

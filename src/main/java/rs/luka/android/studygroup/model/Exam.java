@@ -68,6 +68,17 @@ public class Exam implements Parcelable, Comparable<Exam>, PastEvents {
     public long getGroupIdValue() {return id.getGroupIdValue();}
     public long getCourseIdValue() {return id.getCourseIdValue();}
     public long getIdValue() {return id.getItemIdValue();}
+    public String getUserFriendlyLesson() {
+        boolean hasClass = klass != null && !klass.isEmpty();
+        boolean hasType = type != null && !type.isEmpty();
+        if(hasClass && hasType)
+            return klass + ", " + type + " - " + lesson;
+        if(hasClass)
+            return klass + " - " + lesson;
+        if(hasType)
+            return type + " - " + lesson;
+        return lesson;
+    }
 
     public String getTitle() {
         return course.getSubject() + " (" + lesson + ")";

@@ -57,7 +57,7 @@
                 android:layout_height="@dimen/addview_image_height"
                 android:layout_below="@id/add_group_place_til"
                 android:layout_marginTop="@dimen/addview_image_margin_top"
-                android:src="@drawable/empty"/>
+                android:src="@drawable/camera"/>
 
             <com.github.rahatarmanahmed.cpv.CircularProgressView
                 android:id="@+id/add_group_cpv"

@@ -50,18 +50,18 @@ public class ExamDetailsDialog extends DialogFragment {
         MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity());
         return builder.customView(v, true)
                       .title(exam.getTitle())
-                      .neutralText(R.string.questions)
+                      .neutralText(R.string.lesson)
                       .negativeText(R.string.close)
                       .callback(new MaterialDialog.ButtonCallback() {
                           @Override
                           public void onNeutral(MaterialDialog dialog) {
-                              callbacks.onShowQuestions(exam);
+                              callbacks.onShowLesson(exam);
                           }
                       })
                       .show();
     }
 
     public interface Callbacks {
-        void onShowQuestions(Exam exam);
+        void onShowLesson(Exam exam);
     }
 }
