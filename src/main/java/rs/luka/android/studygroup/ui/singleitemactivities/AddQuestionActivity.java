@@ -11,6 +11,8 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -18,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -48,29 +51,31 @@ public class AddQuestionActivity extends AppCompatActivity {
     private static final String TAG = "AddQuestionActivity";
     private NetworkExceptionHandler exceptionHandler;
 
-    public static final String EXTRA_IS_EXAM = "isFromExam";
+    public static final String EXTRA_IS_PRIVATE = "isFromExam";
 
     public static final String STATE_IMAGE_FILE_PATH = "stateimg";
     private static final int  INTENT_IMAGE          = 0;
-    private LinearLayout content;
-    private EditText        lesson;
-    private EditText        answer;
-    private EditText        question;
-    private TextInputLayout lessonTil;
-    private TextInputLayout questionTil;
-    private LinearLayout    buttonsLayout;
-    private CardView        add;
-    private TextView        nextText;
-    private CardView        next;
-    private CardView        done;
-    private ImageView       image;
+    private LinearLayout         content;
+    private EditText             lesson;
+    private EditText             answer;
+    private EditText             question;
+    private TextInputLayout      lessonTil;
+    private TextInputLayout      questionTil;
+    private LinearLayout         buttonsLayout;
+    private CardView             add;
+    private TextView             nextText;
+    private CardView             next;
+    private CardView             done;
+    private ImageView            image;
+    private CheckBox             privBox;
     private CircularProgressView progressView;
 
-    private File            imageFile;
-    private Course          course;
-    private boolean         editing;
-    private List<Question>  questions;
-    private String          lessonStr;
+    private File           imageFile;
+    private Course         course;
+    private boolean        editing;
+    private boolean        isPrivate;
+    private List<Question> questions;
+    private String         lessonStr;
     private int currentQuestion = 0;
 
     @Override
@@ -111,6 +116,7 @@ public class AddQuestionActivity extends AppCompatActivity {
         course = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE);
         questions = getIntent().getParcelableArrayListExtra(LessonActivity.EXTRA_SELECTED_QUESTIONS);
         editing = questions != null;
+        isPrivate = getIntent().getBooleanExtra(EXTRA_IS_PRIVATE, false);
 
         setContentView(R.layout.activity_add_question);
 
@@ -127,6 +133,7 @@ public class AddQuestionActivity extends AppCompatActivity {
         questionTil = (TextInputLayout) findViewById(R.id.add_question_text_til);
         add = (CardView) findViewById(R.id.button_add);
         image = (ImageView) findViewById(R.id.add_question_image);
+        privBox = (CheckBox) findViewById(R.id.private_cb);
         progressView = (CircularProgressView) findViewById(R.id.add_question_cpv);
         if (editing && questions.size() > 1) { //kreiranje dva dugmeta
             LayoutInflater inflater = LayoutInflater.from(this);
@@ -156,12 +163,12 @@ public class AddQuestionActivity extends AppCompatActivity {
             });
         }
         if (editing) setFieldsForEditing(); //sorry for being ugly
+        if (isPrivate) privBox.setChecked(true);
+        if (editing || isPrivate) privBox.setEnabled(false); //todo make editing privacy possible (server-side, history)
 
-        String lessonText = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
+
+        final String lessonText = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         lesson.setText(lessonText);
-        if(getIntent().getBooleanExtra(EXTRA_IS_EXAM, false)) {
-            lesson.setEnabled(false);
-        }
         if (!lessonText.isEmpty()) { question.requestFocus(); }
 
         add.setOnClickListener(new View.OnClickListener() {
@@ -179,6 +186,21 @@ public class AddQuestionActivity extends AppCompatActivity {
                 }
                 return false;
             }
+        });
+        lesson.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if((editing || isPrivate) && s.equals(lessonText))
+                    privBox.setEnabled(false);
+                else
+                    privBox.setEnabled(true);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
         image.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -250,11 +272,7 @@ public class AddQuestionActivity extends AppCompatActivity {
                 if(buttonsLayout!=null)buttonsLayout.setVisibility(View.GONE);
                 else add.setVisibility(View.GONE);
             } else {
-                if(!getIntent().getBooleanExtra(EXTRA_IS_EXAM, false)) {
-                    course.addQuestion(this, lessonStr, questionStr, answerStr, imageFile, exceptionHandler);
-                } else {
-                    course.addExamQuestion(this, lessonStr, questionStr, answerStr, imageFile, exceptionHandler);
-                }
+                course.addQuestion(this, lessonStr, questionStr, answerStr, imageFile, privBox.isChecked(), exceptionHandler);
                 add.setVisibility(View.GONE);
             }
             progressView.setVisibility(View.VISIBLE);

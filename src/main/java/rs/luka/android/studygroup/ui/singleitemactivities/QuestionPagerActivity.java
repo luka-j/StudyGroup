@@ -16,6 +16,7 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.CursorFragmentStatePagerAdapter;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
 
@@ -73,7 +74,9 @@ public class QuestionPagerActivity extends AppCompatActivity implements LoaderMa
         @Override
         public Fragment getItem(Context context, Cursor cursor) {
             return QuestionFragment.newInstance(course.getSubject(),
-                                                ((Database.QuestionCursor) cursor).getQuestion());
+                                                ((Database.QuestionCursor) cursor).getQuestion(),
+                                                getIntent().getIntExtra(LessonActivity.EXTRA_MY_PERMISSION,
+                                                                        Group.PERM_READ_PUBLIC));
         }
     }
 }

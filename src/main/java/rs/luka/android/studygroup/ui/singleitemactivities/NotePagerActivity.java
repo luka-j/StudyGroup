@@ -16,6 +16,7 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.CursorFragmentStatePagerAdapter;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
 
@@ -29,6 +30,7 @@ public class NotePagerActivity extends AppCompatActivity implements LoaderManage
     private String                          lesson;
     private int notePosition;
     private CursorFragmentStatePagerAdapter adapter;
+    private int permission;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +43,7 @@ public class NotePagerActivity extends AppCompatActivity implements LoaderManage
         course = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE);
         lesson = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         notePosition = getIntent().getIntExtra(LessonActivity.EXTRA_CURRENT_NOTE_POSITION, 0);
+        permission = getIntent().getIntExtra(LessonActivity.EXTRA_MY_PERMISSION, Group.PERM_READ_PUBLIC);
         adapter = new NoteAdapter(this, this.getSupportFragmentManager(), null);
         DataManager.getNotes(this, course.getIdValue(), lesson, this, this.getSupportLoaderManager(), exceptionHandler);
 
@@ -72,7 +75,7 @@ public class NotePagerActivity extends AppCompatActivity implements LoaderManage
 
         @Override
         public Fragment getItem(Context context, Cursor cursor) {
-            return NoteFragment.newInstance(course.getSubject(), ((Database.NoteCursor) cursor).getNote());
+            return NoteFragment.newInstance(course.getSubject(), ((Database.NoteCursor) cursor).getNote(), permission);
         }
     }
 }

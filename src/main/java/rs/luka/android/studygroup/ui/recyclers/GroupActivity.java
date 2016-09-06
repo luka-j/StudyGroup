@@ -137,10 +137,15 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         TextView          username = (TextView) headerContainer.findViewById(R.id.nav_header_username);
         TextView          email    = (TextView)headerContainer.findViewById(R.id.nav_header_email);
         CircularImageView avatar   = (CircularImageView)headerContainer.findViewById(R.id.nav_header_image); //todo set
-        username.setText(User.getLoggedInUser().getName());
+        User loggedInUser = User.getLoggedInUser();
+        if(loggedInUser == null) {
+            User.injectPrefs(this);
+            loggedInUser = User.getLoggedInUser();
+        }
+        username.setText(loggedInUser.getName());
         email.setText(User.getMyEmail());
-        if(User.getLoggedInUser().hasImage())
-            User.getLoggedInUser().getImage(this, avatar.getWidth(), exceptionHandler,
+        if(loggedInUser.hasImage())
+            loggedInUser.getImage(this, avatar.getWidth(), exceptionHandler,
                                             avatar);
         else
             avatar.setImageDrawable(getResources().getDrawable(R.drawable.default_user));
@@ -165,7 +170,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         Intent i = new Intent(this, CourseActivity.class);
         i.putExtra(CourseActivity.EXTRA_COURSE, course);
         i.putExtra(CourseActivity.EXTRA_GO_FORWARD, true);
-        i.putExtra(CourseActivity.EXTRA_PERMISSION, group.getPermission());
+        i.putExtra(CourseActivity.EXTRA_MY_PERMISSION, group.getPermission());
         startActivity(i);
     }
 

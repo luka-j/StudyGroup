@@ -12,12 +12,15 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -54,19 +57,20 @@ public class AddNoteActivity extends AppCompatActivity {
     public static final String STATE_AUDIO_FILE_PATH = "stateAudio";
     private static final int  INTENT_IMAGE          = 0;
     private static final int  INTENT_AUDIO          = 1;
-    private RelativeLayout  content;
-    private EditText        text;
-    private EditText        lesson;
-    private TextInputLayout textTil;
-    private TextInputLayout lessonTil;
-    private LinearLayout    buttonsLayout;
-    private CardView        submit;
-    private CardView        next;
-    private TextView        nextText;
-    private CardView        done;
+    private RelativeLayout       content;
+    private EditText             text;
+    private EditText             lesson;
+    private TextInputLayout      textTil;
+    private TextInputLayout      lessonTil;
+    private LinearLayout         buttonsLayout;
+    private CardView             submit;
+    private CardView             next;
+    private TextView             nextText;
+    private CardView             done;
     private CircularProgressView progressView;
-    private ImageView       image;
-    private ImageView       audio;
+    private ImageView            image;
+    private ImageView            audio;
+    private CheckBox             privBox;
 
 
     private File            imageFile;
@@ -76,6 +80,7 @@ public class AddNoteActivity extends AppCompatActivity {
     private String          lessonStr;
     private int currentNote = 0;
     private boolean editing;
+    private boolean isPrivate;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -114,6 +119,7 @@ public class AddNoteActivity extends AppCompatActivity {
         course = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE);
         notes = getIntent().getParcelableArrayListExtra(LessonActivity.EXTRA_SELECTED_NOTES);
         editing = notes != null;
+        isPrivate = getIntent().getBooleanExtra(EXTRA_IS_EXAM, false);
 
         setContentView(R.layout.activity_add_note);
 
@@ -129,6 +135,7 @@ public class AddNoteActivity extends AppCompatActivity {
         lessonTil = (TextInputLayout) findViewById(R.id.edit_user_username_til);
         submit = (CardView) findViewById(R.id.button_add);
         progressView = (CircularProgressView) findViewById(R.id.add_note_cpv);
+        privBox = (CheckBox) findViewById(R.id.private_cb);
         if (editing && notes.size() > 1) { //kreiranje dva dugmeta
             LayoutInflater inflater = LayoutInflater.from(this);
             buttonsLayout = (LinearLayout) inflater.inflate(R.layout.buttons_next_done, null, false);
@@ -160,9 +167,10 @@ public class AddNoteActivity extends AppCompatActivity {
         }
         image = (ImageView) findViewById(R.id.add_note_image);
         audio = (ImageView) findViewById(R.id.add_note_audio);
-        if (editing) {
-            setFieldsForEditing();
-        }
+
+        if (editing)              setFieldsForEditing();
+        if (isPrivate)            privBox.setChecked(true);
+        if (editing || isPrivate) privBox.setEnabled(false); //todo make editing privacy possible (server-side, history)
 
         final String lessonText = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         lesson.setText(lessonText);
@@ -183,6 +191,21 @@ public class AddNoteActivity extends AppCompatActivity {
                 }
                 return false;
             }
+        });
+        lesson.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if((editing || isPrivate) && s.equals(lessonText))
+                    privBox.setEnabled(false);
+                else
+                    privBox.setEnabled(true);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
         image.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -247,7 +270,7 @@ public class AddNoteActivity extends AppCompatActivity {
                                                            getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
             } else if (requestCode == INTENT_AUDIO && data != null) {
                 audioFile = new File(Utils.getRealPathFromUri(this, data.getData()));
-                audio.setVisibility(View.INVISIBLE); // TODO: 19.9.15. proper
+                audio.setColorFilter(getResources().getColor(R.color.color_primary));
             }
         }
     }
@@ -286,8 +309,7 @@ public class AddNoteActivity extends AppCompatActivity {
                 if(buttonsLayout!=null)buttonsLayout.setVisibility(View.GONE);
                 else submit.setVisibility(View.GONE);
             } else {
-                course.addNote(this, lessonStr, noteStr, imageFile, audioFile,
-                               getIntent().getBooleanExtra(EXTRA_IS_EXAM, false), exceptionHandler);
+                course.addNote(this, lessonStr, noteStr, imageFile, audioFile, privBox.isChecked(), exceptionHandler);
                 submit.setVisibility(View.GONE);
             }
             progressView.setVisibility(View.VISIBLE);

@@ -71,6 +71,12 @@
                 android:layout_toRightOf="@id/add_note_image"
                 android:src="@drawable/audio"/>
 
+            <include layout="@layout/checkbox_private"
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:id="@+id/private_checkbox_layout"
+                     android:layout_below="@id/add_note_image"/>
+
             <com.github.rahatarmanahmed.cpv.CircularProgressView
                 android:id="@+id/add_note_cpv"
                 android:visibility="gone"
@@ -78,7 +84,7 @@
                 android:layout_height="@dimen/addview_cpv_size"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
-                android:layout_below="@id/add_note_image"
+                android:layout_below="@id/private_checkbox_layout"
                 android:layout_marginTop="@dimen/addview_cpv_marginTop"
                 android:layout_marginRight="@dimen/addview_cpv_marginEnd"
                 android:layout_marginEnd="@dimen/addview_cpv_marginEnd"
@@ -88,7 +94,7 @@
             <include
                 style="@style/small_button_position"
                 layout="@layout/button_add"
-                android:layout_below="@id/add_note_image"/>
+                android:layout_below="@id/private_checkbox_layout"/>
         </RelativeLayout>
     </ScrollView>
 </LinearLayout>

@@ -27,6 +27,17 @@
             android:paddingTop="@dimen/card_title_padding_vertical"
             android:textSize="@dimen/card_title_text_size"/>
 
+        <TextView
+            android:id="@+id/card_lesson_private"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/priv"
+            android:textSize="@dimen/card_subtitle1_text_size"
+            android:paddingLeft="@dimen/card_text_padding_horizontal"
+            android:paddingRight="@dimen/card_text_padding_horizontal"
+            android:paddingTop="@dimen/card_subtitle1_padding_vertical"
+            android:visibility="gone"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">

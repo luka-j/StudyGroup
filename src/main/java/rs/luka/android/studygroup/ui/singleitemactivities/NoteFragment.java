@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -25,7 +27,6 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Note;
-import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
 
 /**
@@ -35,22 +36,25 @@ public class NoteFragment extends Fragment implements DataManager.AudioCallbacks
     private static final int REQUEST_PRELOAD_AUDIO      = 0;
     private static final int REQUEST_GET_AUDIO_FOR_PLAY = 1;
 
-    public static final  String ARG_NOTE          = "anote";
-    public static final  String ARG_COURSE_NAME   = "acourse";
-    private static int    IMAGE_IDEAL_DIMEN = 720;
+    public static final String ARG_NOTE          = "anote";
+    public static final String ARG_COURSE_NAME   = "acourse";
+    public static final String ARG_MY_PERMISSION = "aperm";
+    private static int  IMAGE_IDEAL_DIMEN        = 720;
     private Note     note;
     private String   courseName;
     private TextView text;
     private ImageView image;
     private TextView audio;
-    private TextView history;
+    private CircularProgressView audioCpv;
     private NetworkExceptionHandler exceptionHandler;
+    private int permission;
 
-    public static NoteFragment newInstance(String courseName, Note note) {
+    public static NoteFragment newInstance(String courseName, Note note, int permission) {
         NoteFragment f    = new NoteFragment();
         Bundle       args = new Bundle();
         args.putParcelable(ARG_NOTE, note);
         args.putString(ARG_COURSE_NAME, courseName);
+        args.putInt(ARG_MY_PERMISSION, permission);
         f.setArguments(args);
         return f;
     }
@@ -62,6 +66,7 @@ public class NoteFragment extends Fragment implements DataManager.AudioCallbacks
 
         note = getArguments().getParcelable(ARG_NOTE);
         courseName = getArguments().getString(ARG_COURSE_NAME);
+        permission = getArguments().getInt(ARG_MY_PERMISSION);
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
         IMAGE_IDEAL_DIMEN = metrics.widthPixels;
@@ -81,12 +86,13 @@ public class NoteFragment extends Fragment implements DataManager.AudioCallbacks
         if (NavUtils.getParentActivityIntent(ac) != null) {
             ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        note.getAudioPath(REQUEST_PRELOAD_AUDIO, courseName, exceptionHandler, this);
+        if(note.hasAudio())
+            note.getAudio(REQUEST_PRELOAD_AUDIO, courseName, exceptionHandler, this);
 
         text = (TextView) view.findViewById(R.id.note_text);
         image = (ImageView) view.findViewById(R.id.note_image);
         audio = (TextView) view.findViewById(R.id.play_audio);
-        history = (TextView) view.findViewById(R.id.note_history);
+        audioCpv = (CircularProgressView) view.findViewById(R.id.play_audio_cpv);
         image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -104,7 +110,8 @@ public class NoteFragment extends Fragment implements DataManager.AudioCallbacks
             audio.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    note.getAudioPath(REQUEST_GET_AUDIO_FOR_PLAY, courseName, exceptionHandler, NoteFragment.this);
+                    note.getAudio(REQUEST_GET_AUDIO_FOR_PLAY, courseName, exceptionHandler, NoteFragment.this);
+                    audioCpv.setVisibility(View.VISIBLE);
                 }
             });
         }
@@ -123,8 +130,9 @@ public class NoteFragment extends Fragment implements DataManager.AudioCallbacks
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         getActivity().getMenuInflater().inflate(R.menu.menu_note, menu);
-        if(User.getLoggedInUser().getPermission() < Group.PERM_WRITE)
+        if(permission < Group.PERM_WRITE) {
             menu.removeItem(R.id.note_history);
+        }
     }
 
     @Override
@@ -142,7 +150,13 @@ public class NoteFragment extends Fragment implements DataManager.AudioCallbacks
 
     @Override
     public void onAudioReady(int requestId, File audioFile) {
-        if(requestId == REQUEST_GET_AUDIO_FOR_PLAY) {
+        if(getActivity() != null && requestId == REQUEST_GET_AUDIO_FOR_PLAY) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    audioCpv.setVisibility(View.GONE);
+                }
+            });
             Uri    uri    = Uri.fromFile(audioFile);
             Intent intent = new Intent();
             intent.setAction(android.content.Intent.ACTION_VIEW);

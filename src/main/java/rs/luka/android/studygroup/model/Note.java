@@ -72,8 +72,21 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
         return audioExists;
     }
 
-    public void getAudioPath(int requestId, String courseName, NetworkExceptionHandler exceptionHandler,
-                             DataManager.AudioCallbacks callbacks) {
+    /**
+     * Dostavlja audio fajl preko callback-a. Ne proverava da li on zaista postoji (neophodno je izvršavati ovo
+     * unutar if bloka koji za uslov ima note.hasAudio()). Ako nema odgovarajućeg fajla na uređaju, preuzima ga
+     * sa servera i smešta na karticu.
+     *
+     * @param requestId id zahteva za audio, koji se prosleđuje callback-u
+     * @param courseName naziv kursa (predmeta) za koji se traži audio. Koristi se u slučaju da audio fajl postoji
+     *                   na uređaju
+     * @param exceptionHandler handler za sve moguće greške
+     * @param callbacks callback kojem se prosleđuje fajl i requestId
+     *
+     * @see DataManager#getAudio(int, ID, String, String, NetworkExceptionHandler, DataManager.AudioCallbacks)
+     */
+    public void getAudio(int requestId, String courseName, NetworkExceptionHandler exceptionHandler,
+                         DataManager.AudioCallbacks callbacks) {
         DataManager.getAudio(requestId, id, courseName, lesson, exceptionHandler, callbacks);
     }
 

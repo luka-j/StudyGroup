@@ -268,6 +268,7 @@ public class Network {
         @Override
         protected File getData(InputStream stream) throws IOException {
             if(saveTo != null) {
+                if(!saveTo.exists() && !saveTo.createNewFile()) throw new IOException("Cannot create new file");
                 FileOutputStream out  = new FileOutputStream(saveTo);
                 byte[]           buff = new byte[BUFFER_SIZE];
                 int              readBytes;

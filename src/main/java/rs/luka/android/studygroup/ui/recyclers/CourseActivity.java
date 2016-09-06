@@ -22,15 +22,15 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
                                                                       InputDialog.Callbacks,
                                                                       ConfirmDialog.Callbacks {
 
-    public static final String    EXTRA_LESSON_NAME = "lessonName";
-    public static final String    EXTRA_COURSE      = "exCourse";
-    public static final String EXTRA_PERMISSION = "permission";
-    protected static final String EXTRA_GO_FORWARD  = "forwardToLesson";
-    protected static final String EXTRA_GO_BACKWARD = "backToCourses";
-    private static final String TAG = "CourseActivity";
-    private static final String   TAG_DIALOG_RENAME = "studygroup.dialog.renamelesson";
-    private static final String TAG_DIALOG_REMOVE = "studygroup.dialog.removelesson";
-    private NetworkExceptionHandler exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
+    public static final String      EXTRA_LESSON_NAME   = "lessonName";
+    public static final String      EXTRA_COURSE        = "exCourse";
+    public static final String      EXTRA_MY_PERMISSION = "permission";
+    protected static final String   EXTRA_GO_FORWARD    = "forwardToLesson";
+    protected static final String   EXTRA_GO_BACKWARD   = "backToCourses";
+    private static final String     TAG                 = "CourseActivity";
+    private static final String     TAG_DIALOG_RENAME   = "studygroup.dialog.renamelesson";
+    private static final String     TAG_DIALOG_REMOVE   = "studygroup.dialog.removelesson";
+    private NetworkExceptionHandler exceptionHandler    = new NetworkExceptionHandler.DefaultHandler(this);
     private CourseFragment fragment;
     private String         oldLessonName;
     private String pendingRemove;
@@ -38,7 +38,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
     @Override
     protected Fragment createFragment() {
         fragment = CourseFragment.newInstance((Course) getIntent().getParcelableExtra(EXTRA_COURSE),
-                                              getIntent().getIntExtra(EXTRA_PERMISSION, 0));
+                                              getIntent().getIntExtra(EXTRA_MY_PERMISSION, 0));
         return fragment;
     }
 
@@ -55,7 +55,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
                 startActivity(new Intent(this, LessonActivity.class)
                                       .putExtra(EXTRA_LESSON_NAME, lesson)
                                       .putExtra(EXTRA_COURSE, getIntent().getParcelableExtra(EXTRA_COURSE))
-                             .putExtra(LessonActivity.EXTRA_PERMISSION, getIntent().getIntExtra(EXTRA_PERMISSION, 0)));
+                             .putExtra(LessonActivity.EXTRA_MY_PERMISSION, getIntent().getIntExtra(EXTRA_MY_PERMISSION, 0)));
                 return true;
             }
             return false;
@@ -63,11 +63,12 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
     }
 
     @Override
-    public void onLessonSelected(String title) {
+    public void onLessonSelected(String title, boolean isPrivate) {
         Intent i = new Intent(this, LessonActivity.class);
         i.putExtra(EXTRA_COURSE, getIntent().getParcelableExtra(EXTRA_COURSE));
         i.putExtra(EXTRA_LESSON_NAME, title);
-        i.putExtra(LessonActivity.EXTRA_PERMISSION, getIntent().getIntExtra(EXTRA_PERMISSION, 0));
+        i.putExtra(LessonActivity.EXTRA_MY_PERMISSION, getIntent().getIntExtra(EXTRA_MY_PERMISSION, 0));
+        i.putExtra(LessonActivity.EXTRA_IS_PRIVATE, isPrivate);
         startActivity(i);
     }
 

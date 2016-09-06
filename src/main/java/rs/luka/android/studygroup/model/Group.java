@@ -39,7 +39,7 @@ public class Group implements Parcelable, Comparable<Group> {
     public static final int PERM_INVITED = 50;
     public static final int PERM_WRITE = 100;
     public static final int PERM_MODIFY = 200;
-    public static final int PERM_OWNER = 300;
+    public static final int PERM_OWNER = 400;
     private static final String                    TAG = "Group";
     private List<Integer> years;
     private List<Integer> filtering = new ArrayList<>();

@@ -134,18 +134,14 @@ public class Course implements Parcelable, Comparable<Course> {
         Database.getInstance(c).showLesson(id, _id, lesson, noteCount, questionCount);
     }
 
-    public void addNote(Context c, String lesson, String text, File image, File audio, boolean isExam,
+    public void addNote(Context c, String lesson, String text, File image, File audio, boolean isPrivate,
                         NetworkExceptionHandler handler) {
-        DataManager.addNote(c, id, subject, lesson, text, image, audio, isExam, handler);
+        DataManager.addNote(c, id, subject, lesson, text, image, audio, isPrivate, handler);
     }
 
-    public void addQuestion(Context c, String lesson, String question, String answer, File image,
+    public void addQuestion(Context c, String lesson, String question, String answer, File image, boolean isPrivate,
                             NetworkExceptionHandler handler) {
-        DataManager.addRegularQuestion(c, id, subject, lesson, question, answer, image, handler);
-    }
-    public void addExamQuestion(Context c, String lesson, String question, String answer, File image,
-                                NetworkExceptionHandler handler) {
-        DataManager.addExamQuestion(c, id, subject, lesson, question, answer, image, handler);
+        DataManager.addQuestion(c, id, subject, lesson, question, answer, image, isPrivate, handler);
     }
 
     public void addExam(Context c, String klass, String lesson, String type, Calendar date, NetworkExceptionHandler handler) {

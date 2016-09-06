@@ -66,7 +66,7 @@ public class LocalImages {
 
     protected static void deleteNoteImage(String courseName, String lessonName, ID id) throws IOException {
         File img = generateNoteImageFile(courseName, lessonName, id);
-        if(!img.delete()) throw new FileIOException(img, "Cannot delete");
+        if(img.exists() && !img.delete()) throw new FileIOException(img, "Cannot delete");
     }
 
     protected static Bitmap getNoteThumb(String courseName, String lessonName, ID itemId, int scaleTo)

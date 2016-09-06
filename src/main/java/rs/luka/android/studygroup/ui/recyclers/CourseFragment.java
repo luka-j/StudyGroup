@@ -61,7 +61,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
     protected static CourseFragment newInstance(Course course, int permission) {
         Bundle args = new Bundle();
         args.putParcelable(CourseActivity.EXTRA_COURSE, course);
-        args.putInt(CourseActivity.EXTRA_PERMISSION, permission);
+        args.putInt(CourseActivity.EXTRA_MY_PERMISSION, permission);
 
         CourseFragment f = new CourseFragment();
         f.setArguments(args);
@@ -74,7 +74,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         setHasOptionsMenu(true);
 
         course = getArguments().getParcelable(CourseActivity.EXTRA_COURSE);
-        permission = getArguments().getInt(CourseActivity.EXTRA_PERMISSION);
+        permission = getArguments().getInt(CourseActivity.EXTRA_MY_PERMISSION);
     }
 
     @Override
@@ -252,7 +252,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     public interface Callbacks {
-        void onLessonSelected(String title);
+        void onLessonSelected(String title, boolean isPrivate);
 
         void onEdit(String title);
 
@@ -316,11 +316,13 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         private final TextView titleTextView;
         private final TextView noteCountTextView;
         private final TextView questionCountTextView;
+        private final TextView privateTextView;
 
         private String title;
         private int noteCount;
         private int questionCount;
         private int _id;
+        private int permission;
 
         public LessonHolder(View itemView) {
             super(itemView);
@@ -331,21 +333,27 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             titleTextView = (TextView) itemView.findViewById(R.id.card_lesson_title);
             noteCountTextView = (TextView) itemView.findViewById(R.id.note_count_text);
             questionCountTextView = (TextView) itemView.findViewById(R.id.question_count_text);
+            privateTextView = (TextView) itemView.findViewById(R.id.card_lesson_private);
         }
 
-        public void bindLesson(String title, int noteNo, int questionNo, int _id) {
+        public void bindLesson(String title, int noteNo, int questionNo, int permission, int _id) {
             this.title = title;
             this.noteCount = noteNo;
             this.questionCount = questionNo;
             this._id = _id;
+            this.permission = permission;
             titleTextView.setText(title);
             noteCountTextView.setText(getString(R.string.notes_no, noteNo));
             questionCountTextView.setText(getString(R.string.questions_no, questionNo));
+            if(permission > Group.PERM_READ_PUBLIC)
+                privateTextView.setVisibility(View.VISIBLE);
+            else
+                privateTextView.setVisibility(View.GONE);
         }
 
         @Override
         public void onClick(View v) {
-            callbacks.onLessonSelected(title);
+            callbacks.onLessonSelected(title, permission > Group.PERM_READ_PUBLIC);
         }
 
         @Override
@@ -381,9 +389,11 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
 
         @Override
         public void onBindViewHolder(LessonHolder holder, Cursor data) {
-            holder.bindLesson(((Database.LessonCursor) data).getLessonTitle(),
-                              ((Database.LessonCursor) data).getNoteCount(),
-                              ((Database.LessonCursor) data).getQuestionCount(),
+            Database.LessonCursor cursor = (Database.LessonCursor)data;
+            holder.bindLesson(cursor.getLessonTitle(),
+                              cursor.getNoteCount(),
+                              cursor.getQuestionCount(),
+                              cursor.getRequiredPermission(),
                               data.getInt(data.getColumnIndex("_id")));
         }
     }

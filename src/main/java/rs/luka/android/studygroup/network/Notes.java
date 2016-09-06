@@ -229,7 +229,7 @@ public class Notes {
         }
     }
 
-    public static boolean updateAudio(long id, File audio, NetworkExceptionHandler exceptionHandler) //todo (Zaboravio sam od cega je ovo ostalo)?
+    public static boolean updateAudio(long id, File audio, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
             URL url = new URL(Network.getDomain(), NOTES + id + "/audio");

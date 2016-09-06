@@ -8,7 +8,6 @@ import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -62,7 +61,7 @@ public class ID implements Parcelable, Comparable<ID> {
         this.itemId = itemId;
     }
 
-    public static ID generateGroupId() {
+    public static ID generateGroupId() { //debug method
         return new ID(System.currentTimeMillis(), (short) new Random().nextInt(65536));
     }
 

@@ -446,7 +446,7 @@ public class DataManager {
     }
 
     public static void addNote(final Context c, final ID courseId, final String courseName, final String lesson,
-                               final String text, final File image, final File audio, final boolean isExam,
+                               final String text, final File image, final File audio, final boolean isPrivate,
                                final NetworkExceptionHandler handler) {
         executor.execute(new Runnable() {
             @Override
@@ -455,7 +455,7 @@ public class DataManager {
                     String realText = TextUtils.replaceEscapes(text);
                     String realLesson = TextUtils.replaceEscapes(lesson);
                     Long noteId = Notes.createNote(courseId.getCourseIdValue(), realLesson, realText,
-                                                   handler, isExam?Group.PERM_WRITE:Group.PERM_READ_PUBLIC);
+                                                   handler, isPrivate?Group.PERM_WRITE:Group.PERM_READ_PUBLIC);
                     if(noteId != null) {
                         ID id = new ID(courseId, noteId);
                         Database.getInstance(c).insertNote(id, realLesson, realText, image!=null, audio!=null, 0);
@@ -463,8 +463,10 @@ public class DataManager {
                             Notes.updateImage(noteId, image, handler);
                             LocalImages.saveNoteImage(id, courseName, realLesson, image); //erases temp
                         }
-                        if (audio != null)
+                        if (audio != null) {
+                            Notes.updateAudio(noteId, audio, handler);
                             LocalAudio.saveNoteAudio(id, courseName, realLesson, audio);
+                        }
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Notes#createNote returned null; exception should have been handled");
@@ -577,9 +579,9 @@ public class DataManager {
         });
     }
 
-    private static void addQuestion(final Context c, final ID courseId, final String courseName, final String lesson,
-                                    final String question, final String answer, final File image,
-                                    final NetworkExceptionHandler handler, final boolean isExam) {
+    public static void addQuestion(final Context c, final ID courseId, final String courseName, final String lesson,
+                                    final String question, final String answer, final File image, final boolean isPrivate,
+                                    final NetworkExceptionHandler handler) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -589,7 +591,8 @@ public class DataManager {
                     String realLesson = TextUtils.replaceEscapes(lesson);
                     Long questionId = Questions.createQuestion(courseId.getCourseIdValue(),
                                                                realLesson,
-                                                               realQuestion, realAnswer, handler, isExam);
+                                                               realQuestion, realAnswer, handler,
+                                                               isPrivate ? Group.PERM_WRITE : Group.PERM_READ_PUBLIC);
                     if(questionId != null) {
                         ID id = new ID(courseId, questionId);
                         Database.getInstance(c).insertQuestion(id, realLesson, realQuestion, realAnswer, image!=null, 0);
@@ -606,12 +609,6 @@ public class DataManager {
                 }
             }
         });
-    }
-
-    public static void addRegularQuestion(final Context c, final ID courseId, final String courseName, final String lesson,
-                                          final String question, final String answer, final File image,
-                                          final NetworkExceptionHandler handler) {
-        addQuestion(c, courseId, courseName, lesson, question, answer, image, handler, false);
     }
 
     public static void editQuestion(final Context c, final ID id, final String lesson, final String question,
@@ -771,13 +768,6 @@ public class DataManager {
         });
     }
 
-    public static void addExamQuestion(final Context c, final ID courseId, final String courseName,
-                                       final String realLesson, final String question, final String answer,
-                                       final File image, final NetworkExceptionHandler handler) {
-        addQuestion(c, courseId, courseName, realLesson, question, answer, image, handler, true);
-    }
-
-
     public static void getGroupImage(final Context c, final ID id, final int scaleTo,
                                      final NetworkExceptionHandler handler, final ImageView insertInto) {
         executor.execute(new Runnable() {
@@ -930,7 +920,7 @@ public class DataManager {
                 File old = LocalImages.invalidateThumb(current);
                 Notes.loadThumb(id.getItemIdValue(), scaleTo, current, exceptionHandler);
                 boolean same = LocalImages.thumbsEqual(old, current);
-                if(!old.delete()) throw new FileIOException(old, "Cannot delete");
+                if(old.exists() && !old.delete()) throw new FileIOException(old, "Cannot delete");
                 if(!same) {
                     LocalImages.deleteNoteImage(courseName, lessonName, id);
                 }

@@ -2,6 +2,7 @@ package rs.luka.android.studygroup.ui.singleitemactivities;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.davemorrissey.labs.subscaleview.ImageSource;
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
@@ -20,6 +21,7 @@ public class FullscreenImageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen_image);
+        Log.d("FullScreenImage", "image path: " + getIntent().getStringExtra(EXTRA_IMAGE_PATH));
 
         imageView = (SubsamplingScaleImageView) findViewById(R.id.fullscreen_image);
         imageView.setImage(ImageSource.uri(getIntent().getStringExtra(EXTRA_IMAGE_PATH)));

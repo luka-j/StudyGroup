@@ -20,6 +20,7 @@ public class Edit {
     public static final int ACTION_ADD_AUDIO = 8;
     public static final int ACTION_REMOVE_AUDIO = 9;
     public static final int ACTION_REPLACE_AUDIO = 10;
+    public static final int ACTION_CREATED = 11;
 
     private final User editor;
     private final int action;
@@ -47,6 +48,7 @@ public class Edit {
             case ACTION_ADD_AUDIO: return c.getString(R.string.edit_add_audio);
             case ACTION_REMOVE_AUDIO: return c.getString(R.string.edit_remove_audio);
             case ACTION_REPLACE_AUDIO: return c.getString(R.string.edit_replace_audio);
+            case ACTION_CREATED: return c.getString(R.string.edit_created);
             default: return c.getString(R.string.edit_unknown);
         }
     }

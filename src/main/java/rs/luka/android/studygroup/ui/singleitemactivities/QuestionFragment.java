@@ -22,7 +22,6 @@ import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Question;
-import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
 
 /**
@@ -31,19 +30,22 @@ import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
 public class QuestionFragment extends Fragment {
     public static final  String ARG_QUESTION      = "aquestion";
     public static final  String ARG_COURSE_NAME   = "acourse";
+    public static final String ARG_MY_PERMISSION = "aperm";
     private static int    IMAGE_IDEAL_DIMEN = 720;
     private Question question;
     private String courseName;
+    private int permission;
     private TextView questionText;
     private TextView answerText;
     private ImageView image;
     private NetworkExceptionHandler exceptionHandler;
 
-    public static QuestionFragment newInstance(String courseName, Question question) {
+    public static QuestionFragment newInstance(String courseName, Question question, int permission) {
         QuestionFragment f    = new QuestionFragment();
         Bundle           args = new Bundle();
         args.putParcelable(ARG_QUESTION, question);
         args.putString(ARG_COURSE_NAME, courseName);
+        args.putInt(ARG_MY_PERMISSION, permission);
         f.setArguments(args);
         return f;
     }
@@ -61,6 +63,7 @@ public class QuestionFragment extends Fragment {
 
         question = getArguments().getParcelable(ARG_QUESTION);
         courseName = getArguments().getString(ARG_COURSE_NAME);
+        permission = getArguments().getInt(ARG_MY_PERMISSION);
         DisplayMetrics metrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
         IMAGE_IDEAL_DIMEN = metrics.widthPixels;
@@ -106,7 +109,7 @@ public class QuestionFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_question, menu);
-        if(User.getLoggedInUser().getPermission() < Group.PERM_WRITE)
+        if(permission < Group.PERM_WRITE)
             menu.removeItem(R.id.question_history);
     }
 

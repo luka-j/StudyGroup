@@ -54,10 +54,10 @@ public class LessonActivity extends AppCompatActivity
     public static final  String EXTRA_SELECTED_NOTES            = "selNotes";
     public static final  String EXTRA_SELECTED_QUESTIONS        = "selQuestions";
 
-    public static final  String EXTRA_PERMISSION                = CourseActivity.EXTRA_PERMISSION;
-    public static final  String EXTRA_LESSON                    = CourseActivity.EXTRA_LESSON_NAME;
-    public static final  String EXTRA_COURSE                     = CourseActivity.EXTRA_COURSE;
-    public static final  String EXTRA_IS_EXAM                    = "isExam";
+    public static final  String EXTRA_MY_PERMISSION = CourseActivity.EXTRA_MY_PERMISSION;
+    public static final  String EXTRA_LESSON        = CourseActivity.EXTRA_LESSON_NAME;
+    public static final  String EXTRA_COURSE        = CourseActivity.EXTRA_COURSE;
+    public static final  String EXTRA_IS_PRIVATE    = "isExam";
 
     private static final String TAG                             = "LessonActivity";
 
@@ -77,10 +77,10 @@ public class LessonActivity extends AppCompatActivity
     private static final String DIALOG_REMOVE_QUESTIONS = "confirmRemoveQuestions";
 
     private static final int TABS_COUNT   = 2;
-    private Course course;
-    private String lessonName;
-    private int    permission;
-    private boolean isExam;
+    private Course  course;
+    private String  lessonName;
+    private int     permission;
+    private boolean isPrivate;
 
     //for multiple network requests
     private int setSize;
@@ -100,8 +100,8 @@ public class LessonActivity extends AppCompatActivity
         setContentView(R.layout.activity_lesson);
         course = getIntent().getParcelableExtra(EXTRA_COURSE);
         lessonName = getIntent().getStringExtra(EXTRA_LESSON);
-        permission = getIntent().getIntExtra(EXTRA_PERMISSION, 0);
-        isExam = getIntent().getBooleanExtra(EXTRA_IS_EXAM, false);
+        permission = getIntent().getIntExtra(EXTRA_MY_PERMISSION, 0);
+        isPrivate = getIntent().getBooleanExtra(EXTRA_IS_PRIVATE, false);
 
         exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
 
@@ -138,13 +138,13 @@ public class LessonActivity extends AppCompatActivity
                     Intent i = new Intent(This, AddNoteActivity.class);
                     i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
                     i.putExtra(EXTRA_CURRENT_COURSE, course);
-                    i.putExtra(AddNoteActivity.EXTRA_IS_EXAM, isExam);
+                    i.putExtra(AddNoteActivity.EXTRA_IS_EXAM, isPrivate);
                     startActivityForResult(i, REQUEST_ADD_NOTE);
                 } else {
                     Intent i = new Intent(This, AddQuestionActivity.class);
                     i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
                     i.putExtra(EXTRA_CURRENT_COURSE, course);
-                    i.putExtra(AddQuestionActivity.EXTRA_IS_EXAM, isExam);
+                    i.putExtra(AddQuestionActivity.EXTRA_IS_PRIVATE, isPrivate);
                     startActivityForResult(i, REQUEST_ADD_QUESTION);
                 }
             }
@@ -197,7 +197,7 @@ public class LessonActivity extends AppCompatActivity
                 startActivity(new Intent(this, CourseActivity.class)
                                       .putExtra(CourseActivity.EXTRA_GO_BACKWARD, false)
                                       .putExtra(CourseActivity.EXTRA_COURSE, course)
-                                      .putExtra(CourseActivity.EXTRA_PERMISSION, permission));
+                                      .putExtra(CourseActivity.EXTRA_MY_PERMISSION, permission));
                 return true;
 
             case R.id.show_all_items:
@@ -260,7 +260,7 @@ public class LessonActivity extends AppCompatActivity
         startActivity(new Intent(this, CourseActivity.class)
                               .putExtra(CourseActivity.EXTRA_GO_BACKWARD, true)
                               .putExtra(CourseActivity.EXTRA_COURSE, course)
-                              .putExtra(CourseActivity.EXTRA_PERMISSION, permission));
+                              .putExtra(CourseActivity.EXTRA_MY_PERMISSION, permission));
     }
 
     @Override
@@ -269,6 +269,7 @@ public class LessonActivity extends AppCompatActivity
         i.putExtra(EXTRA_CURRENT_COURSE, course);
         i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
         i.putExtra(EXTRA_CURRENT_NOTE_POSITION, position);
+        i.putExtra(EXTRA_MY_PERMISSION, permission);
         startActivity(i);
     }
 
@@ -308,6 +309,7 @@ public class LessonActivity extends AppCompatActivity
         i.putExtra(EXTRA_CURRENT_COURSE, course);
         i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
         i.putExtra(EXTRA_CURRENT_QUESTION_POSITION, questionPosition);
+        i.putExtra(EXTRA_MY_PERMISSION, permission);
         startActivity(i);
     }
 

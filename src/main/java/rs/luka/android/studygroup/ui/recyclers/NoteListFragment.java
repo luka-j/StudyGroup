@@ -109,7 +109,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         Bundle           args = new Bundle();
         args.putParcelable(CourseActivity.EXTRA_COURSE, course);
         args.putString(CourseActivity.EXTRA_LESSON_NAME, lessonName);
-        args.putInt(LessonActivity.EXTRA_PERMISSION, permission);
+        args.putInt(LessonActivity.EXTRA_MY_PERMISSION, permission);
         f.setArguments(args);
         return f;
     }
@@ -129,7 +129,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
 
         course = getArguments().getParcelable(CourseActivity.EXTRA_COURSE);
         lessonName = getArguments().getString(CourseActivity.EXTRA_LESSON_NAME);
-        permission = getArguments().getInt(LessonActivity.EXTRA_PERMISSION);
+        permission = getArguments().getInt(LessonActivity.EXTRA_MY_PERMISSION);
     }
 
     @Override

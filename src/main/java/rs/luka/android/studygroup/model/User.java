@@ -45,9 +45,14 @@ public class User {
         return prefs.contains(PREFS_KEY_TOKEN);
     }
 
-    public static void recoverUser() {
-        instance = new User(prefs.getString(PREFS_KEY_TOKEN, null), prefs); //todo I've said it once, and I'll say it again: fix mess
-        loadMyDetailsFromPrefs();
+    public static boolean recoverUser() {
+        if(prefs != null) {
+            instance = new User(prefs.getString(PREFS_KEY_TOKEN, null), prefs);
+            //todo I've said it once, and I'll say it again: fix mess
+            loadMyDetailsFromPrefs();
+            return true;
+        }
+        return false;
     }
 
     public static void clearToken() {
@@ -117,8 +122,13 @@ public class User {
 
     public static User getLoggedInUser() {
         if(instance == null)
-            recoverUser();
+            if(!recoverUser())
+                return null;
         return instance;
+    }
+
+    public static void injectPrefs(Context ctx) { //todo fix tangled mess
+        prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
     public static boolean isLoggedIn() {

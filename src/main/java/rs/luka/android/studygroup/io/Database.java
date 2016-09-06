@@ -28,7 +28,7 @@ import rs.luka.android.studygroup.model.Question;
 public class Database extends SQLiteOpenHelper {
     private static final String TAG           = "studygroup.Database";
     private static final String DB_NAME       = "base.sqlite";
-    private static final int    VERSION       = 14;
+    private static final int    VERSION       = 15;
     private static final String DROP          = "DROP TABLE IF EXISTS ";
     private static final String CREATE        = "CREATE TABLE ";
     private static final String TYPE_VARCHAR  = " VARCHAR";
@@ -289,10 +289,7 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor c = new LessonCursor(db.query(true,
                                              Lessons.TABLE_NAME,
-                                             new String[]{Lessons.LessonEntry._ID,
-                                                          Lessons.LessonEntry.COLUMN_NAME_LESSON,
-                                                          Lessons.LessonEntry.COLUMN_NAME_NOTE_NO,
-                                                          Lessons.LessonEntry.COLUMN_NAME_QUESTION_NO},
+                                             null,
                                              Lessons.LessonEntry.COLUMN_NAME_COURSE_ID + "="
                                              + courseId.getCourseIdValue(),
                                              null,
@@ -329,12 +326,12 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         SQLiteStatement stmt = db.compileStatement(Lessons.SQL_INSERT);
         db.beginTransaction();
-        int len = lessons.length;
         for (rs.luka.android.studygroup.network.Lessons.Lesson lesson : lessons) {
             stmt.bindLong(1, courseId);
             stmt.bindString(2, lesson.name);
             stmt.bindLong(3, lesson.noteNo);
             stmt.bindLong(4, lesson.questionNo);
+            stmt.bindLong(5, lesson.permission);
             stmt.executeInsert();
             stmt.clearBindings();
         }
@@ -807,6 +804,14 @@ public class Database extends SQLiteOpenHelper {
             }
             return getInt(getColumnIndex(Lessons.LessonEntry.COLUMN_NAME_QUESTION_NO));
         }
+
+        public int getRequiredPermission() {
+            if (isBeforeFirst() || isAfterLast()) {
+                return -1;
+            }
+            return getInt(getColumnIndex(Lessons.LessonEntry.COLUMN_NAME_PERMISSION)); //todo fix (returns -1 as column index)
+            //todo AddQuestionActivity private checkbox, adding private questions
+        }
     }
 
     private static class Notes {
@@ -1017,7 +1022,8 @@ public class Database extends SQLiteOpenHelper {
                 LessonEntry.COLUMN_NAME_LESSON + TYPE_VARCHAR + "(" + Limits.LESSON_MAX_LENGTH + ")"
                 + COMMA_SEP +
                 LessonEntry.COLUMN_NAME_QUESTION_NO + TYPE_UNSIGNED + COMMA_SEP +
-                LessonEntry.COLUMN_NAME_NOTE_NO + TYPE_UNSIGNED +
+                LessonEntry.COLUMN_NAME_NOTE_NO + TYPE_UNSIGNED + COMMA_SEP +
+                LessonEntry.COLUMN_NAME_PERMISSION + TYPE_INT4 +
                 ")";
         private static final String SQL_DELETE_TABLE = DROP + TABLE_NAME;
 
@@ -1028,14 +1034,16 @@ public class Database extends SQLiteOpenHelper {
                                                  LessonEntry.COLUMN_NAME_COURSE_ID + COMMA_SEP +
                                                  LessonEntry.COLUMN_NAME_LESSON + COMMA_SEP +
                                                  LessonEntry.COLUMN_NAME_NOTE_NO + COMMA_SEP +
-                                                 LessonEntry.COLUMN_NAME_QUESTION_NO +
-                                                 ")" + VALS + "(?, ?, ?, ?)";
+                                                 LessonEntry.COLUMN_NAME_QUESTION_NO + COMMA_SEP +
+                                                 LessonEntry.COLUMN_NAME_PERMISSION +
+                                                 ")" + VALS + "(?, ?, ?, ?, ?)";
 
         public static abstract class LessonEntry implements BaseColumns {
             public static final String COLUMN_NAME_COURSE_ID   = "course_id";
             public static final String COLUMN_NAME_LESSON      = "lesson";
             public static final String COLUMN_NAME_QUESTION_NO = "questions";
             public static final String COLUMN_NAME_NOTE_NO     = "notes";
+            public static final String COLUMN_NAME_PERMISSION  = "permission";
         }
     }
 }

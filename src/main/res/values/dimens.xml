@@ -106,4 +106,6 @@
     <dimen name="register_legal_text_margin_top">8dp</dimen>
 
     <dimen name="submit_cpv_size">42dp</dimen>
+    <dimen name="helptext_size">13sp</dimen>
+    <dimen name="audio_cpv_size">34dp</dimen>
 </resources>

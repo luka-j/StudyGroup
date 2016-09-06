@@ -19,7 +19,6 @@ import java.util.Set;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.MediaCleanup;
-import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Question;
 
@@ -78,7 +77,7 @@ public class Questions {
     }
 
     public static Long createQuestion(long courseId, String lesson, String question, String answer,
-                                    NetworkExceptionHandler exceptionHandler, boolean isExam) throws IOException {
+                                    NetworkExceptionHandler exceptionHandler, int permission) throws IOException {
         try {
             URL                 url    = new URL(Network.getDomain(), QUESTIONS);
             Map<String, String> params = new HashMap<>(5);
@@ -86,7 +85,7 @@ public class Questions {
             params.put(JSON_KEY_LESSON, lesson);
             params.put(JSON_KEY_QUESTION, question);
             params.put(JSON_KEY_ANSWER, answer);
-            if(isExam) params.put(JSON_KEY_PERMISSION, String.valueOf(Group.PERM_WRITE));
+            params.put(JSON_KEY_PERMISSION, String.valueOf(permission));
 
             Network.Response<String> response = NetworkRequests.requestPostData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
@@ -217,11 +216,9 @@ public class Questions {
 
     public static boolean reorderQuestion(long id, int newOrder, NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
-            URL url = new URL(Network.getDomain(), QUESTIONS + id + "/reorder");
-            Map<String, String> params = new HashMap<>(1);
-            params.put("position", String.valueOf(newOrder));
+            URL url = new URL(Network.getDomain(), QUESTIONS + id + "/reorder/" + newOrder);
 
-            Network.Response    response = NetworkRequests.requestPutData(url, params);
+            Network.Response    response = NetworkRequests.requestPutData(url, NetworkRequests.emptyMap);
             if(response.responseCode == Network.Response.RESPONSE_OK)
                 return true;
 
