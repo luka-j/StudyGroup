@@ -107,9 +107,9 @@ public class Group implements Parcelable, Comparable<Group> {
         return new Loaders.ItemLoader(c, id, null, Loaders.ItemLoader.LOAD_EXAMS);
     }
 
-    public void addCourse(Context c, String subject, String teacher, String year, File image,
+    public void addCourse(Context c, String subject, String teacher, String year, File image, boolean isPrivate,
                           NetworkExceptionHandler exceptionHandler) {
-        DataManager.addCourse(c, id, subject, teacher, year.isEmpty()?null:Integer.parseInt(year), image, exceptionHandler);
+        DataManager.addCourse(c, id, subject, teacher, year.isEmpty()?null:Integer.parseInt(year), image, isPrivate, exceptionHandler);
     }
 
     public void edit(Context c, String name, String place, File image, NetworkExceptionHandler handler) {

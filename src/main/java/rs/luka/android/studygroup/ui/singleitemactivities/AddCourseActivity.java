@@ -16,8 +16,10 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
@@ -44,8 +46,9 @@ public class AddCourseActivity extends AppCompatActivity {
 
     public static final  String EXTRA_COURSE          = CourseActivity.EXTRA_COURSE;
     public static final  String EXTRA_GROUP           = GroupActivity.EXTRA_GROUP;
+    public static final  String EXTRA_MY_PERMISSION   = "permission";
     private static final String STATE_IMAGE_FILE_PATH = "stImage";
-    private static final int  INTENT_IMAGE            = 0;
+    private static final int    INTENT_IMAGE          = 0;
     private static final String TAG                   = "AddCourseActivity";
 
     private EditText        subject;
@@ -56,11 +59,14 @@ public class AddCourseActivity extends AppCompatActivity {
     private TextInputLayout yearTil;
     private CardView        add;
     private ImageView       image;
+    private LinearLayout privateContainer;
+    private CheckBox     privateBox;
     private CircularProgressView progressView;
     private File imageFile = new File(LocalImages.APP_IMAGE_DIR, "courseimg.temp");
     private Group           group;
     private Course          course;
     private boolean         editing;
+    private int myPermission;
 
     private NetworkExceptionHandler exceptionHandler;
 
@@ -102,6 +108,7 @@ public class AddCourseActivity extends AppCompatActivity {
         group = getIntent().getParcelableExtra(EXTRA_GROUP);
         course = getIntent().getParcelableExtra(EXTRA_COURSE);
         editing = course != null;
+        myPermission = getIntent().getIntExtra(EXTRA_MY_PERMISSION, Group.PERM_WRITE);
 
         setContentView(R.layout.activity_add_course);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -120,11 +127,13 @@ public class AddCourseActivity extends AppCompatActivity {
         add = (CardView) findViewById(R.id.button_add);
         progressView = (CircularProgressView) findViewById(R.id.add_course_cpv);
         image = (ImageView) findViewById(R.id.add_course_image);
+        privateContainer = (LinearLayout) findViewById(R.id.private_checkbox_container);
+        privateBox = (CheckBox) findViewById(R.id.private_cb);
         if (editing) {
             subject.setText(course.getSubject());
             teacher.setText(course.getTeacher());
             if (course.getYear() != null) {
-                year.setText(String.format("%d", course.getYear()));
+                year.setText(String.valueOf(course.getYear()));
             }
             if (course.hasImage()) {
                 course.getImage(this,
@@ -132,6 +141,9 @@ public class AddCourseActivity extends AppCompatActivity {
                                 exceptionHandler, image);
             }
             subject.setSelection(subject.getText().length());
+        }
+        if(myPermission < Group.PERM_MODIFY || editing) {
+            privateContainer.setVisibility(View.GONE);
         }
 
         add.setOnClickListener(new View.OnClickListener() {
@@ -224,9 +236,9 @@ public class AddCourseActivity extends AppCompatActivity {
                 course.edit(this, subjectText, teacherText, yearText, imageFile, exceptionHandler);
             } else {
                 if (imageFile != null && imageFile.exists()) {
-                    group.addCourse(this, subjectText, teacherText, yearText, imageFile, exceptionHandler);
+                    group.addCourse(this, subjectText, teacherText, yearText, imageFile, privateBox.isChecked(), exceptionHandler);
                 } else {
-                    group.addCourse(this, subjectText, teacherText, yearText, null, exceptionHandler);
+                    group.addCourse(this, subjectText, teacherText, yearText, null, privateBox.isChecked(), exceptionHandler);
                 }
             }
             add.setVisibility(View.GONE);

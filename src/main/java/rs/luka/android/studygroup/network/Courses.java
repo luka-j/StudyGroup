@@ -32,13 +32,14 @@ public class Courses {
 
     private static final String JSON_KEY_COURSES_ARRAY = "courses";
     private static final String JSON_KEY_FILTERING_YEARS = "filtering";
-    private static final String JSON_KEY_ALL_YEARS = "courseYears";
-    private static final String JSON_KEY_ID = "id";
-    private static final String JSON_KEY_GROUP = "groupId";
-    private static final String JSON_KEY_SUBJECT = "subject";
-    private static final String JSON_KEY_TEACHER = "teacher";
-    private static final String JSON_KEY_YEAR = "year";
-    private static final String JSON_KEY_HASIMAGE = "hasImage";
+    private static final String JSON_KEY_ALL_YEARS  = "courseYears";
+    private static final String JSON_KEY_ID         = "id";
+    private static final String JSON_KEY_GROUP      = "groupId";
+    private static final String JSON_KEY_SUBJECT    = "subject";
+    private static final String JSON_KEY_TEACHER    = "teacher";
+    private static final String JSON_KEY_YEAR       = "year";
+    private static final String JSON_KEY_HASIMAGE   = "hasImage";
+    private static final String JSON_KEY_PERMISSION = "requiredPermission";
 
     public static void getCourses(Context c, Group group, NetworkExceptionHandler exceptionHandler)
             throws IOException {
@@ -83,15 +84,16 @@ public class Courses {
     }
 
 
-    public static Long createCourse(long groupId, String subject, String teacher, Integer year,
+    public static Long createCourse(long groupId, String subject, String teacher, Integer year, int permission,
                                     NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
             URL                 url    = new URL(Network.getDomain(), COURSES);
-            Map<String, String> params = new HashMap<>(4);
+            Map<String, String> params = new HashMap<>(5);
             params.put(JSON_KEY_GROUP, String.valueOf(groupId));
             params.put(JSON_KEY_SUBJECT, subject);
             params.put(JSON_KEY_TEACHER, teacher);
             params.put(JSON_KEY_YEAR, String.valueOf(year));
+            params.put(JSON_KEY_PERMISSION, String.valueOf(permission));
 
             Network.Response<String> response = NetworkRequests.requestPostData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_CREATED)

@@ -75,6 +75,8 @@
                 android:layout_marginTop="@dimen/addview_image_margin_top"
                 android:src="@drawable/camera"/>
 
+            <include layout="@layout/checkbox_private" />
+
             <com.github.rahatarmanahmed.cpv.CircularProgressView
                 android:id="@+id/add_course_cpv"
                 android:visibility="gone"

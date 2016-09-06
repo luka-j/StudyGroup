@@ -186,6 +186,7 @@
     <string name="edit_add_audio">added audio</string>
     <string name="edit_remove_audio">removed the audio</string>
     <string name="edit_replace_audio">replaced the audio</string>
+    <string name="edit_created">created the item</string>
     <string name="edit_unknown">made an unknown edit</string>
 
     <string name="view_recent_edits">View recent edits</string>
@@ -225,6 +226,5 @@
     <string name="register_legal_text">By registering for an account, I agree to the
         <a href="http://192.168.0.15:9000/eula">EULA</a> and <a href="http://192.168.0.15:9000/pp">Privacy Policy</a></string>
     <string name="priv">Private</string>
-    <string name="private_items_help">Private items are visible only to the members of the group. If first note or question in a lesson is private, whole lesson and all of its items are going to be private, regardless of this setting.</string>
-    <string name="edit_created">created the item</string>
+    <string name="private_items_help">Private items are visible only to the members of the group. All items inside categories marked as private are going to be private as well. If first note or question created in lesson is private, whole lesson is made private.</string>
 </resources>

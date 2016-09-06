@@ -113,6 +113,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             public void onClick(View v) {
                 if(group.getPermission() >= Group.PERM_WRITE) {
                     Intent i = new Intent(getActivity(), AddCourseActivity.class);
+                    i.putExtra(AddCourseActivity.EXTRA_MY_PERMISSION, group.getPermission());
                     i.putExtra(AddCourseActivity.EXTRA_GROUP, group);
                     startActivityForResult(i, REQUEST_ADD_COURSE);
                 }/* else if(group.getPermission() >= Group.PERM_INVITED) {

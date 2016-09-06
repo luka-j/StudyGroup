@@ -18,6 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.FileIOException;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.misc.TextUtils;
@@ -266,15 +267,21 @@ public class DataManager {
     }
 
     public static void addCourse(final Context c, final ID groupId, final String subject, final String teacher,
-                                 final Integer year, final File image, final NetworkExceptionHandler handler) {
+                                 final Integer year, final File image, final boolean isPrivate,
+                                 final NetworkExceptionHandler handler) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Long courseId = Courses.createCourse(groupId.getGroupIdValue(), subject, teacher, year, handler);
+                    String displaySubject = subject;
+                    if(isPrivate) {
+                        displaySubject += " (" + c.getString(R.string.priv) + ")";
+                    }
+                    Long courseId = Courses.createCourse(groupId.getGroupIdValue(), displaySubject, teacher, year,
+                                                         isPrivate?Group.PERM_WRITE:Group.PERM_READ_PUBLIC, handler);
                     if(courseId != null) {
                         ID id = new ID(groupId, courseId);
-                        Database.getInstance(c).insertCourse(id, subject, teacher, year, image!=null);
+                        Database.getInstance(c).insertCourse(id, displaySubject, teacher, year, image!=null);
                         if (image != null) {
                             Courses.updateImage(courseId, image, handler);
                             LocalImages.saveCourseImage(id, image);
