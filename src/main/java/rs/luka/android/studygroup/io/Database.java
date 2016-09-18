@@ -809,8 +809,7 @@ public class Database extends SQLiteOpenHelper {
             if (isBeforeFirst() || isAfterLast()) {
                 return -1;
             }
-            return getInt(getColumnIndex(Lessons.LessonEntry.COLUMN_NAME_PERMISSION)); //todo fix (returns -1 as column index)
-            //todo AddQuestionActivity private checkbox, adding private questions
+            return getInt(getColumnIndex(Lessons.LessonEntry.COLUMN_NAME_PERMISSION));
         }
     }
 

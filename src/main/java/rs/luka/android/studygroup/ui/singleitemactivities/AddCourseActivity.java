@@ -73,74 +73,15 @@ public class AddCourseActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
-            @Override
-            public void finishedSuccessfully() {
-                super.finishedSuccessfully();
-                AddCourseActivity.this.onBackPressed();
-            }
-            @Override
-            public void handleOffline() {
-                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
-                                       getString(R.string.error_offline_edit_text))
-                        .show(getSupportFragmentManager(), "");
-                Network.Status.setOffline();
-                progressView.setVisibility(View.GONE);
-                add.setVisibility(View.VISIBLE);
-            }
-            @Override
-            public void finishedUnsuccessfully() {
-                super.finishedUnsuccessfully();
-                progressView.setVisibility(View.GONE);
-                add.setVisibility(View.VISIBLE);
-            }
-            public void handleSocketException(SocketException ex) {
-                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
-                                                           hostActivity.getString(R.string.error_socketex_text));
-                if(hostActivity instanceof InfoDialog.Callbacks)
-                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
-                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
-                Log.e(TAG, "Unexpected SocketException", ex);
-                Network.Status.setOffline();
-            }
-        };
-        group = getIntent().getParcelableExtra(EXTRA_GROUP);
-        course = getIntent().getParcelableExtra(EXTRA_COURSE);
-        editing = course != null;
-        myPermission = getIntent().getIntExtra(EXTRA_MY_PERMISSION, Group.PERM_WRITE);
+        initExceptionHandler();
+        initData();
 
         setContentView(R.layout.activity_add_course);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        initToolbar();
+        initViews();
 
-        if (NavUtils.getParentActivityIntent(this) != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-
-        subject = (EditText) findViewById(R.id.add_course_name_input);
-        subjectTil = (TextInputLayout) findViewById(R.id.add_course_name_til);
-        teacher = (EditText) findViewById(R.id.add_course_prof_input);
-        teacherTil = (TextInputLayout) findViewById(R.id.add_course_prof_til);
-        year = (EditText) findViewById(R.id.add_course_year_input);
-        yearTil = (TextInputLayout) findViewById(R.id.add_course_year_til);
-        add = (CardView) findViewById(R.id.button_add);
-        progressView = (CircularProgressView) findViewById(R.id.add_course_cpv);
-        image = (ImageView) findViewById(R.id.add_course_image);
-        privateContainer = (LinearLayout) findViewById(R.id.private_checkbox_container);
-        privateBox = (CheckBox) findViewById(R.id.private_cb);
         if (editing) {
-            subject.setText(course.getSubject());
-            teacher.setText(course.getTeacher());
-            if (course.getYear() != null) {
-                year.setText(String.valueOf(course.getYear()));
-            }
-            if (course.hasImage()) {
-                course.getImage(this,
-                                getResources().getDimensionPixelOffset(R.dimen.addview_image_size),
-                                exceptionHandler, image);
-            }
-            subject.setSelection(subject.getText().length());
+            setupViewsForEditing();
         }
         if(myPermission < Group.PERM_MODIFY || editing) {
             privateContainer.setVisibility(View.GONE);
@@ -152,30 +93,8 @@ public class AddCourseActivity extends AppCompatActivity {
                 submit();
             }
         });
-        year.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    submit();
-                    return true;
-                }
-                return false;
-            }
-        });
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                Intent gallery = new Intent(Intent.ACTION_PICK);
-                gallery.setType("image/*");
-                camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
-                Intent chooserIntent = Intent.createChooser(camera,
-                                                            getString(R.string.select_image));
-                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
-                startActivityForResult(chooserIntent, INTENT_IMAGE);
-            }
-        });
-
+        initTextListeners();
+        initMediaListeners();
     }
 
     @Override
@@ -254,5 +173,114 @@ public class AddCourseActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+
+    private void initExceptionHandler() {
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
+            @Override
+            public void finishedSuccessfully() {
+                super.finishedSuccessfully();
+                AddCourseActivity.this.onBackPressed();
+            }
+            @Override
+            public void handleOffline() {
+                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
+                                       getString(R.string.error_offline_edit_text))
+                          .show(getSupportFragmentManager(), "");
+                Network.Status.setOffline();
+                progressView.setVisibility(View.GONE);
+                add.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void finishedUnsuccessfully() {
+                super.finishedUnsuccessfully();
+                progressView.setVisibility(View.GONE);
+                add.setVisibility(View.VISIBLE);
+            }
+            public void handleSocketException(SocketException ex) {
+                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
+                                                           hostActivity.getString(R.string.error_socketex_text));
+                if(hostActivity instanceof InfoDialog.Callbacks)
+                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                Log.e(TAG, "Unexpected SocketException", ex);
+                Network.Status.setOffline();
+            }
+        };
+    }
+
+    private void initData() {
+        group = getIntent().getParcelableExtra(EXTRA_GROUP);
+        course = getIntent().getParcelableExtra(EXTRA_COURSE);
+        editing = course != null;
+        myPermission = getIntent().getIntExtra(EXTRA_MY_PERMISSION, Group.PERM_WRITE);
+    }
+
+    private void initToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        if (NavUtils.getParentActivityIntent(this) != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    private void initViews() {
+        subject = (EditText) findViewById(R.id.add_course_name_input);
+        subjectTil = (TextInputLayout) findViewById(R.id.add_course_name_til);
+        teacher = (EditText) findViewById(R.id.add_course_prof_input);
+        teacherTil = (TextInputLayout) findViewById(R.id.add_course_prof_til);
+        year = (EditText) findViewById(R.id.add_course_year_input);
+        yearTil = (TextInputLayout) findViewById(R.id.add_course_year_til);
+        add = (CardView) findViewById(R.id.button_add);
+        progressView = (CircularProgressView) findViewById(R.id.add_course_cpv);
+        image = (ImageView) findViewById(R.id.add_course_image);
+        privateContainer = (LinearLayout) findViewById(R.id.private_checkbox_container);
+        privateBox = (CheckBox) findViewById(R.id.private_cb);
+    }
+
+    private void setupViewsForEditing() {
+        subject.setText(course.getSubject());
+        teacher.setText(course.getTeacher());
+        if (course.getYear() != null) {
+            year.setText(String.valueOf(course.getYear()));
+        }
+        if (course.hasImage()) {
+            course.getImage(this,
+                            getResources().getDimensionPixelOffset(R.dimen.addview_image_size),
+                            exceptionHandler, image);
+        }
+        subject.setSelection(subject.getText().length());
+    }
+
+    private void initTextListeners() {
+        year.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    submit();
+                    return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    private void initMediaListeners() {
+        image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                Intent gallery = new Intent(Intent.ACTION_PICK);
+                gallery.setType("image/*");
+                camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
+                Intent chooserIntent = Intent.createChooser(camera,
+                                                            getString(R.string.select_image));
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
+                startActivityForResult(chooserIntent, INTENT_IMAGE);
+            }
+        });
     }
 }

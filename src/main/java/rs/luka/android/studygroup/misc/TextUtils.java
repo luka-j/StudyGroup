@@ -32,10 +32,10 @@ public class TextUtils {
         latinToGreek.put('i', 'ι');
         latinToGreek.put('K', 'Κ');
         latinToGreek.put('k', 'κ');
-        latinToGreek.put('L', 'Λ');
+        latinToGreek.put('L', 'Λ');//1st
         latinToGreek.put('l', 'λ');
         latinToGreek.put('M', 'Μ');
-        latinToGreek.put('m', 'μ');
+        latinToGreek.put('m', 'μ'); //half
         latinToGreek.put('N', 'Ν');
         latinToGreek.put('n', 'ν');
         latinToGreek.put('X', 'Ξ');
@@ -57,7 +57,7 @@ public class TextUtils {
         latinToGreek.put('C', 'Χ');
         latinToGreek.put('c', 'χ');
         latinToGreek.put('U', 'Ψ');
-        latinToGreek.put('u', 'ψ');
+        latinToGreek.put('u', 'ψ');//2nd
         latinToGreek.put('W', 'Ω');
         latinToGreek.put('w', 'ω');
 
@@ -139,6 +139,7 @@ public class TextUtils {
     public static String replaceEscapes(String str) {
         str = str.replace("//", "∕");
         if(!str.contains("\\") && !str.contains("^") && !str.contains("_")) return str;
+
         StringBuilder ret = new StringBuilder(str.length());
         for(int i=0; i<str.length(); i++) {
             if(str.charAt(i) != '\\' && str.charAt(i) != '^'

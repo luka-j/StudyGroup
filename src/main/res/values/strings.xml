@@ -227,4 +227,7 @@
         <a href="http://192.168.0.15:9000/eula">EULA</a> and <a href="http://192.168.0.15:9000/pp">Privacy Policy</a></string>
     <string name="priv">Private</string>
     <string name="private_items_help">Private items are visible only to the members of the group. All items inside categories marked as private are going to be private as well. If first note or question created in lesson is private, whole lesson is made private.</string>
+    <string name="input_help_text">All Unicode characters represent valid input (yes, emojis too). However, in order to simplify typing, there are some shortcuts for frequently used characters: a caret (^) puts a letter, digit or mathematical symbol (+,-,=,(,)) in superscript, an underscore (_) before a digit puts it in subscript, and a backslash (\\) transforms a Latin letter into the appropriate Greek equivalent. If you want to type those symbols normally, double them (i.e. \\\\ becomes \\). The Latin-to-Greek conversion table is as follows:</string>
+    <string name="input_help_title">Input help</string>
+    <string name="show_help">Help</string>
 </resources>

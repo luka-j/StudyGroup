@@ -57,54 +57,15 @@ public class AddGroupActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_group);
+        initExceptionHandler();
 
-        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
-            @Override
-            public void finishedSuccessfully() {
-                super.finishedSuccessfully();
-                AddGroupActivity.this.onBackPressed();
-            }
-            @Override
-            public void handleOffline() {
-                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
-                                       getString(R.string.error_offline_edit_text))
-                          .show(getSupportFragmentManager(), "");
-                Network.Status.setOffline();
-                progressView.setVisibility(View.GONE);
-                add.setVisibility(View.VISIBLE);
-            }
-            @Override
-            public void finishedUnsuccessfully() {
-                super.finishedUnsuccessfully();
-                progressView.setVisibility(View.GONE);
-                add.setVisibility(View.VISIBLE);
-            }
-        };
-        group = getIntent().getParcelableExtra(EXTRA_GROUP);
-        editing = group != null;
+        editing = getIntent().hasExtra(EXTRA_GROUP);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (NavUtils.getParentActivityIntent(this) != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
-        }
-
-        name = (EditText) findViewById(R.id.add_group_name_input);
-        place = (EditText) findViewById(R.id.add_group_place_input);
-        nameTil = (TextInputLayout) findViewById(R.id.add_group_name_til);
-        placeTil = (TextInputLayout) findViewById(R.id.add_group_place_til);
-        add = (CardView) findViewById(R.id.button_add);
-        image = (ImageView) findViewById(R.id.add_group_image);
-        progressView = (CircularProgressView) findViewById(R.id.add_group_cpv);
+        initToolbar();
+        initViews();
         if (editing) {
-            name.setText(group.getName());
-            place.setText(group.getPlace());
-            if (group.hasImage()) {
-                group.getImage(this,
-                               getResources().getDimensionPixelOffset(R.dimen.addview_image_size),
-                               exceptionHandler, image);
-            }
-            name.setSelection(name.getText().length());
+            group = getIntent().getParcelableExtra(EXTRA_GROUP);
+            setupViewsForEditing();
         }
 
         add.setOnClickListener(new View.OnClickListener() {
@@ -113,29 +74,8 @@ public class AddGroupActivity extends AppCompatActivity {
                 doSubmit();
             }
         });
-        place.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    doSubmit();
-                    return true;
-                }
-                return false;
-            }
-        });
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                Intent gallery = new Intent(Intent.ACTION_PICK);
-                gallery.setType("image/*");
-                camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
-                Intent chooserIntent = Intent.createChooser(camera,
-                                                            getString(R.string.select_image));
-                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
-                startActivityForResult(chooserIntent, INTENT_IMAGE);
-            }
-        });
+        initTextListeners();
+        initMediaListeners();
     }
 
     @Override
@@ -202,5 +142,90 @@ public class AddGroupActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+
+    private void initExceptionHandler() {
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
+            @Override
+            public void finishedSuccessfully() {
+                super.finishedSuccessfully();
+                AddGroupActivity.this.onBackPressed();
+            }
+            @Override
+            public void handleOffline() {
+                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
+                                       getString(R.string.error_offline_edit_text))
+                          .show(getSupportFragmentManager(), "");
+                Network.Status.setOffline();
+                progressView.setVisibility(View.GONE);
+                add.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void finishedUnsuccessfully() {
+                super.finishedUnsuccessfully();
+                progressView.setVisibility(View.GONE);
+                add.setVisibility(View.VISIBLE);
+            }
+        };
+    }
+
+    private void initToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (NavUtils.getParentActivityIntent(this) != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
+        }
+    }
+
+    private void initViews() {
+        name = (EditText) findViewById(R.id.add_group_name_input);
+        place = (EditText) findViewById(R.id.add_group_place_input);
+        nameTil = (TextInputLayout) findViewById(R.id.add_group_name_til);
+        placeTil = (TextInputLayout) findViewById(R.id.add_group_place_til);
+        add = (CardView) findViewById(R.id.button_add);
+        image = (ImageView) findViewById(R.id.add_group_image);
+        progressView = (CircularProgressView) findViewById(R.id.add_group_cpv);
+    }
+
+    private void setupViewsForEditing() {
+        name.setText(group.getName());
+        place.setText(group.getPlace());
+        if (group.hasImage()) {
+            group.getImage(this,
+                           getResources().getDimensionPixelOffset(R.dimen.addview_image_size),
+                           exceptionHandler, image);
+        }
+        name.setSelection(name.getText().length());
+    }
+
+    private void initTextListeners() {
+        place.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    doSubmit();
+                    return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    private void initMediaListeners() {
+        image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                Intent gallery = new Intent(Intent.ACTION_PICK);
+                gallery.setType("image/*");
+                camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
+                Intent chooserIntent = Intent.createChooser(camera,
+                                                            getString(R.string.select_image));
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
+                startActivityForResult(chooserIntent, INTENT_IMAGE);
+            }
+        });
     }
 }

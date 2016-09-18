@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/input_help_text"/>
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/greek_table_margin_top"
+        tools:ignore="HardcodedText,RtlHardcoded,RtlSymmetry">
+        <TableRow>
+            <TextView android:text="A" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Α" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="a" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="α" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="N" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Ν" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="n" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="ν"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="B" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Β" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="b" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="β" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="X" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Ξ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="x" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="ξ"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="G" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Γ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="g" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="γ" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="O" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Ο" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="o" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="ο"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="D" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Δ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="d" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="δ" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="P" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Π" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="p" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="π"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="E" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Ε" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="e" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="ε" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="R" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Ρ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="r" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="ρ"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="Z" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Ζ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="z" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="ζ" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="S" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Σ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="s" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="σ"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="H" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Η" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="h" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="η" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="T" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Τ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="t" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="τ"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="Q" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Θ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="q" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="θ" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="Y" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Υ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="y" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="υ"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="I" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Ι" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="i" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="ι" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="F" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Φ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="f" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="φ"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="K" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Κ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="k" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="κ" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="C" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Χ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="c" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="χ"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="L" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Λ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="l" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="λ" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="U" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Ψ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="u" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="ψ"/>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="M" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Μ" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="m" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="μ" android:paddingRight="@dimen/greek_table_large_column_padding"/>
+            <TextView android:text="W" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="Ω" android:paddingRight="@dimen/greek_table_small_column_padding"/>
+            <TextView android:text="w" android:paddingRight="@dimen/greek_table_text_padding"/>
+            <TextView android:text="ω"/>
+        </TableRow>
+    </TableLayout>
+</LinearLayout>

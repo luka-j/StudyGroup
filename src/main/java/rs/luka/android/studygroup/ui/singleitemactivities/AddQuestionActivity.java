@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -42,6 +43,7 @@ import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
+import rs.luka.android.studygroup.ui.dialogs.InputHelpDialog;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
 
 /**
@@ -75,150 +77,35 @@ public class AddQuestionActivity extends AppCompatActivity {
     private boolean        editing;
     private boolean        isPrivate;
     private List<Question> questions;
+    private String         currentLessonText;
     private String         lessonStr;
     private int currentQuestion = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
-            @Override
-            public void finishedSuccessfully() {
-                super.finishedSuccessfully();
-                setUpNext();
-            }
-            @Override
-            public void handleOffline() {
-                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
-                                       getString(R.string.error_offline_edit_text))
-                          .show(getSupportFragmentManager(), "");
-                Network.Status.setOffline();
-            }
-            @Override
-            public void finishedUnsuccessfully() {
-                progressView.setVisibility(View.GONE);
-                if(buttonsLayout!=null) buttonsLayout.setVisibility(View.VISIBLE);
-                else add.setVisibility(View.VISIBLE);
-            }
-            @Override
-            public void handleSocketException(SocketException ex) {
-                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
-                                                           hostActivity.getString(R.string.error_socketex_text));
-                if(hostActivity instanceof InfoDialog.Callbacks)
-                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
-                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
-                Log.e(TAG, "Unexpected SocketException", ex);
-                Network.Status.setOffline();
-            }
-        };
-
-        course = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE);
-        questions = getIntent().getParcelableArrayListExtra(LessonActivity.EXTRA_SELECTED_QUESTIONS);
-        editing = questions != null;
-        isPrivate = getIntent().getBooleanExtra(EXTRA_IS_PRIVATE, false);
+        initExceptionHandler();
+        initData();
 
         setContentView(R.layout.activity_add_question);
+        initToolbar();
+        initViews();
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (NavUtils.getParentActivityIntent(this) != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
-        }
-
-        lesson = (EditText) findViewById(R.id.add_question_lesson_input);
-        answer = (EditText) findViewById(R.id.add_question_answer_input);
-        question = (EditText) findViewById(R.id.add_question_text_input);
-        lessonTil = (TextInputLayout) findViewById(R.id.add_question_lesson_til);
-        questionTil = (TextInputLayout) findViewById(R.id.add_question_text_til);
-        add = (CardView) findViewById(R.id.button_add);
-        image = (ImageView) findViewById(R.id.add_question_image);
-        privBox = (CheckBox) findViewById(R.id.private_cb);
-        progressView = (CircularProgressView) findViewById(R.id.add_question_cpv);
         if (editing && questions.size() > 1) { //kreiranje dva dugmeta
-            LayoutInflater inflater = LayoutInflater.from(this);
-            buttonsLayout = (LinearLayout) inflater.inflate(R.layout.buttons_next_done, null, false);
-            LinearLayout.LayoutParams params
-                    = new LinearLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
-                                                      RelativeLayout.LayoutParams.WRAP_CONTENT);
-            params.gravity = Gravity.END;
-            params.setMargins(0, 14, 0, 10);
-            content = (LinearLayout) findViewById(R.id.add_question_content);
-            content.removeView(add);
-            content.addView(buttonsLayout, params);
-            next = (CardView) buttonsLayout.findViewById(R.id.button_next);
-            nextText = (TextView) next.getChildAt(0);
-            done = (CardView) buttonsLayout.findViewById(R.id.button_done);
-            next.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    doSubmit();
-                }
-            });
-            done.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    done();
-                }
-            });
+            createEditButtons();
         }
-        if (editing) setFieldsForEditing(); //sorry for being ugly
+        if (editing) setFieldsForEditing();
         if (isPrivate) privBox.setChecked(true);
         if (editing || isPrivate) privBox.setEnabled(false); //todo make editing privacy possible (server-side, history)
 
+        initTextListeners();
+        initMediaListeners();
+    }
 
-        final String lessonText = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
-        lesson.setText(lessonText);
-        if (!lessonText.isEmpty()) { question.requestFocus(); }
-
-        add.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                doSubmit();
-            }
-        });
-        answer.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    doSubmit();
-                    return true;
-                }
-                return false;
-            }
-        });
-        lesson.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if((editing || isPrivate) && s.equals(lessonText))
-                    privBox.setEnabled(false);
-                else
-                    privBox.setEnabled(true);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                File courseImageDir = new File(LocalImages.APP_IMAGE_DIR, course.getSubject());
-                if (!LocalImages.APP_IMAGE_DIR.isDirectory()) { LocalImages.APP_IMAGE_DIR.mkdir(); }
-                if (!courseImageDir.isDirectory()) courseImageDir.mkdir();
-                imageFile = new File(courseImageDir, lesson.getText().toString() + ".temp");
-                Intent gallery = new Intent(Intent.ACTION_PICK);
-                gallery.setType("image/*");
-                camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
-                Intent chooserIntent = Intent.createChooser(camera,
-                                                            getString(R.string.select_image));
-                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
-                startActivityForResult(chooserIntent, INTENT_IMAGE);
-            }
-        });
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_add_item, menu);
+        return true;
     }
 
     @Override
@@ -338,7 +225,156 @@ public class AddQuestionActivity extends AppCompatActivity {
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
+            case R.id.add_item_show_help:
+                new InputHelpDialog().show(getFragmentManager(), "");
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+    public void initExceptionHandler() {
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
+            @Override
+            public void finishedSuccessfully() {
+                super.finishedSuccessfully();
+                setUpNext();
+            }
+            @Override
+            public void handleOffline() {
+                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
+                                       getString(R.string.error_offline_edit_text))
+                          .show(getSupportFragmentManager(), "");
+                Network.Status.setOffline();
+            }
+            @Override
+            public void finishedUnsuccessfully() {
+                progressView.setVisibility(View.GONE);
+                if(buttonsLayout!=null) buttonsLayout.setVisibility(View.VISIBLE);
+                else add.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void handleSocketException(SocketException ex) {
+                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
+                                                           hostActivity.getString(R.string.error_socketex_text));
+                if(hostActivity instanceof InfoDialog.Callbacks)
+                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                Log.e(TAG, "Unexpected SocketException", ex);
+                Network.Status.setOffline();
+            }
+        };
+    }
+
+    private void initData() {
+        course = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE);
+        questions = getIntent().getParcelableArrayListExtra(LessonActivity.EXTRA_SELECTED_QUESTIONS);
+        editing = questions != null;
+        isPrivate = getIntent().getBooleanExtra(EXTRA_IS_PRIVATE, false);
+        currentLessonText = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
+    }
+
+    private void initToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (NavUtils.getParentActivityIntent(this) != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons
+        }
+    }
+
+    private void initViews() {
+        lesson = (EditText) findViewById(R.id.add_question_lesson_input);
+        answer = (EditText) findViewById(R.id.add_question_answer_input);
+        question = (EditText) findViewById(R.id.add_question_text_input);
+        lessonTil = (TextInputLayout) findViewById(R.id.add_question_lesson_til);
+        questionTil = (TextInputLayout) findViewById(R.id.add_question_text_til);
+        add = (CardView) findViewById(R.id.button_add);
+        image = (ImageView) findViewById(R.id.add_question_image);
+        privBox = (CheckBox) findViewById(R.id.private_cb);
+        progressView = (CircularProgressView) findViewById(R.id.add_question_cpv);
+        lesson.setText(currentLessonText);
+        if (!currentLessonText.isEmpty()) { question.requestFocus(); }
+    }
+
+    private void createEditButtons() {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        buttonsLayout = (LinearLayout) inflater.inflate(R.layout.buttons_next_done, null, false);
+        LinearLayout.LayoutParams params
+                = new LinearLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
+                                                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        params.gravity = Gravity.END;
+        params.setMargins(0, 14, 0, 10);
+        content = (LinearLayout) findViewById(R.id.add_question_content);
+        content.removeView(add);
+        content.addView(buttonsLayout, params);
+        next = (CardView) buttonsLayout.findViewById(R.id.button_next);
+        nextText = (TextView) next.getChildAt(0);
+        done = (CardView) buttonsLayout.findViewById(R.id.button_done);
+        next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                doSubmit();
+            }
+        });
+        done.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                done();
+            }
+        });
+    }
+
+    private void initTextListeners() {
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                doSubmit();
+            }
+        });
+        answer.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    doSubmit();
+                    return true;
+                }
+                return false;
+            }
+        });
+        lesson.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if((editing || isPrivate) && s.equals(currentLessonText))
+                    privBox.setEnabled(false);
+                else
+                    privBox.setEnabled(true);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void initMediaListeners() {
+        image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                File courseImageDir = new File(LocalImages.APP_IMAGE_DIR, course.getSubject());
+                if (!LocalImages.APP_IMAGE_DIR.isDirectory()) { LocalImages.APP_IMAGE_DIR.mkdir(); }
+                if (!courseImageDir.isDirectory()) courseImageDir.mkdir();
+                imageFile = new File(courseImageDir, lesson.getText().toString() + ".temp");
+                Intent gallery = new Intent(Intent.ACTION_PICK);
+                gallery.setType("image/*");
+                camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
+                Intent chooserIntent = Intent.createChooser(camera,
+                                                            getString(R.string.select_image));
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
+                startActivityForResult(chooserIntent, INTENT_IMAGE);
+            }
+        });
     }
 }

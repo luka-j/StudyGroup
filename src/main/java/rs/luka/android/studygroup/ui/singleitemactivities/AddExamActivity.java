@@ -74,37 +74,7 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_exam);
 
-        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
-            @Override
-            public void finishedSuccessfully() {
-                super.finishedSuccessfully();
-                onBackPressed();
-            }
-            @Override
-            public void handleOffline() {
-                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
-                                       getString(R.string.error_offline_edit_text))
-                          .show(getSupportFragmentManager(), "");
-                Network.Status.setOffline();
-                progressView.setVisibility(View.GONE);
-                submit.setVisibility(View.VISIBLE);
-            }
-            @Override
-            public void finishedUnsuccessfully() {
-                super.finishedUnsuccessfully();
-                progressView.setVisibility(View.GONE);
-                submit.setVisibility(View.VISIBLE);
-            }
-            public void handleSocketException(SocketException ex) {
-                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
-                                                           hostActivity.getString(R.string.error_socketex_text));
-                if(hostActivity instanceof InfoDialog.Callbacks)
-                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
-                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
-                Log.e(TAG, "Unexpected SocketException", ex);
-                Network.Status.setOffline();
-            }
-        };
+        initExceptionHandler();
 
         exam = getIntent().getParcelableExtra(EXTRA_EXAM);
         editing = exam != null;
@@ -157,6 +127,41 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
             outState.putParcelable(DATA_SELECTED_COURSE, course);
         if(selectedDate != null)
             outState.putLong(DATA_SELECTED_DATE, selectedDate.getTimeInMillis());
+    }
+
+
+    private void initExceptionHandler() {
+        exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this) {
+            @Override
+            public void finishedSuccessfully() {
+                super.finishedSuccessfully();
+                onBackPressed();
+            }
+            @Override
+            public void handleOffline() {
+                InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
+                                       getString(R.string.error_offline_edit_text))
+                          .show(getSupportFragmentManager(), "");
+                Network.Status.setOffline();
+                progressView.setVisibility(View.GONE);
+                submit.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void finishedUnsuccessfully() {
+                super.finishedUnsuccessfully();
+                progressView.setVisibility(View.GONE);
+                submit.setVisibility(View.VISIBLE);
+            }
+            public void handleSocketException(SocketException ex) {
+                InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_socketex_title),
+                                                           hostActivity.getString(R.string.error_socketex_text));
+                if(hostActivity instanceof InfoDialog.Callbacks)
+                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                Log.e(TAG, "Unexpected SocketException", ex);
+                Network.Status.setOffline();
+            }
+        };
     }
 
     private void initViews() {
