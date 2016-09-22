@@ -34,10 +34,10 @@ Svako pakovanje ima svoj package-info.java, i to je vrhunac dokumentacije koje �
         * /* - metode koje se tiču konkretno neke stavke (npr. Courses su sve metode koje se tiču kurseva, i koji argumente koje prime pretvaraju u format koji Network klasa traži)
 
 * Misc
-* manifests/AndroidManifest.xml - manifest projekta, deklaracije aktivnosti i sl.
-*.exceptions - custom exceptioni i ExceptionHandler za mrežne greške u pozadinskim threadovima
-*.google - standard sliding tabs implementation
-*.misc - sve ostalo
+   * manifests/AndroidManifest.xml - manifest projekta, deklaracije aktivnosti i sl.
+   * .exceptions - custom exceptioni i ExceptionHandler za mrežne greške u pozadinskim threadovima
+   * .google - standard sliding tabs implementation
+   * .misc - sve ostalo
 
 ## Screenshots
 Iz februara - <http://imgur.com/a/DfmP7>. Par stvari sam promenio od tad, ali i dalje je u principu to to
