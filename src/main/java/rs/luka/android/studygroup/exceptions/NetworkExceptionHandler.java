@@ -36,6 +36,7 @@ public interface NetworkExceptionHandler {
         protected static final String TAG_DIALOG = "studygroup.dialog.error";
         protected boolean hasErrors = false;
         protected AppCompatActivity hostActivity;
+
         public DefaultHandler(AppCompatActivity host) {
             hostActivity = host;
         }

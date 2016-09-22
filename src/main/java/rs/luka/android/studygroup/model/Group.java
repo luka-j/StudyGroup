@@ -35,11 +35,12 @@ public class Group implements Parcelable, Comparable<Group> {
         }
     };
     public static final int PERM_READ_PUBLIC = 0;
-    public static final int PERM_REQUEST_WRITE = 10;
-    public static final int PERM_INVITED = 50;
-    public static final int PERM_WRITE = 100;
-    public static final int PERM_MODIFY = 200;
-    public static final int PERM_OWNER = 400;
+    public static final int PERM_REQUEST_WRITE = 50;
+    public static final int PERM_INVITED = 300;
+    public static final int PERM_WRITE = 1000;
+    public static final int PERM_MODIFY = 3000;
+    public static final int PERM_OWNER = 4500;
+    public static final int PERM_CREATOR = 5000;
     private static final String                    TAG = "Group";
     private List<Integer> years;
     private List<Integer> filtering = new ArrayList<>();
