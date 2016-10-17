@@ -27,8 +27,8 @@ import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.backgroundtasks.LessonTasks;
+import rs.luka.android.studygroup.io.database.LessonTable;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.network.Lessons;
@@ -131,7 +131,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     protected void refresh() {
-        DataManager.refreshLessons(getContext(), course.getIdValue(),
+        LessonTasks.refreshLessons(getContext(), course.getIdValue(),
                                    this, getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
@@ -177,7 +177,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             adapter = new LessonsAdapter(getActivity(), null);
             lessonsRecyclerView.setAdapter(adapter);
         }
-        DataManager.getLessons(getContext(), course.getIdValue(), this, getActivity().getSupportLoaderManager(), exceptionHandler);
+        LessonTasks.getLessons(getContext(), course.getIdValue(), this, getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -198,7 +198,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         }
         data.moveToNext();
         if (data.getCount() == 0 && callbacks.handleLessonSkipping(0, "")) { return; }
-        if (callbacks.handleLessonSkipping(data.getCount(), ((Database.LessonCursor) data).getLessonTitle())) {
+        if (callbacks.handleLessonSkipping(data.getCount(), ((LessonTable.LessonCursor) data).getLessonTitle())) {
             return;
         }
         data.moveToFirst();
@@ -280,7 +280,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             final int noteCount = swipedHolder.noteCount, questionCount = swipedHolder.questionCount, _id
                     = swipedHolder._id;
             course.shallowHideLesson(getActivity(), lesson);
-            getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_LESSONS, null, CourseFragment.this);
+            getActivity().getSupportLoaderManager().restartLoader(LessonTasks.LOADER_ID, null, CourseFragment.this);
             // TODO: 4.9.15. http://stackoverflow.com/questions/32406144/hiding-and-re-showing-cards-in-recyclerview-backed-by-cursor
             Snackbar snackbar = Snackbar.make(lessonsRecyclerView,
                                               R.string.lesson_hidden,
@@ -389,7 +389,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
 
         @Override
         public void onBindViewHolder(LessonHolder holder, Cursor data) {
-            Database.LessonCursor cursor = (Database.LessonCursor)data;
+            LessonTable.LessonCursor cursor = (LessonTable.LessonCursor)data;
             holder.bindLesson(cursor.getLessonTitle(),
                               cursor.getNoteCount(),
                               cursor.getQuestionCount(),

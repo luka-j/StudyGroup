@@ -3,6 +3,12 @@ package rs.luka.android.studygroup.io;
 import android.content.Context;
 import android.database.Cursor;
 
+import rs.luka.android.studygroup.io.database.CourseTable;
+import rs.luka.android.studygroup.io.database.ExamTable;
+import rs.luka.android.studygroup.io.database.GroupTable;
+import rs.luka.android.studygroup.io.database.LessonTable;
+import rs.luka.android.studygroup.io.database.NoteTable;
+import rs.luka.android.studygroup.io.database.QuestionTable;
 import rs.luka.android.studygroup.model.ID;
 
 /**
@@ -16,8 +22,8 @@ public class Loaders {
         }
 
         @Override
-        protected Database.GroupCursor loadCursor() {
-            return Database.getInstance(getContext()).queryGroups();
+        protected GroupTable.GroupCursor loadCursor() {
+            return (new GroupTable(getContext())).queryGroups();
         }
     }
 
@@ -32,7 +38,7 @@ public class Loaders {
 
         @Override
         protected Cursor loadCursor() {
-            return Database.getInstance(getContext()).queryCourses(groupId);
+            return new CourseTable(getContext()).queryCourses(groupId);
         }
     }
 
@@ -46,7 +52,7 @@ public class Loaders {
 
         @Override
         protected Cursor loadCursor() {
-            return Database.getInstance(getContext()).queryLessons(courseId);
+            return new LessonTable(getContext()).queryLessons(courseId);
         }
     }
 
@@ -70,11 +76,11 @@ public class Loaders {
         protected Cursor loadCursor() {
             switch (item) {
                 case LOAD_NOTES:
-                    return Database.getInstance(getContext()).queryNotes(parentId, lesson);
+                    return new NoteTable(getContext()).queryNotes(parentId, lesson);
                 case LOAD_QUESTIONS:
-                    return Database.getInstance(getContext()).queryQuestions(parentId, lesson);
+                    return new QuestionTable(getContext()).queryQuestions(parentId, lesson);
                 case LOAD_EXAMS:
-                    return Database.getInstance(getContext()).queryExams(parentId);
+                    return new ExamTable(getContext()).queryExams(parentId);
                 default:
                     throw new IllegalArgumentException("Illegal item " + item);
             }

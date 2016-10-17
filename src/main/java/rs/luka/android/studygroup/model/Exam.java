@@ -10,8 +10,9 @@ import java.util.Calendar;
 import java.util.Date;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.backgroundtasks.CourseTasks;
+import rs.luka.android.studygroup.io.backgroundtasks.ExamTasks;
+import rs.luka.android.studygroup.io.database.ExamTable;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.network.Notes;
 
@@ -49,7 +50,7 @@ public class Exam implements Parcelable, Comparable<Exam>, PastEvents {
 
     public Exam(Context c, ID id, String klass, String lesson, String type, Date date) {
         this.id = id;
-        this.course = DataManager.getCourse(c, id);
+        this.course = CourseTasks.getCourse(c, id);
         this.klass = klass;
         this.lesson = lesson;
         this.date = date;
@@ -125,7 +126,7 @@ public class Exam implements Parcelable, Comparable<Exam>, PastEvents {
     public Course getCourse() { return course; }
 
     public void edit(Context c, String klass, String lesson, String type, Date date, NetworkExceptionHandler handler) {
-        DataManager.editExam(c, id, klass, lesson, type, date, handler);
+        ExamTasks.editExam(c, id, klass, lesson, type, date, handler);
     }
 
     public void getHistory(int requestId, Network.NetworkCallbacks<String> callbacks) {
@@ -133,15 +134,15 @@ public class Exam implements Parcelable, Comparable<Exam>, PastEvents {
     }
 
     public void show(Context c) {
-        Database.getInstance(c).insertExam(id, klass, lesson, type, date.getTime());
+        new ExamTable(c).insertExam(id, klass, lesson, type, date.getTime());
     }
 
     public void shallowHide(Context c) {
-        Database.getInstance(c).hideExam(id);
+        new ExamTable(c).hideExam(id);
     }
 
     public void hide(Context c, NetworkExceptionHandler exceptionHandler) {
-        DataManager.hideExam(c, id, lesson, exceptionHandler);
+        ExamTasks.hideExam(c, id, lesson, exceptionHandler);
     }
 
     @Override

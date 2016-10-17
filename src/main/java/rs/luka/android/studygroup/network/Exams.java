@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.database.ExamTable;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.ID;
 
@@ -54,8 +54,9 @@ public class Exams {
                                         jsonNote.getString(JSON_KEY_TYPE),
                                         new Date(jsonNote.getLong(JSON_KEY_DATE)));
                 }
-                Database.getInstance(c).clearExams(groupId);
-                Database.getInstance(c).insertExams(exams);
+                ExamTable db = new ExamTable(c);
+                db.clearExams(groupId);
+                db.insertExams(exams);
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);
                 response.handleErrorCode(exceptionHandler);

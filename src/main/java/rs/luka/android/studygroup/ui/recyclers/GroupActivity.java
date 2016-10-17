@@ -24,7 +24,7 @@ import java.util.List;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.database.GroupTable;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
@@ -113,7 +113,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
             navMenu.removeItem(i);
         navbarGroups.clear();
 
-        Database.GroupCursor groups = Database.getInstance(this).queryGroups();
+        GroupTable.GroupCursor groups = new GroupTable(this).queryGroups();
         groups.moveToFirst();
         int groupId = Menu.FIRST, itemId= Menu.FIRST;
         while(!groups.isAfterLast()) {

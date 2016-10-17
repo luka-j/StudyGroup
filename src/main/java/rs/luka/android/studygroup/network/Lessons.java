@@ -18,8 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.MediaCleanup;
+import rs.luka.android.studygroup.io.database.LessonTable;
 
 /**
  * Created by luka on 4.1.16..
@@ -72,8 +72,9 @@ public class Lessons {
                                             jsonLesson.getInt(JSON_KEY_QUESTIONNO), jsonLesson.getInt(JSON_KEY_PERMISSION));
                 }
                 Arrays.sort(lessons);
-                Database.getInstance(c).clearLessons(courseId);
-                Database.getInstance(c).insertLessons(courseId, lessons);
+                LessonTable db = new LessonTable(c);
+                db.clearLessons(courseId);
+                db.insertLessons(courseId, lessons);
                 MediaCleanup.cleanupLessons(c, courseId, lessons);
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);

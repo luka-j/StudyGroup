@@ -33,8 +33,8 @@ import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.backgroundtasks.ExamTasks;
+import rs.luka.android.studygroup.io.database.ExamTable;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
@@ -154,7 +154,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
 
     protected void refresh() {
         swipe.setRefreshing(true);
-        DataManager.refreshExams(getContext(), group.getIdValue(), this, getActivity().getSupportLoaderManager(), exceptionHandler);
+        ExamTasks.refreshExams(getContext(), group.getIdValue(), this, getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -208,7 +208,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             adapter = new ExamAdapter(getActivity(), null);
             recycler.setAdapter(adapter);
         }
-        DataManager.getExams(getContext(), group.getIdValue(), this, getActivity().getSupportLoaderManager(), exceptionHandler);
+        ExamTasks.getExams(getContext(), group.getIdValue(), this, getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -298,7 +298,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             final Exam exam   = ((ExamHolder) viewHolder).exam;
             exam.shallowHide(getActivity());
-            getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_EXAMS, null, ScheduleFragment.this);
+            getActivity().getSupportLoaderManager().restartLoader(ExamTasks.LOADER_ID, null, ScheduleFragment.this);
             Snackbar snackbar = Snackbar.make(coordinator, R.string.exam_hidden, Snackbar.LENGTH_LONG)
                                         .setCallback(new Snackbar.Callback() {
                                             @Override
@@ -398,7 +398,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
 
         @Override
         public void onBindViewHolder(ExamHolder viewHolder, Cursor cursor) {
-            viewHolder.bindExam(((Database.ExamCursor) cursor).getExam());
+            viewHolder.bindExam(((ExamTable.ExamCursor) cursor).getExam());
         }
     }
 }

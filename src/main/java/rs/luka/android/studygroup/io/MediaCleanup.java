@@ -10,6 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import rs.luka.android.studygroup.io.database.CourseTable;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
@@ -81,7 +82,7 @@ public class MediaCleanup {
         executor.schedule(new Runnable() {
             @Override
             public void run() {
-                Course course = Database.getInstance(c).queryCourse(new ID(0, courseId));
+                Course course = new CourseTable(c).queryCourse(new ID(0, courseId));
                 Set<String> names = new HashSet<>(lessons.length);
                 for(Lessons.Lesson l : lessons)
                     names.add(l.name);
@@ -107,7 +108,7 @@ public class MediaCleanup {
             public void run() {
                 Set<Long> noteIds = new HashSet<>(notes.length);
                 for(Note n : notes) noteIds.add(n.getIdValue());
-                Course course = Database.getInstance(c).queryCourse(new ID(0, courseId));
+                Course course = new CourseTable(c).queryCourse(new ID(0, courseId));
                 File[] images = new File(LocalImages.APP_IMAGE_DIR, course.getSubject()).listFiles();
                 cleanupItems(images, notePattern, noteIds);
                 File[] thumbs = new File(LocalImages.APP_THUMBS_DIR, course.getSubject()).listFiles();
@@ -124,7 +125,7 @@ public class MediaCleanup {
             public void run() {
                 Set<Long> questionIds = new HashSet<>(questions.length);
                 for(Question n : questions) questionIds.add(n.getIdValue());
-                Course course = Database.getInstance(c).queryCourse(new ID(0, courseId));
+                Course course = new CourseTable(c).queryCourse(new ID(0, courseId));
                 File[] images = new File(LocalImages.APP_IMAGE_DIR, course.getSubject()).listFiles();
                 cleanupItems(images, questionPattern, questionIds);
                 File[] thumbs = new File(LocalImages.APP_THUMBS_DIR, course.getSubject()).listFiles();

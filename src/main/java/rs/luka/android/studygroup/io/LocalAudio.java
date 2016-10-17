@@ -27,7 +27,7 @@ public class LocalAudio {
         return generateItemAudioFile(courseName, lessonName, id).exists();
     }
 
-    protected static File generateItemAudioFile(String courseName, String lessonName, ID itemId) {
+    public static File generateItemAudioFile(String courseName, String lessonName, ID itemId) {
         if (!APP_AUDIO_DIR.isDirectory()) APP_AUDIO_DIR.mkdir();
         File courseDir = new File(APP_AUDIO_DIR, courseName);
         if (!courseDir.isDirectory()) courseDir.mkdir();

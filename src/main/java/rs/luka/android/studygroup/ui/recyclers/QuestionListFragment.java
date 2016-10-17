@@ -32,8 +32,9 @@ import java.util.Set;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.backgroundtasks.NoteTasks;
+import rs.luka.android.studygroup.io.backgroundtasks.QuestionTasks;
+import rs.luka.android.studygroup.io.database.QuestionTable;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Question;
@@ -183,8 +184,8 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
 
     public void refresh() {
         swipe.setRefreshing(true);
-        DataManager.refreshQuestions(getContext(), course.getIdValue(), lessonName, this,
-                                     getActivity().getSupportLoaderManager(), exceptionHandler);
+        QuestionTasks.refreshQuestions(getContext(), course.getIdValue(), lessonName, this,
+                                       getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -195,7 +196,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
 
     private void hide() {
         for (Question q : selected) { q.hide(getActivity(), exceptionHandler); }
-        getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_QUESTIONS, null, QuestionListFragment.this);
+        getActivity().getSupportLoaderManager().restartLoader(QuestionTasks.LOADER_ID, null, QuestionListFragment.this);
         /*final Set<Question> selected = new HashSet<>(this.selected); //selected se briše kad se actionmode zatvori
         snackbar = Snackbar.make(questionsRecycler, R.string.questions_hidden, Snackbar.LENGTH_LONG)
                            .setAction(R.string.undo, new View.OnClickListener() {
@@ -229,8 +230,8 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
             adapter = new QuestionsAdapter(getActivity(), null);
             questionsRecycler.setAdapter(adapter);
         }
-        DataManager.getQuestions(getContext(), course.getIdValue(), lessonName, this,
-                                 getActivity().getSupportLoaderManager(), exceptionHandler);
+        QuestionTasks.getQuestions(getContext(), course.getIdValue(), lessonName, this,
+                                   getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -292,7 +293,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             QuestionHolder holder = (QuestionHolder)viewHolder;
             holder.question.hide(getActivity(), exceptionHandler);
-            getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_NOTES, null, QuestionListFragment.this);
+            getActivity().getSupportLoaderManager().restartLoader(NoteTasks.LOADER_ID, null, QuestionListFragment.this);
             snackbar = Snackbar.make(questionsRecycler, R.string.notes_hidden, Snackbar.LENGTH_SHORT);
             ((TextView)snackbar.getView().findViewById(android.support.design.R.id.snackbar_text))
                     .setTextColor(getActivity().getResources().getColor(R.color.white));
@@ -305,7 +306,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
             if(movedToPosition > -1) {
                 movedQuestion.reorder(getActivity(), movedToPosition + 1, exceptionHandler); //1-based ordering
                 getActivity().getSupportLoaderManager()
-                             .restartLoader(DataManager.LOADER_ID_NOTES, null, QuestionListFragment.this);
+                             .restartLoader(NoteTasks.LOADER_ID, null, QuestionListFragment.this);
                 movedToPosition = -1;
                 movedQuestion = null;
             }
@@ -411,7 +412,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
 
         @Override
         public void onBindViewHolder(QuestionHolder holder, Cursor data) {
-            holder.bindQuestion(((Database.QuestionCursor) data).getQuestion());
+            holder.bindQuestion(((QuestionTable.QuestionCursor) data).getQuestion());
         }
     }
 }

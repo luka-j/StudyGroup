@@ -6,7 +6,7 @@ import android.widget.ImageView;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.backgroundtasks.UserTasks;
 
 /**
  * Created by luka on 25.7.15..
@@ -145,7 +145,7 @@ public class User {
     public String getName() {return name;}
 
     public void getImage(Context c, int scaleTo, NetworkExceptionHandler handler, ImageView insertInto) {
-        DataManager.getUserImage(c, id, scaleTo, handler, insertInto);
+        UserTasks.getUserImage(c, id, scaleTo, handler, insertInto);
     }
 
     public boolean hasImage() {

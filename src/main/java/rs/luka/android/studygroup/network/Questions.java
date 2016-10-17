@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.Set;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.MediaCleanup;
+import rs.luka.android.studygroup.io.database.QuestionTable;
 import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Question;
 
@@ -61,8 +61,9 @@ public class Questions {
                                                 jsonQuestion.getBoolean(JSON_KEY_HASIMAGE),
                                                 jsonQuestion.getInt(JSON_KEY_ORDER));
                 }
-                Database.getInstance(c).clearQuestions(courseId, lesson);
-                Database.getInstance(c).insertQuestions(questions);
+                QuestionTable db = new QuestionTable(c);
+                db.clearQuestions(courseId, lesson);
+                db.insertQuestions(questions);
                 MediaCleanup.cleanupQuestions(c, courseId, questions);
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);

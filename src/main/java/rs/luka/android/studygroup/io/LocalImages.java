@@ -22,15 +22,15 @@ public class LocalImages {
     private static final String TEMP_THUMB_NAME = "temp";
     private static final String TAG           = "studygroup.Images";
 
-    protected static void saveGroupImage(ID id, File image) throws IOException {
+    public static void saveGroupImage(ID id, File image) throws IOException {
         saveImage(image, generateGroupImageFile(id));
     }
 
-    protected static Bitmap getGroupImage(ID id, int scaleTo) throws IOException {
+    public static Bitmap getGroupImage(ID id, int scaleTo) throws IOException {
         return loadImage(generateGroupImageFile(id), scaleTo);
     }
 
-    protected static boolean groupImageExists(ID id) throws IOException {
+    public static boolean groupImageExists(ID id) throws IOException {
         return generateGroupImageFile(id).exists();
     }
 
@@ -38,15 +38,15 @@ public class LocalImages {
         if(!generateGroupImageFile(id).delete()) throw new FileIOException(generateGroupImageFile(id), "Cannot delete");
     }
 
-    protected static void saveCourseImage(ID id, File image) throws IOException {
+    public static void saveCourseImage(ID id, File image) throws IOException {
         saveImage(image, generateCourseImageFile(id));
     }
 
-    protected static Bitmap getCourseImage(ID id, int scaleTo) throws IOException {
+    public static Bitmap getCourseImage(ID id, int scaleTo) throws IOException {
         return loadImage(generateCourseImageFile(id), scaleTo);
     }
 
-    protected static boolean courseImageExists(ID id) throws IOException {
+    public static boolean courseImageExists(ID id) throws IOException {
         return generateCourseImageFile(id).exists();
     }
 
@@ -54,22 +54,22 @@ public class LocalImages {
         if(!generateCourseImageFile(id).delete()) throw new FileIOException(generateCourseImageFile(id), "Cannot delete");
     }
 
-    protected static void saveNoteImage(ID id, String courseName, String lessonName, File image)
+    public static void saveNoteImage(ID id, String courseName, String lessonName, File image)
             throws FileIOException {
         saveImage(image, generateNoteImageFile(courseName, lessonName, id));
     }
 
-    protected static Bitmap getNoteImage(String courseName, String lessonName, ID itemId, int scaleTo)
+    public static Bitmap getNoteImage(String courseName, String lessonName, ID itemId, int scaleTo)
             throws IOException {
         return loadImage(generateNoteImageFile(courseName, lessonName, itemId), scaleTo);
     }
 
-    protected static void deleteNoteImage(String courseName, String lessonName, ID id) throws IOException {
+    public static void deleteNoteImage(String courseName, String lessonName, ID id) throws IOException {
         File img = generateNoteImageFile(courseName, lessonName, id);
         if(img.exists() && !img.delete()) throw new FileIOException(img, "Cannot delete");
     }
 
-    protected static Bitmap getNoteThumb(String courseName, String lessonName, ID itemId, int scaleTo)
+    public static Bitmap getNoteThumb(String courseName, String lessonName, ID itemId, int scaleTo)
         throws IOException {
         return loadImage(generateNoteThumbFile(courseName, lessonName, itemId), scaleTo);
     }
@@ -86,22 +86,22 @@ public class LocalImages {
         return generateNoteThumbFile(courseName, lessonName, itemId).exists();
     }
 
-    protected static void saveQuestionImage(ID id, String courseName, String lessonName, File image)
+    public static void saveQuestionImage(ID id, String courseName, String lessonName, File image)
             throws FileIOException {
         saveImage(image, generateQuestionImageFile(courseName, lessonName, id));
     }
 
-    protected static Bitmap getQuestionImage(String courseName, String lessonName, ID itemId, int scaleTo)
+    public static Bitmap getQuestionImage(String courseName, String lessonName, ID itemId, int scaleTo)
             throws IOException {
         return loadImage(generateQuestionImageFile(courseName, lessonName, itemId), scaleTo);
     }
 
-    protected static void deleteQuestionImage(String courseName, String lessonName, ID id) throws IOException {
+    public static void deleteQuestionImage(String courseName, String lessonName, ID id) throws IOException {
         File img = generateQuestionImageFile(courseName, lessonName, id);
         if(!img.delete()) throw new FileIOException(img, "Cannot delete");
     }
 
-    protected static Bitmap getQuestionThumb(String courseName, String lessonName, ID itemId, int scaleTo)
+    public static Bitmap getQuestionThumb(String courseName, String lessonName, ID itemId, int scaleTo)
             throws IOException {
         return loadImage(generateQuestionThumbFile(courseName, lessonName, itemId), scaleTo);
     }
@@ -172,43 +172,43 @@ public class LocalImages {
         return courseDir;
     }
 
-    protected static File generateGroupImageFile(ID id) throws IOException {
+    public static File generateGroupImageFile(ID id) throws IOException {
         createThumbsDir();
         return new File(APP_THUMBS_DIR,
                         "IMG_Group-" + id.getGroupIdValue()
                                               + ".jpg"); // TODO: 19.9.15. support i za druge formate sem jpg
     }
 
-    protected static File generateCourseImageFile(ID id) throws IOException {
+    public static File generateCourseImageFile(ID id) throws IOException {
         createThumbsDir();
         return new File(APP_THUMBS_DIR, "IMG_Course-" + id.getCourseIdValue() + ".jpg");
     }
 
-    protected static File generateNoteImageFile(String courseName, String lessonName, ID itemId)
+    public static File generateNoteImageFile(String courseName, String lessonName, ID itemId)
             throws FileIOException {
         File courseDir = createCourseDir(courseName);
         return new File(courseDir, lessonName + "-NIMG_" + itemId.getItemIdValue() + ".jpg");
     }
 
-    protected static File generateQuestionImageFile(String courseName, String lessonName, ID itemId)
+    public static File generateQuestionImageFile(String courseName, String lessonName, ID itemId)
             throws FileIOException {
         File courseDir = createCourseDir(courseName);
         return new File(courseDir, lessonName + "-QIMG_" + itemId.getItemIdValue() + ".jpg");
     }
 
-    protected static File generateNoteThumbFile(String courseName, String lessonName, ID itemId)
+    public static File generateNoteThumbFile(String courseName, String lessonName, ID itemId)
             throws IOException {
         File courseDir = createCourseThumbsDir(courseName);
         return new File(courseDir, lessonName + "-nthumb_" + itemId.getItemIdValue() + ".jpg");
     }
 
-    protected static File generateQuestionThumbFile(String courseName, String lessonName, ID itemId)
+    public static File generateQuestionThumbFile(String courseName, String lessonName, ID itemId)
             throws IOException {
         File courseDir = createCourseThumbsDir(courseName);
         return new File(courseDir, lessonName + "-qthumb_" + itemId.getItemIdValue() + ".jpg");
     }
 
-    protected static File generateUserThumbFile(long userId) throws IOException {
+    public static File generateUserThumbFile(long userId) throws IOException {
         createThumbsDir();
         return new File(APP_THUMBS_DIR, "IMG_User-" + userId);
     }
@@ -218,7 +218,7 @@ public class LocalImages {
         return new File(APP_IMAGE_DIR, "myImage");
     }
 
-    protected static File invalidateThumb(File filename) throws IOException {
+    public static File invalidateThumb(File filename) throws IOException {
         File old = new File(filename.getParentFile(), "old");
         if(!filename.renameTo(old)) throw new FileIOException(old, "Cannot rename");
         return old;

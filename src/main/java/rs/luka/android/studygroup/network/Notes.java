@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.Set;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.MediaCleanup;
+import rs.luka.android.studygroup.io.database.NoteTable;
 import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Note;
 
@@ -63,8 +63,9 @@ public class Notes {
                                         jsonNote.getBoolean(JSON_KEY_HASAUDIO),
                                         jsonNote.getInt(JSON_KEY_ORDER));
                 }
-                Database.getInstance(c).clearNotes(courseId, lesson);
-                Database.getInstance(c).insertNotes(notes);
+                NoteTable db = new NoteTable(c);
+                db.clearNotes(courseId, lesson);
+                db.insertNotes(notes);
                 MediaCleanup.cleanupNotes(c, courseId, notes);
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);

@@ -24,7 +24,7 @@ import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
+import rs.luka.android.studygroup.io.backgroundtasks.NoteTasks;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
@@ -32,7 +32,7 @@ import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
 /**
  * Created by luka on 12.7.15..
  */
-public class NoteFragment extends Fragment implements DataManager.AudioCallbacks {
+public class NoteFragment extends Fragment implements NoteTasks.AudioCallbacks {
     private static final int REQUEST_PRELOAD_AUDIO      = 0;
     private static final int REQUEST_GET_AUDIO_FOR_PLAY = 1;
 

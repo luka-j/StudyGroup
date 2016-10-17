@@ -34,8 +34,8 @@ import java.net.SocketException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.backgroundtasks.GroupTasks;
+import rs.luka.android.studygroup.io.database.GroupTable;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.network.Network;
@@ -47,7 +47,7 @@ import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 /**
  * Created by luka on 4.2.16..
  */
-public class LoadingActivity extends AppCompatActivity implements DataManager.GroupLoaderCallbacks,
+public class LoadingActivity extends AppCompatActivity implements GroupTasks.GroupLoaderCallbacks,
                                                                   Network.NetworkCallbacks<String>,
                                                                   InfoDialog.Callbacks {
 
@@ -59,7 +59,7 @@ public class LoadingActivity extends AppCompatActivity implements DataManager.Gr
 
     private NetworkExceptionHandler exceptionHandler;
     private boolean groupsLoaded = false;
-    private Database.GroupCursor groups;
+    private GroupTable.GroupCursor groups;
     private boolean userdataLoaded = false;
     private Runnable userLoaded = new Runnable() {
         @Override
@@ -129,12 +129,12 @@ public class LoadingActivity extends AppCompatActivity implements DataManager.Gr
 
     private void loadData() {
         currentRequest = REQUEST_GET_DETAILS;
-        DataManager.loadGroups(this, exceptionHandler, this);
+        GroupTasks.loadGroups(this, exceptionHandler, this);
         UserManager.getMyDetails(REQUEST_GET_DETAILS, this);
     }
 
     @Override
-    public void onGroupsLoaded(Database.GroupCursor groups) {
+    public void onGroupsLoaded(GroupTable.GroupCursor groups) {
         this.groups = groups;
         groupsLoaded=true;
         proceed();

@@ -32,8 +32,8 @@ import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.backgroundtasks.CourseTasks;
+import rs.luka.android.studygroup.io.database.CourseTable;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.network.Courses;
@@ -175,7 +175,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     protected void refresh() {
         swipe.setRefreshing(true);
         Groups.getGroupsInBackground(getContext(), exceptionHandler);
-        DataManager.refreshCourses(getContext(), group, this, getActivity().getSupportLoaderManager(),
+        CourseTasks.refreshCourses(getContext(), group, this, getActivity().getSupportLoaderManager(),
                                    exceptionHandler);
     }
 
@@ -220,7 +220,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             courseRecyclerView.setAdapter(adapter);
         }
         Groups.getGroupsInBackground(getContext(), exceptionHandler);
-        DataManager.getCourses(getContext(), group, this, getActivity().getSupportLoaderManager(),
+        CourseTasks.getCourses(getContext(), group, this, getActivity().getSupportLoaderManager(),
                                exceptionHandler);
     }
 
@@ -317,7 +317,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             final Course course   = ((CourseHolder) viewHolder).course;
             course.shallowHide(getActivity());
-            getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_COURSES, null, GroupFragment.this);
+            getActivity().getSupportLoaderManager().restartLoader(CourseTasks.LOADER_ID, null, GroupFragment.this);
             Snackbar snackbar = Snackbar.make(coordinator, R.string.course_hidden, Snackbar.LENGTH_LONG)
                                         .setCallback(new Snackbar.Callback() {
                                             @Override
@@ -424,7 +424,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
         @Override
         public void onBindViewHolder(CourseHolder viewHolder, Cursor cursor) {
-            viewHolder.bindCourse(((Database.CourseCursor) cursor).getCourse());
+            viewHolder.bindCourse(((CourseTable.CourseCursor) cursor).getCourse());
         }
     }
 }

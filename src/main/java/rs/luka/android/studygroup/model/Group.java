@@ -13,8 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Loaders;
+import rs.luka.android.studygroup.io.backgroundtasks.CourseTasks;
+import rs.luka.android.studygroup.io.backgroundtasks.GroupTasks;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.network.Courses;
 import rs.luka.android.studygroup.network.Network;
@@ -93,7 +94,7 @@ public class Group implements Parcelable, Comparable<Group> {
     }
 
     public void getImage(Context c, int minDimension, NetworkExceptionHandler exceptionHandler, ImageView view) {
-        DataManager.getGroupImage(c, id, minDimension, exceptionHandler, view);
+        GroupTasks.getGroupImage(c, id, minDimension, exceptionHandler, view);
     }
 
     public String getPlace() {
@@ -110,11 +111,11 @@ public class Group implements Parcelable, Comparable<Group> {
 
     public void addCourse(Context c, String subject, String teacher, String year, File image, boolean isPrivate,
                           NetworkExceptionHandler exceptionHandler) {
-        DataManager.addCourse(c, id, subject, teacher, year.isEmpty()?null:Integer.parseInt(year), image, isPrivate, exceptionHandler);
+        CourseTasks.addCourse(c, id, subject, teacher, year.isEmpty() ? null : Integer.parseInt(year), image, isPrivate, exceptionHandler);
     }
 
     public void edit(Context c, String name, String place, File image, NetworkExceptionHandler handler) {
-        DataManager.editGroup(c, id, name, place, image, handler);
+        GroupTasks.editGroup(c, id, name, place, image, handler);
     }
 
     public void setCourseYears(List<Integer> years) {

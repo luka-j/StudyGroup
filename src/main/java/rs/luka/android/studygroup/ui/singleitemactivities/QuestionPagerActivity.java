@@ -13,8 +13,8 @@ import android.support.v7.widget.Toolbar;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.backgroundtasks.NoteTasks;
+import rs.luka.android.studygroup.io.database.QuestionTable;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.CursorFragmentStatePagerAdapter;
@@ -43,7 +43,7 @@ public class QuestionPagerActivity extends AppCompatActivity implements LoaderMa
         lesson = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         position = getIntent().getIntExtra(LessonActivity.EXTRA_CURRENT_QUESTION_POSITION, 0);
         adapter = new QuestionAdapter(this, this.getSupportFragmentManager(), null);
-        DataManager.getNotes(this, course.getIdValue(), lesson, this, this.getSupportLoaderManager(), exceptionHandler);
+        NoteTasks.getNotes(this, course.getIdValue(), lesson, this, this.getSupportLoaderManager(), exceptionHandler);
 
         viewPager.setAdapter(adapter);
     }
@@ -74,7 +74,7 @@ public class QuestionPagerActivity extends AppCompatActivity implements LoaderMa
         @Override
         public Fragment getItem(Context context, Cursor cursor) {
             return QuestionFragment.newInstance(course.getSubject(),
-                                                ((Database.QuestionCursor) cursor).getQuestion(),
+                                                ((QuestionTable.QuestionCursor) cursor).getQuestion(),
                                                 getIntent().getIntExtra(LessonActivity.EXTRA_MY_PERMISSION,
                                                                         Group.PERM_READ_PUBLIC));
         }

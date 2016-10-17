@@ -10,9 +10,9 @@ import java.io.File;
 import java.io.IOException;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.io.backgroundtasks.NoteTasks;
+import rs.luka.android.studygroup.io.database.NoteTable;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.network.Notes;
 
@@ -83,11 +83,11 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
      * @param exceptionHandler handler za sve moguće greške
      * @param callbacks callback kojem se prosleđuje fajl i requestId
      *
-     * @see DataManager#getAudio(int, ID, String, String, NetworkExceptionHandler, DataManager.AudioCallbacks)
+     * @see NoteTasks#getAudio(int, ID, String, String, NetworkExceptionHandler, NoteTasks.AudioCallbacks)
      */
     public void getAudio(int requestId, String courseName, NetworkExceptionHandler exceptionHandler,
-                         DataManager.AudioCallbacks callbacks) {
-        DataManager.getAudio(requestId, id, courseName, lesson, exceptionHandler, callbacks);
+                         NoteTasks.AudioCallbacks callbacks) {
+        NoteTasks.getAudio(requestId, id, courseName, lesson, exceptionHandler, callbacks);
     }
 
     /**
@@ -102,19 +102,19 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
 
     public void getImage(final Context context, String courseName, int widerDimension,
                          NetworkExceptionHandler exceptionHandler, ImageView view) {
-        DataManager.getNoteImage(context, id, courseName, lesson, widerDimension, exceptionHandler, view);
+        NoteTasks.getNoteImage(context, id, courseName, lesson, widerDimension, exceptionHandler, view);
     }
 
     public void hide(Context c, NetworkExceptionHandler exceptionHandler) {
-        DataManager.hideNote(c, id, lesson, exceptionHandler);
+        NoteTasks.hideNote(c, id, lesson, exceptionHandler);
     }
 
     public void show(Context c) {
-        Database.getInstance(c).insertNote(id, lesson, text, imageExists, audioExists, order);
+        new NoteTable(c).insertNote(id, lesson, text, imageExists, audioExists, order);
     }
 
     public void edit(Context c, String lesson, String text, File imageFile, File audioFile, NetworkExceptionHandler handler) {
-        DataManager.editNote(c, id, lesson, text, imageFile, audioFile, handler);
+        NoteTasks.editNote(c, id, lesson, text, imageFile, audioFile, handler);
     }
 
     public void getHistory(int requestId, Network.NetworkCallbacks<String> callbacks) {
@@ -152,7 +152,7 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
     }
 
     public void reorder(Context context, int toPosition, NetworkExceptionHandler handler) {
-        DataManager.reorderNote(context, id, lesson, toPosition, order, handler);
+        NoteTasks.reorderNote(context, id, lesson, toPosition, order, handler);
     }
 
     public int getOrder() {

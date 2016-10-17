@@ -15,8 +15,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.MediaCleanup;
+import rs.luka.android.studygroup.io.database.CourseTable;
+import rs.luka.android.studygroup.io.database.GroupTable;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
@@ -48,14 +49,13 @@ public class Courses {
             URL              url      = new URL(Network.getDomain(), GROUP + groupId + "/" + COURSES);
             Network.Response<String> response = NetworkRequests.requestGetData(url);
             if(response.responseCode == Network.Response.RESPONSE_OK) {
-                Database db = Database.getInstance(c);
                 JSONObject jsonResponse = new JSONObject(response.responseData);
 
                 String allYears = jsonResponse.getString(JSON_KEY_ALL_YEARS);
                 String filtering = jsonResponse.getString(JSON_KEY_FILTERING_YEARS);
                 group.setFiltering(Utils.stringToList(filtering));
                 group.setCourseYears(Utils.stringToList(allYears));
-                db.updateFilteringData(groupId, group.getCourseYears(), group.getFilteringYears());
+                new GroupTable(c).updateFilteringData(groupId, group.getCourseYears(), group.getFilteringYears());
 
                 JSONArray jsonCourses   = jsonResponse.getJSONArray(JSON_KEY_COURSES_ARRAY);
                 int       len     = jsonCourses.length();
@@ -69,6 +69,7 @@ public class Courses {
                                             (Integer) jsonCourse.get(JSON_KEY_YEAR), //nullable
                                             jsonCourse.getBoolean(JSON_KEY_HASIMAGE));
                 }
+                CourseTable db = new CourseTable(c);
                 db.clearCourses(groupId);
                 db.insertCourses(courses);
                 MediaCleanup.cleanupCourses(courses);

@@ -25,9 +25,9 @@ import java.io.IOException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.io.backgroundtasks.UserTasks;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.User;
 import rs.luka.android.studygroup.network.Network;
@@ -166,7 +166,7 @@ public class EditUserInfoActivity extends AppCompatActivity implements InputDial
             hasErrors = true;
         } else emailTil.setError(null);
         if(!hasErrors) {
-            DataManager.setMyProfile(usernameInput.getText().toString(), emailInput.getText().toString(), imageFile, handler);
+            UserTasks.setMyProfile(usernameInput.getText().toString(), emailInput.getText().toString(), imageFile, handler);
             edit.setVisibility(View.GONE);
             progressView.setVisibility(View.VISIBLE);
         }

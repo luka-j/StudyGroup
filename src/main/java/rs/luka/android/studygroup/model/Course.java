@@ -13,9 +13,15 @@ import java.io.File;
 import java.util.Calendar;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.Loaders;
+import rs.luka.android.studygroup.io.backgroundtasks.CourseTasks;
+import rs.luka.android.studygroup.io.backgroundtasks.ExamTasks;
+import rs.luka.android.studygroup.io.backgroundtasks.LessonTasks;
+import rs.luka.android.studygroup.io.backgroundtasks.NoteTasks;
+import rs.luka.android.studygroup.io.backgroundtasks.QuestionTasks;
+import rs.luka.android.studygroup.io.database.CourseTable;
+import rs.luka.android.studygroup.io.database.Database;
+import rs.luka.android.studygroup.io.database.LessonTable;
 import rs.luka.android.studygroup.misc.Utils;
 
 /**
@@ -85,7 +91,7 @@ public class Course implements Parcelable, Comparable<Course> {
     }
 
     public void getImage(Context c, int minDimension, NetworkExceptionHandler exceptionHandler, ImageView view) {
-        DataManager.getCourseImage(c, id, minDimension, exceptionHandler, view);
+        CourseTasks.getCourseImage(c, id, minDimension, exceptionHandler, view);
     }
 
     public Loader<Cursor> getLessonLoader(Context c) {
@@ -106,55 +112,55 @@ public class Course implements Parcelable, Comparable<Course> {
      * @see Database#hideCourse(ID)
      */
     public void shallowHide(Context c) {
-        Database.getInstance(c).hideCourse(id);
+        new CourseTable(c).hideCourse(id);
     }
 
     public void show(Context c) {
-        Database.getInstance(c).insertCourse(id, subject, teacher, year, imageExists);
+        new CourseTable(c).insertCourse(id, subject, teacher, year, imageExists);
     }
 
     /**
      * Hides course on server, and removes all data associated with it locally
      * @param c
-     * @see DataManager#hideCourse(Context, ID, NetworkExceptionHandler)
+     * @see CourseTasks#hideCourse(Context, ID, NetworkExceptionHandler)
      */
     public void hide(Context c, NetworkExceptionHandler exceptionHandler) {
-        DataManager.hideCourse(c, id, exceptionHandler);
+        CourseTasks.hideCourse(c, id, exceptionHandler);
     }
 
     public void hideLesson(Context c, String lesson, NetworkExceptionHandler exceptionHandler) {
-        DataManager.hideLesson(c, id, lesson, exceptionHandler);
+        LessonTasks.hideLesson(c, id, lesson, exceptionHandler);
     }
 
     public void shallowHideLesson(Context c, String lesson) {
-        Database.getInstance(c).hideLesson(id, lesson);
+        new LessonTable(c).hideLesson(id, lesson);
     }
 
     public void showLesson(Context c, int _id, String lesson, int noteCount, int questionCount) {
-        Database.getInstance(c).showLesson(id, _id, lesson, noteCount, questionCount);
+        new LessonTable(c).showLesson(id, _id, lesson, noteCount, questionCount);
     }
 
     public void addNote(Context c, String lesson, String text, File image, File audio, boolean isPrivate,
                         NetworkExceptionHandler handler) {
-        DataManager.addNote(c, id, subject, lesson, text, image, audio, isPrivate, handler);
+        NoteTasks.addNote(c, id, subject, lesson, text, image, audio, isPrivate, handler);
     }
 
     public void addQuestion(Context c, String lesson, String question, String answer, File image, boolean isPrivate,
                             NetworkExceptionHandler handler) {
-        DataManager.addQuestion(c, id, subject, lesson, question, answer, image, isPrivate, handler);
+        QuestionTasks.addQuestion(c, id, subject, lesson, question, answer, image, isPrivate, handler);
     }
 
     public void addExam(Context c, String klass, String lesson, String type, Calendar date, NetworkExceptionHandler handler) {
-        DataManager.addExam(c, id, klass, lesson, type, date.getTime(), handler);
+        ExamTasks.addExam(c, id, klass, lesson, type, date.getTime(), handler);
     }
 
     public void edit(Context c, String subject, String teacher, String year, File image,
                      NetworkExceptionHandler exceptionHandler) {
-        DataManager.editCourse(c, id, subject, teacher, Integer.valueOf(year), image, exceptionHandler);
+        CourseTasks.editCourse(c, id, subject, teacher, Integer.valueOf(year), image, exceptionHandler);
     }
 
     public void renameLesson(Context c, String oldName, String newName, NetworkExceptionHandler exceptionHandler) {
-        DataManager.renameLesson(c, id, oldName, newName, exceptionHandler);
+        LessonTasks.renameLesson(c, id, oldName, newName, exceptionHandler);
     }
 
     @Override

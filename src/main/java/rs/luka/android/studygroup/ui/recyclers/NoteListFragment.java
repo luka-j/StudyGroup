@@ -33,8 +33,8 @@ import java.util.Set;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
+import rs.luka.android.studygroup.io.backgroundtasks.NoteTasks;
+import rs.luka.android.studygroup.io.database.NoteTable;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Note;
@@ -186,8 +186,8 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
 
     public void refresh() {
         swipe.setRefreshing(true);
-        DataManager.refreshNotes(getContext(), course.getIdValue(), lessonName, this,
-                                 getActivity().getSupportLoaderManager(), exceptionHandler);
+        NoteTasks.refreshNotes(getContext(), course.getIdValue(), lessonName, this,
+                               getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -197,7 +197,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
     }
     private void hide() {
         for (Note n : selected) { n.hide(getActivity(), exceptionHandler); }
-        getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_NOTES, null, NoteListFragment.this);
+        getActivity().getSupportLoaderManager().restartLoader(NoteTasks.LOADER_ID, null, NoteListFragment.this);
         /*final Set<Note> selected = new HashSet<>(this.selected); //selected se briše kad se actionmode zatvori
         snackbar = Snackbar.make(notesRecycler, R.string.notes_hidden, Snackbar.LENGTH_LONG)
                            .setAction(R.string.undo, new View.OnClickListener() {
@@ -246,7 +246,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             NoteHolder holder = (NoteHolder)viewHolder;
             holder.note.hide(getActivity(), exceptionHandler);
-            getActivity().getSupportLoaderManager().restartLoader(DataManager.LOADER_ID_NOTES, null, NoteListFragment.this);
+            getActivity().getSupportLoaderManager().restartLoader(NoteTasks.LOADER_ID, null, NoteListFragment.this);
             snackbar = Snackbar.make(notesRecycler, R.string.notes_hidden, Snackbar.LENGTH_SHORT);
             ((TextView)snackbar.getView().findViewById(android.support.design.R.id.snackbar_text))
                     .setTextColor(getActivity().getResources().getColor(R.color.white));
@@ -259,7 +259,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
             if(movedToPosition > -1) {
                 movedNote.reorder(getActivity(), movedToPosition+1, exceptionHandler); //1-based ordering
                 getActivity().getSupportLoaderManager()
-                             .restartLoader(DataManager.LOADER_ID_NOTES, null, NoteListFragment.this);
+                             .restartLoader(NoteTasks.LOADER_ID, null, NoteListFragment.this);
                 movedToPosition = -1;
                 movedNote = null;
             }
@@ -276,8 +276,8 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
             adapter = new NotesAdapter(getActivity(), null);
             notesRecycler.setAdapter(adapter);
         }
-        DataManager.getNotes(getContext(), course.getIdValue(), lessonName, this,
-                             getActivity().getSupportLoaderManager(), exceptionHandler);
+        NoteTasks.getNotes(getContext(), course.getIdValue(), lessonName, this,
+                           getActivity().getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -410,7 +410,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
 
         @Override
         public void onBindViewHolder(NoteHolder holder, Cursor data) {
-            holder.bindNote(((Database.NoteCursor) data).getNote());
+            holder.bindNote(((NoteTable.NoteCursor) data).getNote());
         }
     }
 }

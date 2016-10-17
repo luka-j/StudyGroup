@@ -25,9 +25,9 @@ import java.io.File;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.io.backgroundtasks.GroupTasks;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.network.Network;
@@ -127,7 +127,7 @@ public class AddGroupActivity extends AppCompatActivity {
             if (editing) {
                 group.edit(this, nameStr, placeStr, imageFile, exceptionHandler);
             } else {
-                DataManager.addGroup(this, nameStr, placeStr, imageFile, exceptionHandler);
+                GroupTasks.addGroup(this, nameStr, placeStr, imageFile, exceptionHandler);
             }
             add.setVisibility(View.GONE);
             progressView.setVisibility(View.VISIBLE);

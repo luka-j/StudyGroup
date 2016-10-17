@@ -19,8 +19,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.MediaCleanup;
+import rs.luka.android.studygroup.io.database.GroupTable;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
@@ -63,8 +63,9 @@ public class Groups  {
                                           Utils.stringToList(jsonGroup.getString(JSON_KEY_YEARS)),
                                           array.getJSONObject(i).getInt(JSON_KEY_PERMISSION));
                 }
-                Database.getInstance(c).clearGroups();
-                Database.getInstance(c).insertGroups(groups);
+                GroupTable db = new GroupTable(c);
+                db.clearGroups();
+                db.insertGroups(groups);
                 MediaCleanup.cleanupGroups(groups);
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);

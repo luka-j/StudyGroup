@@ -10,9 +10,9 @@ import java.io.File;
 import java.io.IOException;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.DataManager;
-import rs.luka.android.studygroup.io.Database;
 import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.io.backgroundtasks.QuestionTasks;
+import rs.luka.android.studygroup.io.database.QuestionTable;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.network.Questions;
 
@@ -75,7 +75,7 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
     }
 
     public void getImage(Context c, String courseName, int idealDimension, NetworkExceptionHandler handler, ImageView view) {
-        DataManager.getQuestionImage(c, id, courseName, lesson, idealDimension, handler, view);
+        QuestionTasks.getQuestionImage(c, id, courseName, lesson, idealDimension, handler, view);
     }
 
     public String getImagePath(String courseName) throws IOException {
@@ -87,15 +87,15 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
     }
 
     public void hide(Context c, NetworkExceptionHandler exceptionHandler) {
-        DataManager.hideQuestion(c, id, lesson, exceptionHandler);
+        QuestionTasks.hideQuestion(c, id, lesson, exceptionHandler);
     }
 
     public void show(Context c) {
-        Database.getInstance(c).insertQuestion(id, lesson, question, answer, imageExists, order);
+        new QuestionTable(c).insertQuestion(id, lesson, question, answer, imageExists, order);
     }
 
     public void edit(Context c, String lesson, String question, String answer, File image, NetworkExceptionHandler handler) {
-        DataManager.editQuestion(c, id, lesson, question, answer, image, handler);
+        QuestionTasks.editQuestion(c, id, lesson, question, answer, image, handler);
     }
 
     @Override
@@ -118,7 +118,7 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
     }
 
     public void reorder(Context context, int toPosition, NetworkExceptionHandler handler) {
-        DataManager.reorderQuestion(context, id, lesson, toPosition, order, handler);
+        QuestionTasks.reorderQuestion(context, id, lesson, toPosition, order, handler);
     }
 
     @Override
