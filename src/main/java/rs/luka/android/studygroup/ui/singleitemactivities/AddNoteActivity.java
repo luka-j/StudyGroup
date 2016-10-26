@@ -143,7 +143,7 @@ public class AddNoteActivity extends AppCompatActivity {
         if (resultCode != Activity.RESULT_CANCELED) {
             if (requestCode == INTENT_IMAGE) {
                 if (data != null && data.getData() != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
-                                    //osim u Marshmallow-u, tu je data != null, ali je data.getData() == null
+                                    //u Marshmallow-u i kasnijim je data != null, ali je data.getData() == null
                     imageFile = new File(Utils.getRealPathFromUri(this, data.getData()));
                 }
                 image.setImageBitmap(LocalImages.loadImage(imageFile,

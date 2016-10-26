@@ -14,4 +14,9 @@
         android:id="@+id/settings"
         android:title="@string/settings"
         app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/add_announcement"
+        android:title="@string/add_announcement"
+        app:showAsAction="ifRoom" />
 </menu>

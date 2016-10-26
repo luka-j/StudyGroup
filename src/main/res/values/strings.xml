@@ -230,4 +230,11 @@
     <string name="input_help_text">All Unicode characters represent valid input (yes, emojis too). However, in order to simplify typing, there are some shortcuts for frequently used characters: a caret (^) puts a letter, digit or mathematical symbol (+,-,=,(,)) in superscript, an underscore (_) before a digit puts it in subscript, and a backslash (\\) transforms a Latin letter into the appropriate Greek equivalent. If you want to type those symbols normally, double them (i.e. \\\\ becomes \\). The Latin-to-Greek conversion table is as follows:</string>
     <string name="input_help_title">Input help</string>
     <string name="show_help">Help</string>
+    <string name="announcement_title">Announcement for %s</string>
+    <string name="announcement_dont_show">Don\'t show this announcement again</string>
+    <string name="add_announcement">Create an announcement</string>
+    <string name="announcement_text_hint">Enter announcement text here</string>
+    <string name="toast_announcement_created">Announcement created</string>
+    <string name="add_announcement_title">Create an announcement</string>
+    <string name="create">Create</string>
 </resources>

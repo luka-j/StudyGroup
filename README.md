@@ -44,12 +44,12 @@ Iz februara - <http://imgur.com/a/DfmP7>. Par stvari sam promenio od tad, ali i 
 
 ## TODO
 * Loader invalid state bug - videti gde i zašto, možda race condition?
-* Srediti DataManager i Database klase, razložiti ih na više delova
 * sending and accepting invitations
 * proper offline mode, tj. dodavanje stvari čak i oflajn, koje bi se uploadovale nakon što se uređaj konektuje na internet
+* store announcements - separate "view announcements" screen
 * ETag/Last-Modified caching for media
-* Veći ekrani?
 * Per-Course simple message board (chatroom-like) ?
+* Veći ekrani?
 * testing/bugfixing
 * dokumentacija
 * //todo komentari u kodu (ovde ih zapravo ima, za razliku od servera)

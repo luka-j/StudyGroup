@@ -18,8 +18,6 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +25,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -41,6 +43,7 @@ import rs.luka.android.studygroup.network.Groups;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
+import rs.luka.android.studygroup.ui.dialogs.AnnouncementDialog;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 
@@ -52,11 +55,12 @@ import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 public class GroupFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
                                                        Network.NetworkCallbacks<String> {
 
-    protected static final int    REQUEST_EDIT_COURSE   = 1;
-    protected static final int    REQUEST_REMOVE_COURSE = 2; //network request
+    protected static final int    REQUEST_EDIT_COURSE   = 0;
+    protected static final int    REQUEST_REMOVE_COURSE = 1; //network request
     private static final   String TAG                   = "studygroup.GroupFrag";
-    private static final   int    REQUEST_ADD_COURSE    = 0; //intent request
-    private static final int      REQUEST_SHOW_ALL      = 1; //network request
+    private static final   int    REQUEST_ADD_COURSE    = 2; //intent request
+    private static final int      REQUEST_SHOW_ALL      = 3; //network request
+    private static final int      REQUEST_GET_ANNOUNCEMENTS = 4; //network request
     private Group                group;
     private RecyclerView         courseRecyclerView;
     private Callbacks            callbacks;
@@ -82,6 +86,8 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         setHasOptionsMenu(true);
 
         group = getArguments().getParcelable(GroupActivity.EXTRA_GROUP);
+
+        Groups.getAnnouncements(REQUEST_GET_ANNOUNCEMENTS, group.getIdValue(), this);
         //setRetainInstance(true);
     }
 
@@ -90,6 +96,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         super.onAttach(activity);
         callbacks = (Callbacks) activity;
         exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)activity);
+
     }
 
     @Override
@@ -186,11 +193,6 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.context_edit:
@@ -267,6 +269,30 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                         }
                     });
                 } else {
+                    response.handleErrorCode(exceptionHandler);
+                }
+                break;
+            case REQUEST_GET_ANNOUNCEMENTS:
+                if(response.responseCode == Network.Response.RESPONSE_OK) {
+                    try {
+                        JSONArray anns = new JSONArray(response.responseData);
+                        for(int i=0; i<anns.length(); i++) {
+                            final JSONObject announcement = anns.getJSONObject(i);
+                            final String     text         = announcement.getString("text");
+                            final String     years        = announcement.getString("years");
+                            final long       date         = announcement.getLong("date");
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    AnnouncementDialog.newInstance(text, years, date)
+                                                      .show(getActivity().getFragmentManager(), "");
+                                }
+                            });
+                        }
+                    } catch (JSONException e) {
+                        exceptionHandler.handleJsonException();
+                    }
+                } else if(response.responseCode != Network.Response.NOT_MODIFIED) {
                     response.handleErrorCode(exceptionHandler);
                 }
                 break;

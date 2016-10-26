@@ -60,6 +60,7 @@ public class Network {
     public static class Response<T> {
         public static final int RESPONSE_OK           = 200;
         public static final int RESPONSE_CREATED      = 201;
+        public static final int NOT_MODIFIED          = 304;
         public static final int RESPONSE_BAD_REQUEST  = 400;
         public static final int RESPONSE_UNAUTHORIZED = 401;
         public static final int RESPONSE_FORBIDDEN    = 403;

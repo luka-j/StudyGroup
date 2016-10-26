@@ -15,6 +15,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,14 +30,16 @@ import rs.luka.android.studygroup.model.ID;
  * Created by luka on 2.1.16..
  */
 public class Groups  {
-    public static final String GROUPS = "groups/";
-    private static final String TAG = "studygroup.net.Groups";
-    private static final String JSON_KEY_ID = "id";
-    private static final String JSON_KEY_NAME = "name";
-    private static final String JSON_KEY_PLACE = "place";
-    private static final String JSON_KEY_HASIMAGE = "hasImage";
-    private static final String JSON_KEY_YEARS = "courseYears";
-    private static final String JSON_KEY_PERMISSION = "permission";
+    public static final String GROUPS                       = "groups/";
+    private static final String TAG                         = "studygroup.net.Groups";
+    private static final String JSON_KEY_ID                 = "id";
+    private static final String JSON_KEY_NAME               = "name";
+    private static final String JSON_KEY_PLACE              = "place";
+    private static final String JSON_KEY_HASIMAGE           = "hasImage";
+    private static final String JSON_KEY_YEARS              = "courseYears";
+    private static final String JSON_KEY_PERMISSION         = "permission";
+    private static final String JSON_KEY_ANNOUNCEMENT_TEXT  = "text";
+    private static final String JSON_KEY_ANNOUNCEMENT_YEARS = "years";
 
     private static ExecutorService background = Executors.newSingleThreadExecutor();
 
@@ -160,6 +163,33 @@ public class Groups  {
                 return true;
             Network.Response<File> handled = response.handleErrorCode(exceptionHandler);
             return handled.responseCode == Network.Response.RESPONSE_CREATED;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void addAnnouncement(int requestId, long groupId, String text, Set<Integer> years,
+                                       Network.NetworkCallbacks<String> callbacks) throws IOException {
+        try {
+            URL url = new URL(Network.getDomain(), GROUPS + groupId + "/announcement");
+            StringBuilder yearSb = new StringBuilder(years.size()*3);
+            yearSb.append(",");
+            for(Integer year : years) yearSb.append(year).append(",");
+            Map<String, String> params   = new HashMap<>(2);
+            params.put(JSON_KEY_ANNOUNCEMENT_TEXT, text);
+            params.put(JSON_KEY_ANNOUNCEMENT_YEARS, yearSb.toString());
+
+            NetworkRequests.postDataAsync(requestId, url, params, callbacks);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void getAnnouncements(int requestId, long groupId, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            NetworkRequests.getDataAsync(requestId,
+                                         new URL(Network.getDomain(), GROUPS + groupId + "/announcements"),
+                                         callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

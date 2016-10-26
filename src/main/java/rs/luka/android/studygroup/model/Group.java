@@ -9,8 +9,10 @@ import android.support.v4.content.Loader;
 import android.widget.ImageView;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Loaders;
@@ -18,6 +20,7 @@ import rs.luka.android.studygroup.io.backgroundtasks.CourseTasks;
 import rs.luka.android.studygroup.io.backgroundtasks.GroupTasks;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.network.Courses;
+import rs.luka.android.studygroup.network.Groups;
 import rs.luka.android.studygroup.network.Network;
 
 /**
@@ -35,14 +38,16 @@ public class Group implements Parcelable, Comparable<Group> {
             return new Group[size];
         }
     };
-    public static final int PERM_READ_PUBLIC = 0;
+    private static final String TAG = "model.Group";
+
+    public static final int PERM_READ_PUBLIC   = 0;
     public static final int PERM_REQUEST_WRITE = 50;
-    public static final int PERM_INVITED = 300;
-    public static final int PERM_WRITE = 1000;
-    public static final int PERM_MODIFY = 3000;
-    public static final int PERM_OWNER = 4500;
-    public static final int PERM_CREATOR = 5000;
-    private static final String                    TAG = "Group";
+    public static final int PERM_INVITED       = 300;
+    public static final int PERM_WRITE         = 1000;
+    public static final int PERM_MODIFY        = 3000;
+    public static final int PERM_OWNER         = 4500;
+    public static final int PERM_CREATOR       = 5000;
+
     private List<Integer> years;
     private List<Integer> filtering = new ArrayList<>();
     private final ID id; //private by design (iliti nikada ne napusta ovu klasu)
@@ -119,7 +124,7 @@ public class Group implements Parcelable, Comparable<Group> {
     }
 
     public void setCourseYears(List<Integer> years) {
-        this.years = years;
+        this.years = new ArrayList<>(years);
     }
     public List<Integer> getCourseYears() {
         return years;
@@ -127,6 +132,11 @@ public class Group implements Parcelable, Comparable<Group> {
 
     public void filter(int requestId, int[] years, Network.NetworkCallbacks<String> callbacks) {
         Courses.filterCourses(requestId, id.getGroupIdValue(), years, callbacks);
+    }
+
+    public void addAnnouncement(int requestId, String text, Set<Integer> years, Network.NetworkCallbacks<String> callbacks)
+            throws IOException {
+        Groups.addAnnouncement(requestId, id.getGroupIdValue(), text, years, callbacks);
     }
 
     public void setFiltering(List<Integer> years) {

@@ -112,4 +112,5 @@
     <dimen name="greek_table_small_column_padding">30dp</dimen>
     <dimen name="greek_table_large_column_padding">48dp</dimen>
     <dimen name="greek_table_margin_top">12dp</dimen>
+    <dimen name="add_announcement_text_margin_bottom">8dp</dimen>
 </resources>

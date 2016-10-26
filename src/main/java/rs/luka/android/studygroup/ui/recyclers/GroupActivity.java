@@ -33,6 +33,7 @@ import rs.luka.android.studygroup.network.Courses;
 import rs.luka.android.studygroup.network.Groups;
 import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
+import rs.luka.android.studygroup.ui.dialogs.AddAnnouncementDialog;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
 import rs.luka.android.studygroup.ui.dialogs.FilterDialog;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
@@ -136,7 +137,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
 
         TextView          username = (TextView) headerContainer.findViewById(R.id.nav_header_username);
         TextView          email    = (TextView)headerContainer.findViewById(R.id.nav_header_email);
-        CircularImageView avatar   = (CircularImageView)headerContainer.findViewById(R.id.nav_header_image); //todo set
+        CircularImageView avatar   = (CircularImageView)headerContainer.findViewById(R.id.nav_header_image);
         User loggedInUser = User.getLoggedInUser();
         if(loggedInUser == null) {
             User.injectPrefs(this);
@@ -177,6 +178,8 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_group, menu);
+        if(group == null || group.getPermission() < Group.PERM_OWNER)
+            menu.removeItem(R.id.add_announcement);
         return true;
     }
 
@@ -192,6 +195,9 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                 return true;
             case R.id.settings:
                 // TODO: 19.9.15.
+                return true;
+            case R.id.add_announcement:
+                AddAnnouncementDialog.newInstance(group).show(getFragmentManager(), "");
                 return true;
         }
         return super.onOptionsItemSelected(item);

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:id="@+id/add_announcement_root">
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/add_announcement_til"
+        android:layout_marginBottom="@dimen/add_announcement_text_margin_bottom">
+        <EditText
+            android:id="@+id/add_announcement_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text|textCapSentences"
+            android:hint="@string/announcement_text_hint"/>
+    </android.support.design.widget.TextInputLayout>
+</LinearLayout>

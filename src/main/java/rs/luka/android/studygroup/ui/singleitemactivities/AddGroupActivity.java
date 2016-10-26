@@ -82,8 +82,7 @@ public class AddGroupActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != Activity.RESULT_CANCELED) {
             if (requestCode == INTENT_IMAGE) {
-                if (data
-                    != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
+                if (data != null && data.getData() != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
                     imageFile = new File(Utils.getRealPathFromUri(this, data.getData()));
                 }
                 image.setImageBitmap(LocalImages.loadImage(imageFile,
