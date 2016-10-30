@@ -14,24 +14,25 @@ Android 4.0-7.1 (testirano)
 
 ## Struktura projekta (app folder)
 Svako pakovanje ima svoj package-info.java, i to je vrhunac dokumentacije koje ćete naći ovde
+
 * UI layer
     * res/layouts - xml layouti, sve Što se iscrtava na ekranu
-        * nije hijerarhijski, prva reč imena označava o kakvom layoutu se radi, activity_* i fragment_* su top-level, dok se ostali include-uju u te
-    *java/....ui - Java kod koji binduje podatke za layoute i definiše sva ostala ponašanja
+        * nije hijerarhijski, prva reč imena označava o kakvom layoutu se radi, activity\_\* i fragment\_\* su top-level, dok se ostali include-uju u te
+    * java/....ui - Java kod koji binduje podatke za layoute i definiše sva ostala ponašanja
         * .dialogs - dijalozi
         * .recyclers - recikleri, tj. liste
-        * .singleitemactivities - Add*Activity (za dodavanje/menjanje stvari), Pageri i single Note/Question Fragmenti
+        * .singleitemactivities - Add\*Activity (za dodavanje/menjanje stvari), Pageri i single Note/Question Fragmenti
 * Model layer
     * java/....model - spona između dela koji se prikazuje korisniku i onoga što se odvija u pozadini. Ništa iz UI layera ne pristupa direktno I/O metodama, jer id-ovi iz klase modela nikada ne idu na "gore"
-*I/O layer
-    *java/....io - lokalni ulaz i izlaz (baza, media fajlovi) i koordiniranje
+* I/O layer
+    * java/....io - lokalni ulaz i izlaz (baza, media fajlovi) i koordiniranje
         * /DataManager - "ulaz" u I/O layer, određuje da li će se podaci uzimati iz baze na uređaju ili sa servera, gomila metoda koje dele Executor i izvršavaju se u pozadini
         * /Database - sve što se tiče baze podataka
-        * /Media*, Local* - fajlovi na uređaju, na internoj SD kartici, slike i audio zapisi
-    *java/....network - komunikacija sa serverom i mrežom uopšte
+        * /Media\*, Local\* - fajlovi na uređaju, na internoj SD kartici, slike i audio zapisi
+    * java/....network - komunikacija sa serverom i mrežom uopšte
         * /Network - pravi zahteve koji se šalju serveru, greške prosleđuje NetworkExceptionHandleru, radi token refreshing
         * /NetworkRequests - helper metode za Network
-        * /* - metode koje se tiču konkretno neke stavke (npr. Courses su sve metode koje se tiču kurseva, i koji argumente koje prime pretvaraju u format koji Network klasa traži)
+        * /\* - metode koje se tiču konkretno neke stavke (npr. Courses su sve metode koje se tiču kurseva, i koji argumente koje prime pretvaraju u format koji Network klasa traži)
 
 * Misc
    * manifests/AndroidManifest.xml - manifest projekta, deklaracije aktivnosti i sl.
