@@ -184,7 +184,8 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
                 }
             });
         } else {
-            response.handleErrorCode(exceptionHandler);
+            Network.Response<String> handled = response.handleErrorCode(exceptionHandler);
+            if(handled.responseCode == Network.Response.RESPONSE_OK) onRequestCompleted(id, handled);
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

@@ -2,7 +2,7 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:paddingBottom="@dimen/list_item_padding_vertical"
     android:paddingLeft="@dimen/list_item_padding_horizontal"
@@ -12,7 +12,7 @@
     <ImageView
         android:id="@+id/item_question_thumbnail"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/list_item_thumbnail_margin_right"
         android:layout_marginRight="@dimen/list_item_thumbnail_margin_right"
         android:adjustViewBounds="true"

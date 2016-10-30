@@ -195,6 +195,16 @@ public class Groups  {
         }
     }
 
+    public static void getAllAnnouncements(int requestId, long groupId, Network.NetworkCallbacks<String> callbacks) {
+        try {
+            NetworkRequests.getDataAsync(requestId,
+                                         new URL(Network.getDomain(), GROUPS + groupId + "/announcements/all"),
+                                         callbacks);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void getUsers(int requestId, long id, Network.NetworkCallbacks<String> callbacks) {
         try {
             NetworkRequests.getDataAsync(requestId, new URL(Network.getDomain(), GROUPS + id + "/members"), callbacks);

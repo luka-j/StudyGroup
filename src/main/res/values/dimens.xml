@@ -113,4 +113,5 @@
     <dimen name="greek_table_large_column_padding">48dp</dimen>
     <dimen name="greek_table_margin_top">12dp</dimen>
     <dimen name="add_announcement_text_margin_bottom">8dp</dimen>
+    <dimen name="list_item_small_text_size">13sp</dimen>
 </resources>

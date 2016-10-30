@@ -81,6 +81,7 @@ public class AddCourseActivity extends AppCompatActivity {
         initViews();
 
         if (editing) {
+            getSupportActionBar().setTitle(course.getSubject());
             setupViewsForEditing();
         }
         if(myPermission < Group.PERM_MODIFY || editing) {

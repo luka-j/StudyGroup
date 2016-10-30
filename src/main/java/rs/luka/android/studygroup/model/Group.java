@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -125,6 +126,7 @@ public class Group implements Parcelable, Comparable<Group> {
 
     public void setCourseYears(List<Integer> years) {
         this.years = new ArrayList<>(years);
+        Collections.sort(this.years);
     }
     public List<Integer> getCourseYears() {
         return years;
@@ -137,6 +139,10 @@ public class Group implements Parcelable, Comparable<Group> {
     public void addAnnouncement(int requestId, String text, Set<Integer> years, Network.NetworkCallbacks<String> callbacks)
             throws IOException {
         Groups.addAnnouncement(requestId, id.getGroupIdValue(), text, years, callbacks);
+    }
+
+    public void getAllAnnouncements(int requestId, Network.NetworkCallbacks<String> callbacks) {
+        Groups.getAllAnnouncements(requestId, id.getGroupIdValue(), callbacks);
     }
 
     public void setFiltering(List<Integer> years) {

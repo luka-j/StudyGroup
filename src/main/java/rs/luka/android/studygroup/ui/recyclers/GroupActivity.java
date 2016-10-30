@@ -7,6 +7,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -98,8 +99,9 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         drawer = (DrawerLayout)findViewById(R.id.group_drawer);
         setNavigationView();
         if(getSupportActionBar() == null) setSupportActionBar((Toolbar)findViewById(R.id.toolbar));
-        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar ac = getSupportActionBar();
+        ac.setHomeAsUpIndicator(R.drawable.ic_menu);
+        ac.setDisplayHomeAsUpEnabled(true);
         navigation.setNavigationItemSelectedListener(this);
         if(group == null) group = getIntent().getParcelableExtra(EXTRA_GROUP);
         if(group == null) drawer.openDrawer(GravityCompat.START);
@@ -199,6 +201,10 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
             case R.id.add_announcement:
                 AddAnnouncementDialog.newInstance(group).show(getFragmentManager(), "");
                 return true;
+            case R.id.view_announcements:
+                Intent i = new Intent(this, AnnouncementsActivity.class);
+                i.putExtra(AnnouncementsActivity.EXTRA_GROUP, group);
+                startActivity(i);
         }
         return super.onOptionsItemSelected(item);
     }

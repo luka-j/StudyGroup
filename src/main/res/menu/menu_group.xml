@@ -18,5 +18,9 @@
     <item
         android:id="@+id/add_announcement"
         android:title="@string/add_announcement"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/view_announcements"
+        android:title="@string/view_all_announcements"
+        app:showAsAction="never" />
 </menu>

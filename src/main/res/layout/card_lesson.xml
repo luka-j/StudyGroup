@@ -6,7 +6,7 @@
     card_view:cardElevation="@dimen/card_elevation"
     card_view:cardMaxElevation="@dimen/card_elevation_picked_up"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:layout_marginLeft="@dimen/card_margin_horizontal"
     android:layout_marginRight="@dimen/card_margin_horizontal"
     android:layout_marginTop="@dimen/card_margin_vertical"

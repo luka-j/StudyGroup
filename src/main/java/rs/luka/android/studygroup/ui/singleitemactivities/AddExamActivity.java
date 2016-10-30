@@ -73,6 +73,7 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_exam);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         initExceptionHandler();
 
@@ -81,6 +82,8 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
         if (editing) {
             course = exam.getCourse();
             selectedDate = exam.getCalendar();
+            getSupportActionBar().setTitle(course.getSubject() +
+                                           (exam.getType().isEmpty() ? "" : " - " + exam.getType()));
             initViews();
         } else if (savedInstanceState == null || savedInstanceState.getParcelable(DATA_SELECTED_COURSE) == null) {
             group = getIntent().getParcelableExtra(EXTRA_GROUP);

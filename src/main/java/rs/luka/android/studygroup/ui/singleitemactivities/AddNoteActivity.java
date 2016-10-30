@@ -97,7 +97,10 @@ public class AddNoteActivity extends AppCompatActivity {
         if (editing && notes.size() > 1) { //kreiranje dva dugmeta
             createEditButtons();
         }
-        if (editing)              setFieldsForEditing();
+        if (editing)              {
+            getSupportActionBar().setTitle(lessonStr);
+            setFieldsForEditing();
+        }
         if (isPrivate)            privBox.setChecked(true);
         if (editing || isPrivate) privBox.setEnabled(false); //todo make editing privacy possible (server-side, history)
 

@@ -46,12 +46,13 @@ Iz februara - <http://imgur.com/a/DfmP7>. Par stvari sam promenio od tad, ali i 
 * Loader invalid state bug - videti gde i zašto, možda race condition?
 * sending and accepting invitations
 * proper offline mode, tj. dodavanje stvari čak i oflajn, koje bi se uploadovale nakon što se uređaj konektuje na internet
-* store announcements - separate "view announcements" screen
+* titles in Add*Activity - generic (Edit *) or dynamic (course/group/lesson name) ?
+* UI consistency - sidebar in MemberList & ScheduleActivity, like in GroupActivity 
+  (jer su courses, members i exams na istom hijerarhijskom nivou)
+* store announcements
 * ETag/Last-Modified caching for media
 * Per-Course simple message board (chatroom-like) ?
 * Veći ekrani?
 * testing/bugfixing
 * dokumentacija
 * //todo komentari u kodu (ovde ih zapravo ima, za razliku od servera)
-* pojednostaviti onCreate metode u određenim aktivnostima, nalik na Add*Activity
-* Tražiti server od Telekoma nakon što se prijavimo

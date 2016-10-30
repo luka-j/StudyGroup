@@ -3,7 +3,7 @@
     android:id="@+id/item_note_layout"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:paddingBottom="@dimen/list_item_padding_vertical"
     android:paddingLeft="@dimen/list_item_padding_horizontal"
@@ -13,7 +13,7 @@
     <ImageView
         android:id="@+id/item_note_thumbnail"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/list_item_thumbnail_margin_right"
         android:layout_marginRight="@dimen/list_item_thumbnail_margin_right"
         android:adjustViewBounds="true"
@@ -21,8 +21,8 @@
         android:scaleType="centerInside"/>
     <TextView
         android:id="@+id/item_note_text"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:ellipsize="end"
         android:lines="2"
         android:textSize="@dimen/list_item_text_size"/>

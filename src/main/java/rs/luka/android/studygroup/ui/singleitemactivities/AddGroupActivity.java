@@ -65,6 +65,7 @@ public class AddGroupActivity extends AppCompatActivity {
         initViews();
         if (editing) {
             group = getIntent().getParcelableExtra(EXTRA_GROUP);
+            getSupportActionBar().setTitle(group.getName());
             setupViewsForEditing();
         }
 

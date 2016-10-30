@@ -155,6 +155,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="rs.luka.android.studygroup.ui.recyclers.GroupActivity"/>
         </activity>
+        <activity
+            android:name=".ui.recyclers.AnnouncementsActivity"
+            android:label="@string/title_activity_announcements"
+            android:parentActivityName=".ui.recyclers.GroupActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="rs.luka.android.studygroup.ui.recyclers.GroupActivity"/>
+        </activity>
         <activity android:name=".ui.recyclers.HistoryActivity"
                   android:label="@string/recent_edits" />
 

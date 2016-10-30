@@ -36,7 +36,8 @@ public class GroupTasks {
         pushToExecutor(new Runnable() {
             @Override
             public void run() {
-                if((currentTime - DataManager.getLastFetch(c, LAST_FETCH_KEY)) > FETCH_TIMEOUT) {
+                if((currentTime - DataManager.getLastFetch(c, LAST_FETCH_KEY)) > FETCH_TIMEOUT ||
+                   new GroupTable(c).getGroupCount() == 0) {
                     try {
                         Groups.getGroups(c, exceptionHandler);
                         exceptionHandler.finished();

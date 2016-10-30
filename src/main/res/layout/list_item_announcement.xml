@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:paddingBottom="@dimen/list_item_padding_vertical"
+              android:paddingLeft="@dimen/list_item_padding_horizontal"
+              android:paddingRight="@dimen/list_item_padding_horizontal"
+              android:paddingTop="@dimen/list_item_padding_vertical">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/li_announcement_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/list_item_small_text_size"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:textColor="@color/secondary_text"/>
+        <TextView
+            android:id="@+id/li_announcement_years"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/list_item_small_text_size"
+            android:textColor="@color/secondary_text"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_toLeftOf="@id/li_announcement_date"
+            android:layout_toStartOf="@id/li_announcement_date"/>
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/li_announcement_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/list_item_text_size"/>
+</LinearLayout>

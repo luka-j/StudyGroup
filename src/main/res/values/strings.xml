@@ -237,4 +237,6 @@
     <string name="toast_announcement_created">Announcement created</string>
     <string name="add_announcement_title">Create an announcement</string>
     <string name="create">Create</string>
+    <string name="view_all_announcements">View all announcements</string>
+    <string name="title_activity_announcements">Announcements</string>
 </resources>
