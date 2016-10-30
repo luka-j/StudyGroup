@@ -10,7 +10,7 @@ srednjoj školi, tako i da srednjoškolci mogu da vide šta se radi na određeno
 u engleskom prevodu - Group & Course.
 
 ## Kompatibilnost
-Android 4.0-7.0 (testirano)
+Android 4.0-7.1 (testirano)
 
 ## Struktura projekta (app folder)
 Svako pakovanje ima svoj package-info.java, i to je vrhunac dokumentacije koje ćete naći ovde
