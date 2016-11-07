@@ -76,7 +76,7 @@ public class QuestionPagerActivity extends AppCompatActivity implements LoaderMa
             return QuestionFragment.newInstance(course.getSubject(),
                                                 ((QuestionTable.QuestionCursor) cursor).getQuestion(),
                                                 getIntent().getIntExtra(LessonActivity.EXTRA_MY_PERMISSION,
-                                                                        Group.PERM_READ_PUBLIC));
+                                                                        Group.PERM_READ_CAN_REQUEST_WRITE));
         }
     }
 }

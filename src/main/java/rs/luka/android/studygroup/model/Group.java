@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Loaders;
 import rs.luka.android.studygroup.io.backgroundtasks.CourseTasks;
@@ -41,13 +42,14 @@ public class Group implements Parcelable, Comparable<Group> {
     };
     private static final String TAG = "model.Group";
 
-    public static final int PERM_READ_PUBLIC   = 0;
-    public static final int PERM_REQUEST_WRITE = 50;
-    public static final int PERM_INVITED       = 300;
-    public static final int PERM_WRITE         = 1000;
-    public static final int PERM_MODIFY        = 3000;
-    public static final int PERM_OWNER         = 4500;
-    public static final int PERM_CREATOR       = 5000;
+    public static final int PERM_READ_REQUEST_WRITE_FORBIDDEN = 5;
+    public static final int PERM_READ_CAN_REQUEST_WRITE       = 20;
+    public static final int PERM_REQUEST_WRITE                = 60;
+    public static final int PERM_INVITED                      = 300;
+    public static final int PERM_WRITE                        = 1000;
+    public static final int PERM_MODIFY                       = 3000;
+    public static final int PERM_OWNER                        = 4500;
+    public static final int PERM_CREATOR                      = 5000;
 
     private List<Integer> years;
     private List<Integer> filtering = new ArrayList<>();
@@ -91,7 +93,9 @@ public class Group implements Parcelable, Comparable<Group> {
         return id.getGroupIdValue();
     }
 
-    public String getName() {
+    public String getName(Context c) {
+        if(permission == PERM_REQUEST_WRITE)
+            return name + " " + c.getString(R.string.membership_requested);
         return name;
     }
 
@@ -120,8 +124,8 @@ public class Group implements Parcelable, Comparable<Group> {
         CourseTasks.addCourse(c, id, subject, teacher, year.isEmpty() ? null : Integer.parseInt(year), image, isPrivate, exceptionHandler);
     }
 
-    public void edit(Context c, String name, String place, File image, NetworkExceptionHandler handler) {
-        GroupTasks.editGroup(c, id, name, place, image, handler);
+    public void edit(Context c, String name, String place, boolean inviteOnly, File image, NetworkExceptionHandler handler) {
+        GroupTasks.editGroup(c, id, name, place, inviteOnly, image, handler);
     }
 
     public void setCourseYears(List<Integer> years) {

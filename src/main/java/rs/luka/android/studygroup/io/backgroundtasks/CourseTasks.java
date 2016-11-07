@@ -93,7 +93,7 @@ public class CourseTasks {
                         displaySubject += " (" + c.getString(R.string.priv) + ")";
                     }
                     Long courseId = Courses.createCourse(groupId.getGroupIdValue(), displaySubject, teacher, year,
-                                                         isPrivate?Group.PERM_WRITE:Group.PERM_READ_PUBLIC, handler);
+                                                         isPrivate?Group.PERM_WRITE:Group.PERM_READ_CAN_REQUEST_WRITE, handler);
                     if(courseId != null) {
                         ID id = new ID(groupId, courseId);
                         new CourseTable(c).insertCourse(id, displaySubject, teacher, year, image != null);

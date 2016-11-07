@@ -26,8 +26,8 @@ Svako pakovanje ima svoj package-info.java, i to je vrhunac dokumentacije koje �
     * java/....model - spona između dela koji se prikazuje korisniku i onoga što se odvija u pozadini. Ništa iz UI layera ne pristupa direktno I/O metodama, jer id-ovi iz klase modela nikada ne idu na "gore"
 * I/O layer
     * java/....io - lokalni ulaz i izlaz (baza, media fajlovi) i koordiniranje
-        * /DataManager - "ulaz" u I/O layer, određuje da li će se podaci uzimati iz baze na uređaju ili sa servera, gomila metoda koje dele Executor i izvršavaju se u pozadini
-        * /Database - sve što se tiče baze podataka
+        * .backgroundtasks - "ulaz" u I/O layer, određuje da li će se podaci uzimati iz baze na uređaju ili sa servera, skup povezanih klasa (\*Tasks) koje dele Executor za izvršavanje svojih statičnih metode
+        * .database - sve što se tiče baze podataka, skup povezanih klasa koje rade nad jednim SQLiteOpenHelperom (dele referencu na bazu u obliku singleton-a)
         * /Media\*, Local\* - fajlovi na uređaju, na internoj SD kartici, slike i audio zapisi
     * java/....network - komunikacija sa serverom i mrežom uopšte
         * /Network - pravi zahteve koji se šalju serveru, greške prosleđuje NetworkExceptionHandleru, radi token refreshing
@@ -45,6 +45,7 @@ Iz februara - <http://imgur.com/a/DfmP7>. Par stvari sam promenio od tad, ali i 
 
 ## TODO
 * Loader invalid state bug - videti gde i zašto, možda race condition?
+* test inviteOnly groups and permission
 * sending and accepting invitations
 * proper offline mode, tj. dodavanje stvari čak i oflajn, koje bi se uploadovale nakon što se uređaj konektuje na internet
 * titles in Add*Activity - generic (Edit *) or dynamic (course/group/lesson name) ?

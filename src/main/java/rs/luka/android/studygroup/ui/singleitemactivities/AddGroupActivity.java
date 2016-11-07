@@ -15,6 +15,7 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -48,6 +49,7 @@ public class AddGroupActivity extends AppCompatActivity {
     private CardView        add;
     private ImageView       image;
     private CircularProgressView progressView;
+    private CheckBox inviteOnly;
     private File imageFile = new File(LocalImages.APP_IMAGE_DIR, "groupimage.temp");
     private Group   group;
     private boolean editing;
@@ -65,7 +67,7 @@ public class AddGroupActivity extends AppCompatActivity {
         initViews();
         if (editing) {
             group = getIntent().getParcelableExtra(EXTRA_GROUP);
-            getSupportActionBar().setTitle(group.getName());
+            getSupportActionBar().setTitle(group.getName(this));
             setupViewsForEditing();
         }
 
@@ -125,9 +127,9 @@ public class AddGroupActivity extends AppCompatActivity {
         } else { placeTil.setError(null); }
         if (!error) {
             if (editing) {
-                group.edit(this, nameStr, placeStr, imageFile, exceptionHandler);
+                group.edit(this, nameStr, placeStr, inviteOnly.isChecked(), imageFile, exceptionHandler);
             } else {
-                GroupTasks.addGroup(this, nameStr, placeStr, imageFile, exceptionHandler);
+                GroupTasks.addGroup(this, nameStr, placeStr, inviteOnly.isChecked(), imageFile, exceptionHandler);
             }
             add.setVisibility(View.GONE);
             progressView.setVisibility(View.VISIBLE);
@@ -187,10 +189,11 @@ public class AddGroupActivity extends AppCompatActivity {
         add = (CardView) findViewById(R.id.button_add);
         image = (ImageView) findViewById(R.id.add_group_image);
         progressView = (CircularProgressView) findViewById(R.id.add_group_cpv);
+        inviteOnly = (CheckBox) findViewById(R.id.add_group_inviteonly_cb);
     }
 
     private void setupViewsForEditing() {
-        name.setText(group.getName());
+        name.setText(group.getName(this));
         place.setText(group.getPlace());
         if (group.hasImage()) {
             group.getImage(this,

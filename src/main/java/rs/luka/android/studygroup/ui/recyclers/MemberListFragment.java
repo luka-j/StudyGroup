@@ -118,7 +118,7 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
     @Override
     public void onResume() {
         super.onResume();
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName());
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName(getContext()));
     }
 
     private void setData() {

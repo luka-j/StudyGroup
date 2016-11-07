@@ -42,6 +42,11 @@ public class Database extends SQLiteOpenHelper {
         return instance;
     }
 
+    static Context getContext() {
+        if(instance == null) return null;
+        return instance.context;
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(GroupTable.SQL_CREATE_TABLE);

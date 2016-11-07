@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,13 +36,21 @@ import rs.luka.android.studygroup.model.User;
  */
 public class Network {
 
+    /**
+     * debug flag: set to false for using server on LAN
+     */
+    public static final boolean USE_REMOTE_SERVER = false;
+
     private static final int BUFFER_SIZE = 51_200; //50kb
 
     private static URL                  DOMAIN; //catch in static block complains if this is made final
 
     static {
         try {
-            DOMAIN = new URL("http://192.168.0.15:9000/");
+            if(USE_REMOTE_SERVER)
+                DOMAIN = new URL("http://79.101.8.6/");
+            else
+                DOMAIN = new URL("http://192.168.0.15:9000/");
         } catch (MalformedURLException e) {
             DOMAIN = null; //wtf Java?
             e.printStackTrace();
@@ -126,6 +135,7 @@ public class Network {
                     return this;
                 case RESPONSE_NOT_FOUND:
                     handler.handleNotFound(RESPONSE_NOT_FOUND);
+                    Log.e("Network", "404: " + request.url.toString());
                     return this;
                 case RESPONSE_GONE:
                     handler.handleNotFound(RESPONSE_GONE);

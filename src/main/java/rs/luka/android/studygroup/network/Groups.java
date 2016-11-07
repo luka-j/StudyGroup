@@ -35,6 +35,7 @@ public class Groups  {
     private static final String JSON_KEY_ID                 = "id";
     private static final String JSON_KEY_NAME               = "name";
     private static final String JSON_KEY_PLACE              = "place";
+    private static final String JSON_KEY_INVITEONLY         = "inviteOnly";
     private static final String JSON_KEY_HASIMAGE           = "hasImage";
     private static final String JSON_KEY_YEARS              = "courseYears";
     private static final String JSON_KEY_PERMISSION         = "permission";
@@ -64,7 +65,7 @@ public class Groups  {
                                           jsonGroup.getString(JSON_KEY_PLACE),
                                           jsonGroup.getBoolean(JSON_KEY_HASIMAGE),
                                           Utils.stringToList(jsonGroup.getString(JSON_KEY_YEARS)),
-                                          array.getJSONObject(i).getInt(JSON_KEY_PERMISSION));
+                                          array.getJSONObject(i).getInt(JSON_KEY_PERMISSION)); //not inside group
                 }
                 GroupTable db = new GroupTable(c);
                 db.clearGroups();
@@ -97,13 +98,14 @@ public class Groups  {
         }
     }
 
-    public static Long createGroup(String name, String place, NetworkExceptionHandler exceptionHandler)
+    public static Long createGroup(String name, String place, boolean inviteOnly, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
             URL                 url      = new URL(Network.getDomain(), GROUPS);
             Map<String, String> params   = new HashMap<>(2);
             params.put(JSON_KEY_NAME, name);
             params.put(JSON_KEY_PLACE, place);
+            params.put(JSON_KEY_INVITEONLY, String.valueOf(inviteOnly));
 
             Network.Response<String>    response = NetworkRequests.requestPostData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
@@ -119,13 +121,15 @@ public class Groups  {
         }
     }
 
-    public static boolean updateGroup(long id, String name, String place, NetworkExceptionHandler exceptionHandler)
+    public static boolean updateGroup(long id, String name, String place, boolean inviteOnly,
+                                      NetworkExceptionHandler exceptionHandler)
         throws IOException {
         try {
             URL                 url      = new URL(Network.getDomain(), GROUPS + id);
             Map<String, String> params   = new HashMap<>(2);
             params.put(JSON_KEY_NAME, name);
             params.put(JSON_KEY_PLACE, place);
+            params.put(JSON_KEY_INVITEONLY, String.valueOf(inviteOnly));
 
             Network.Response    response = NetworkRequests.requestPutData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_OK)

@@ -121,7 +121,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         int groupId = Menu.FIRST, itemId= Menu.FIRST;
         while(!groups.isAfterLast()) {
             Group   group = groups.getGroup();
-            SubMenu groupMenu = navMenu.addSubMenu(group.getName());
+            SubMenu groupMenu = navMenu.addSubMenu(group.getName(this));
             groupMenu.add(groupId, itemId, itemId, R.string.navbar_view_courses); itemId++;
             groupMenu.add(groupId, itemId, itemId, R.string.navbar_view_exams); itemId++;
             groupMenu.add(groupId, itemId, itemId, R.string.navbar_view_members); itemId++;
@@ -372,7 +372,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                     group = navbarGroups.get(menuItem.getGroupId());
                     fragment.changeGroup(group);
                     //setNavigationView(); doesn't work
-                    getSupportActionBar().setTitle(group.getName());
+                    getSupportActionBar().setTitle(group.getName(this));
                     break;
                 case NAVBAR_VIEW_EXAMS_POSITION:
                     startActivity(new Intent(this, ScheduleActivity.class).putExtra(ScheduleActivity.EXTRA_GROUP,

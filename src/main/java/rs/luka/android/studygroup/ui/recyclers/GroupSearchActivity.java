@@ -145,7 +145,8 @@ public class GroupSearchActivity extends AppCompatActivity implements Network.Ne
                                                          jsonGroup.getString("place"),
                                                          jsonGroup.getBoolean("hasImage"),
                                                          Utils.stringToList(jsonGroup.getString("courseYears")),
-                                                         Group.PERM_READ_PUBLIC));
+                                                         jsonGroup.getBoolean("inviteOnly") ?
+                                    Group.PERM_READ_REQUEST_WRITE_FORBIDDEN : Group.PERM_READ_CAN_REQUEST_WRITE));
                                 }
                                 adapter.groups = groups;
                                 adapter.notifyDataSetChanged();
@@ -213,7 +214,7 @@ public class GroupSearchActivity extends AppCompatActivity implements Network.Ne
 
         public void bindGroup(Group group) {
             this.group = group;
-            name.setText(group.getName());
+            name.setText(group.getName(GroupSearchActivity.this));
             place.setText(group.getPlace());
             if (group.hasImage()) {
                 group.getImage(GroupSearchActivity.this,

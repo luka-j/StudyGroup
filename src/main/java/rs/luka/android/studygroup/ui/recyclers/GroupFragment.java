@@ -105,14 +105,22 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         View view = inflater.inflate(R.layout.fragment_group, container, false);
 
         AppCompatActivity ac = (AppCompatActivity) getActivity();
-        ac.getSupportActionBar().setTitle(group.getName());
+        ac.getSupportActionBar().setTitle(group.getName(getContext()));
 
         progress = (CircularProgressView) view.findViewById(R.id.progress_view);
 
         courseRecyclerView = (RecyclerView) view.findViewById(R.id.course_recycler_view);
         fab = (FloatingActionButton) view.findViewById(R.id.fab_add_course);
-        if(group.getPermission() < Group.PERM_WRITE) {
+        if(group.getPermission() <= Group.PERM_READ_REQUEST_WRITE_FORBIDDEN) {
+            fab.setVisibility(View.GONE);
+        } else if (group.getPermission() <= Group.PERM_READ_CAN_REQUEST_WRITE) {
+            fab.setVisibility(View.VISIBLE);
             fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_pencil));
+        } else if (group.getPermission() <= Group.PERM_REQUEST_WRITE) {
+            fab.setVisibility(View.GONE);
+        } else {
+            fab.setVisibility(View.VISIBLE);
+            fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_add));
         }
         coordinator = (CoordinatorLayout) view.findViewById(R.id.coordinator);
         fab.setOnClickListener(new View.OnClickListener() {

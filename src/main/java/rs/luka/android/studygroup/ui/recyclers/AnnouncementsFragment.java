@@ -99,7 +99,7 @@ public class AnnouncementsFragment extends Fragment implements Network.NetworkCa
     @Override
     public void onResume() {
         super.onResume();
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName());
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName(getContext()));
     }
 
     private void setData() {

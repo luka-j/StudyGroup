@@ -84,7 +84,7 @@ public class NoteTasks {
                     String realText = TextUtils.replaceEscapes(text);
                     String realLesson = TextUtils.replaceEscapes(lesson);
                     Long noteId = Notes.createNote(courseId.getCourseIdValue(), realLesson, realText,
-                                                   handler, isPrivate ? Group.PERM_WRITE : Group.PERM_READ_PUBLIC);
+                                                   handler, isPrivate ? Group.PERM_WRITE : Group.PERM_READ_CAN_REQUEST_WRITE);
                     if(noteId != null) {
                         ID id = new ID(courseId, noteId);
                         new NoteTable(c).insertNote(id, realLesson, realText, image != null, audio != null, 0);

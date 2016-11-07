@@ -2,7 +2,7 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:paddingBottom="@dimen/list_item_padding_vertical"
     android:paddingLeft="@dimen/list_item_padding_horizontal"
@@ -20,7 +20,7 @@
     <TextView
         android:id="@+id/item_user_name"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:ellipsize="end"
         android:lines="1"
         android:textSize="@dimen/list_item_text_size"
@@ -28,7 +28,7 @@
         android:layout_toEndOf="@id/item_user_image"/>
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:textColor="@color/secondary_text"
         android:id="@+id/item_user_role"
         android:textSize="@dimen/list_item_subtext_size"

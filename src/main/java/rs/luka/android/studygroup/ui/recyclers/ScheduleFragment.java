@@ -160,7 +160,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onResume() {
         super.onResume();
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName());
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName(getContext()));
     }
 
     @Override

@@ -129,7 +129,7 @@ public class GroupTable {
 
         for (Group group : groups) {
             stmt.bindLong(1, group.getIdValue());
-            stmt.bindString(2, group.getName());
+            stmt.bindString(2, group.getName(Database.getContext()));
             stmt.bindString(3, group.getPlace());
             stmt.bindLong(4, group.hasImage() ? 1 : 0);
             stmt.bindString(5, Utils.listToString(group.getCourseYears()));

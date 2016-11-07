@@ -73,13 +73,13 @@ public class GroupTasks {
         });
     }
 
-    public static void addGroup(final Context c, final String name, final String place, final File image,
-                                final NetworkExceptionHandler handler) {
+    public static void addGroup(final Context c, final String name, final String place, final boolean inviteOnly,
+                                final File image, final NetworkExceptionHandler handler) {
         pushToExecutor(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Long groupId = Groups.createGroup(name, place, handler);
+                    Long groupId = Groups.createGroup(name, place, inviteOnly, handler);
                     if(groupId != null) {
                         ID id = new ID(groupId);
                         if (image != null && image.exists()) {
@@ -102,13 +102,14 @@ public class GroupTasks {
         return new GroupTable(c).getGroupCount();
     }
 
-    public static void editGroup(final Context c, final ID id, final String name, final String place, final File image,
+    public static void editGroup(final Context c, final ID id, final String name, final String place,
+                                 final boolean inviteOnly, final File image,
                                  final NetworkExceptionHandler exceptionHandler) {
         pushToExecutor(new Runnable() {
             @Override
             public void run() {
                 try {
-                    boolean success = Groups.updateGroup(id.getGroupIdValue(), name, place, exceptionHandler);
+                    boolean success = Groups.updateGroup(id.getGroupIdValue(), name, place, inviteOnly, exceptionHandler);
                     if(success) {
                         new GroupTable(c).updateGroup(id, name, place, image != null);
                         if(image != null && !image.equals(LocalImages.generateGroupImageFile(id))) {

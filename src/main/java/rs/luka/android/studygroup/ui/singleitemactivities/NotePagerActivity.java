@@ -43,7 +43,7 @@ public class NotePagerActivity extends AppCompatActivity implements LoaderManage
         course = getIntent().getParcelableExtra(LessonActivity.EXTRA_CURRENT_COURSE);
         lesson = getIntent().getStringExtra(LessonActivity.EXTRA_CURRENT_LESSON);
         notePosition = getIntent().getIntExtra(LessonActivity.EXTRA_CURRENT_NOTE_POSITION, 0);
-        permission = getIntent().getIntExtra(LessonActivity.EXTRA_MY_PERMISSION, Group.PERM_READ_PUBLIC);
+        permission = getIntent().getIntExtra(LessonActivity.EXTRA_MY_PERMISSION, Group.PERM_READ_CAN_REQUEST_WRITE);
         adapter = new NoteAdapter(this, this.getSupportFragmentManager(), null);
         NoteTasks.getNotes(this, course.getIdValue(), lesson, this, this.getSupportLoaderManager(), exceptionHandler);
 

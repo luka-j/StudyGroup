@@ -345,7 +345,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             titleTextView.setText(title);
             noteCountTextView.setText(getString(R.string.notes_no, noteNo));
             questionCountTextView.setText(getString(R.string.questions_no, questionNo));
-            if(permission > Group.PERM_READ_PUBLIC)
+            if(permission > Group.PERM_READ_CAN_REQUEST_WRITE)
                 privateTextView.setVisibility(View.VISIBLE);
             else
                 privateTextView.setVisibility(View.GONE);
@@ -353,7 +353,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
 
         @Override
         public void onClick(View v) {
-            callbacks.onLessonSelected(title, permission > Group.PERM_READ_PUBLIC);
+            callbacks.onLessonSelected(title, permission > Group.PERM_READ_CAN_REQUEST_WRITE);
         }
 
         @Override

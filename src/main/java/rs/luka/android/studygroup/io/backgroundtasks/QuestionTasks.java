@@ -88,7 +88,7 @@ public class QuestionTasks {
                     Long questionId = Questions.createQuestion(courseId.getCourseIdValue(),
                                                                realLesson,
                                                                realQuestion, realAnswer, handler,
-                                                               isPrivate ? Group.PERM_WRITE : Group.PERM_READ_PUBLIC);
+                                                               isPrivate ? Group.PERM_WRITE : Group.PERM_READ_CAN_REQUEST_WRITE);
                     if(questionId != null) {
                         ID id = new ID(courseId, questionId);
                         new QuestionTable(c).insertQuestion(id, realLesson, realQuestion, realAnswer, image != null, 0);

@@ -16,7 +16,6 @@
     <string name="error_negative_number">%s treba da bude pozitivan broj</string>
     <string name="error_number_too_large">%s je prevelik</string>
     <string name="error_too_long">Tekst je predugačak</string>
-    <string name="date_pattern">dd. MM. yyyy.</string>
     <string name="action_settings">Podešavanja</string>
     <string name="add_exam">Dodaj ispit</string>
     <string name="add_group">Dodaj grupu</string>
@@ -202,4 +201,21 @@
     <string name="wrong_creds_title">Prijavljivanje neuspešno</string>
     <string name="your_profile_image">Tvoja profilna slika</string>
     <string name="title_activity_member_list">Spisak članova</string>
+    <string name="add_announcement">Kreiraj obaveštenje</string>
+    <string name="add_announcement_title">Kreiraj obaveštenje</string>
+    <string name="announcement_dont_show">Nemoj više prikazivati ovo obaveštenje</string>
+    <string name="announcement_text_hint">Unesi tekst obaveštenja</string>
+    <string name="announcement_title">Obaveštenja za %s</string>
+    <string name="create">Kreiraj</string>
+    <string name="edit_created">je kreirao/la stavku</string>
+    <string name="input_help_text">Svi Unicode karakteri su validni (da, čak i emoji). Međutim, kako bi se pojednostavilo kucanje, postoje neke skraćenice za simbole koji se često koriste: tzv. vrhić (^) postavlja sledeće slovo, cifru ili matematički simbol (+,-,=,(,)) u superskript ("podiže" ga), donja crta (_) postavlja sledeću cifru u supskript ("spušta" je), dok naopaka kosa crta (backslash, \\) transformiše naredno slovo u njegov ekvivalent u grčkom alfabetu. Ako želiš da normalno ukucaš te simbole, udvostruči ih (tj. \\\\ postaje \\). Latinica se prevodi u grčki koristeći sledeću tablicu: </string>
+    <string name="input_help_title">Pomoć za unos</string>
+    <string name="priv">Privatno</string>
+    <string name="private_items_help">Privatne stavke su vidljive samo članovima grupe. Sve stavke unutar kategorije koja je obeležena kao privatna će takođe biti privatne. Ako je prva beleška ili pitanje koje je kreirano u lekciji privatno, cela lekcija se označava kao privatna.</string>
+    <string name="register_underlined"><u>Registruj se</u></string>
+    <string name="show_help">Pomoć</string>
+    <string name="title_activity_announcements">Obaveštenja</string>
+    <string name="toast_announcement_created">Obaveštenje kreirano</string>
+    <string name="view_all_announcements">Vidi sva obaveštenja</string>
+    <string name="register_legal_text">Tekst za licencu, politiku privatnosti i to ide ovde</string>
 </resources>
