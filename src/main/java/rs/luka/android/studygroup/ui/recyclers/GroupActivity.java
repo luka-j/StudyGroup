@@ -26,13 +26,13 @@ import java.util.List;
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.database.GroupTable;
+import rs.luka.android.studygroup.io.network.Courses;
+import rs.luka.android.studygroup.io.network.Groups;
+import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.User;
-import rs.luka.android.studygroup.network.Courses;
-import rs.luka.android.studygroup.network.Groups;
-import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.dialogs.AddAnnouncementDialog;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
@@ -280,9 +280,9 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == REQUEST_CREATE_GROUP) {
             startActivity(new Intent(this, LoadingActivity.class));
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
         }
-        if(fragment != null)
-            fragment.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

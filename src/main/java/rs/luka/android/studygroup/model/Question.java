@@ -13,8 +13,8 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.io.backgroundtasks.QuestionTasks;
 import rs.luka.android.studygroup.io.database.QuestionTable;
-import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.Questions;
+import rs.luka.android.studygroup.io.network.Network;
+import rs.luka.android.studygroup.io.network.Questions;
 
 /**
  * Created by luka on 2.7.15..

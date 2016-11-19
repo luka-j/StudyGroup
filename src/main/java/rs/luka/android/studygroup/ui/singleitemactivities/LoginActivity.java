@@ -16,9 +16,9 @@ import java.net.SocketException;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.io.Limits;
+import rs.luka.android.studygroup.io.network.Network;
+import rs.luka.android.studygroup.io.network.UserManager;
 import rs.luka.android.studygroup.model.User;
-import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.UserManager;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 
 /**

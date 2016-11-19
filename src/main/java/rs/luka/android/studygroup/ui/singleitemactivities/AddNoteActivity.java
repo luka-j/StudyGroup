@@ -38,10 +38,10 @@ import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Note;
-import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.dialogs.InputHelpDialog;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
@@ -84,6 +84,7 @@ public class AddNoteActivity extends AppCompatActivity {
     private int currentNote = 0;
     private boolean editing;
     private boolean isPrivate;
+    private boolean failedAudio = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -112,6 +113,17 @@ public class AddNoteActivity extends AppCompatActivity {
         });
         initTextListeners();
         initMediaListeners();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(failedAudio) {
+            InfoDialog.newInstance(getString(R.string.error_unsupported_op_title),
+                                   getString(R.string.error_unsupported_ext_audio))
+                      .show(getSupportFragmentManager(), "");
+            failedAudio = false;
+        }
     }
 
     @Override
@@ -151,8 +163,14 @@ public class AddNoteActivity extends AppCompatActivity {
                 }
                 image.setImageBitmap(LocalImages.loadImage(imageFile,
                                                            getResources().getDimensionPixelOffset(R.dimen.addview_image_size)));
-            } else if (requestCode == INTENT_AUDIO && data != null) {
-                audioFile = new File(Utils.getRealPathFromUri(this, data.getData()));
+            } else if (requestCode == INTENT_AUDIO && data != null && data.getData() != null) {
+                String realPath = Utils.getRealPathFromUri(this, data.getData());
+                if(realPath == null) {
+                    Log.w(TAG, "audio real path == null");
+                    failedAudio = true;
+                    return;
+                }
+                audioFile = new File(realPath);
                 audio.setColorFilter(getResources().getColor(R.color.color_primary));
             }
         }
@@ -311,7 +329,7 @@ public class AddNoteActivity extends AppCompatActivity {
 
     private void createEditButtons() {
         LayoutInflater inflater = LayoutInflater.from(this);
-        buttonsLayout = (LinearLayout) inflater.inflate(R.layout.buttons_next_done, null, false);
+        buttonsLayout = (LinearLayout) inflater.inflate(R.layout.buttons_next_done, null, false); //todo probably better w/ parent, no time to test
         RelativeLayout.LayoutParams params
                 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
                                                   RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -388,8 +406,7 @@ public class AddNoteActivity extends AppCompatActivity {
         audio.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent audio
-                        = new Intent(Intent.ACTION_GET_CONTENT); //todo this shit returns some awkward URI I can't parse
+                Intent audio = new Intent(Intent.ACTION_GET_CONTENT);
                 audio.setType("audio/*");
                 //Intent chooserIntent = Intent.createChooser(audio,
                 //                                          getString(R.string.select_audio));

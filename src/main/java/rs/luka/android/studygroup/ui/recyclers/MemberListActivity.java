@@ -3,8 +3,8 @@ package rs.luka.android.studygroup.ui.recyclers;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 
+import rs.luka.android.studygroup.io.network.Groups;
 import rs.luka.android.studygroup.model.Group;
-import rs.luka.android.studygroup.network.Groups;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
 

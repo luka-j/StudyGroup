@@ -36,10 +36,10 @@ import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.backgroundtasks.GroupTasks;
 import rs.luka.android.studygroup.io.database.GroupTable;
+import rs.luka.android.studygroup.io.network.Network;
+import rs.luka.android.studygroup.io.network.UserManager;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.User;
-import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.UserManager;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 

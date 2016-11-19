@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.network;
+package rs.luka.android.studygroup.io.network;
 
 import java.io.File;
 import java.io.FileNotFoundException;

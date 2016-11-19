@@ -34,7 +34,7 @@ public class Database extends SQLiteOpenHelper {
 
     private Database(Context context) {
         super(context, DB_NAME, null, VERSION);
-        this.context = context;
+        this.context = context.getApplicationContext();
     }
 
     static Database getInstance(Context c) {

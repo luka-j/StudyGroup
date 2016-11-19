@@ -2,7 +2,7 @@ package rs.luka.android.studygroup.model;
 
 import android.os.Parcelable;
 
-import rs.luka.android.studygroup.network.Network;
+import rs.luka.android.studygroup.io.network.Network;
 
 /**
  *

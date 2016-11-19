@@ -20,7 +20,6 @@ import rs.luka.android.studygroup.io.backgroundtasks.LessonTasks;
 import rs.luka.android.studygroup.io.backgroundtasks.NoteTasks;
 import rs.luka.android.studygroup.io.backgroundtasks.QuestionTasks;
 import rs.luka.android.studygroup.io.database.CourseTable;
-import rs.luka.android.studygroup.io.database.Database;
 import rs.luka.android.studygroup.io.database.LessonTable;
 import rs.luka.android.studygroup.misc.Utils;
 
@@ -109,7 +108,7 @@ public class Course implements Parcelable, Comparable<Course> {
     /**
      * Removes course from the database, keeping all lessons and data associated with it
      * @param c
-     * @see Database#hideCourse(ID)
+     * @see CourseTable#hideCourse(ID)
      */
     public void shallowHide(Context c) {
         new CourseTable(c).hideCourse(id);

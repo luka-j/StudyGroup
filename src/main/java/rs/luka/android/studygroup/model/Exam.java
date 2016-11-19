@@ -13,8 +13,8 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.backgroundtasks.CourseTasks;
 import rs.luka.android.studygroup.io.backgroundtasks.ExamTasks;
 import rs.luka.android.studygroup.io.database.ExamTable;
-import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.Notes;
+import rs.luka.android.studygroup.io.network.Network;
+import rs.luka.android.studygroup.io.network.Notes;
 
 /**
  * Created by luka on 29.7.15..

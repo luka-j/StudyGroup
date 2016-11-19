@@ -105,9 +105,9 @@ public class LessonTable {
     public Cursor queryLessons(ID courseId) {
         SQLiteDatabase db = helper.getReadableDatabase();
         Cursor c = new LessonCursor(db.query(true,
-                                             LessonTable.TABLE_NAME,
+                                             TABLE_NAME,
                                              null,
-                                             LessonTable.LessonEntry.COLUMN_NAME_COURSE_ID + "="
+                                             LessonEntry.COLUMN_NAME_COURSE_ID + "="
                                              + courseId.getCourseIdValue(),
                                              null,
                                              null,
@@ -134,16 +134,16 @@ public class LessonTable {
 
     public void clearLessons(long courseId) {
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.delete(LessonTable.TABLE_NAME,
-                  LessonTable.LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId,
+        db.delete(TABLE_NAME,
+                  LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId,
                   null);
     }
 
-    public void insertLessons(long courseId, rs.luka.android.studygroup.network.Lessons.Lesson[] lessons) {
+    public void insertLessons(long courseId, rs.luka.android.studygroup.io.network.Lessons.Lesson[] lessons) {
         SQLiteDatabase  db   = helper.getWritableDatabase();
-        SQLiteStatement stmt = db.compileStatement(LessonTable.SQL_INSERT);
+        SQLiteStatement stmt = db.compileStatement(SQL_INSERT);
         db.beginTransaction();
-        for (rs.luka.android.studygroup.network.Lessons.Lesson lesson : lessons) {
+        for (rs.luka.android.studygroup.io.network.Lessons.Lesson lesson : lessons) {
             stmt.bindLong(1, courseId);
             stmt.bindString(2, lesson.name);
             stmt.bindLong(3, lesson.noteNo);
@@ -158,31 +158,31 @@ public class LessonTable {
 
     public void hideLesson(ID courseId, String lesson) {
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.delete(LessonTable.TABLE_NAME,
-                  LessonTable.LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() + " AND "
-                  + LessonTable.LessonEntry.COLUMN_NAME_LESSON + "='" + lesson + "'",
+        db.delete(TABLE_NAME,
+                  LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() + " AND "
+                  + LessonEntry.COLUMN_NAME_LESSON + "='" + lesson + "'",
                   null);
     }
 
     public void showLesson(ID courseId, int _id, String lesson, int noteCount, int questionCount) {
         ContentValues cv = new ContentValues(6);
-        cv.put(LessonTable.LessonEntry._ID, _id);
-        cv.put(LessonTable.LessonEntry.COLUMN_NAME_COURSE_ID, courseId.getCourseIdValue());
-        cv.put(LessonTable.LessonEntry.COLUMN_NAME_LESSON, lesson);
-        cv.put(LessonTable.LessonEntry.COLUMN_NAME_NOTE_NO, noteCount);
-        cv.put(LessonTable.LessonEntry.COLUMN_NAME_QUESTION_NO, questionCount);
+        cv.put(LessonEntry._ID, _id);
+        cv.put(LessonEntry.COLUMN_NAME_COURSE_ID, courseId.getCourseIdValue());
+        cv.put(LessonEntry.COLUMN_NAME_LESSON, lesson);
+        cv.put(LessonEntry.COLUMN_NAME_NOTE_NO, noteCount);
+        cv.put(LessonEntry.COLUMN_NAME_QUESTION_NO, questionCount);
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.insert(LessonTable.TABLE_NAME, null, cv);
+        db.insert(TABLE_NAME, null, cv);
     }
 
     public void renameLesson(ID courseId, String oldName, String newName) {
         ContentValues cv = new ContentValues(1);
-        cv.put(LessonTable.LessonEntry.COLUMN_NAME_LESSON, newName);
+        cv.put(LessonEntry.COLUMN_NAME_LESSON, newName);
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.update(LessonTable.TABLE_NAME,
+        db.update(TABLE_NAME,
                   cv,
-                  LessonTable.LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() + " AND "
-                  + LessonTable.LessonEntry.COLUMN_NAME_LESSON + "='" + oldName + "'",
+                  LessonEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() + " AND "
+                  + LessonEntry.COLUMN_NAME_LESSON + "='" + oldName + "'",
                   null);
         db.update(NoteTable.TABLE_NAME, cv, NoteTable.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + courseId.getCourseIdValue() +
                                             " AND " + NoteTable.NoteEntry.COLUMN_NAME_LESSON + "='" + oldName + "'", null);

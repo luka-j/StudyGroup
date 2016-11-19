@@ -15,9 +15,9 @@ import java.io.IOException;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.io.database.GroupTable;
+import rs.luka.android.studygroup.io.network.Groups;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
-import rs.luka.android.studygroup.network.Groups;
 
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
 
@@ -26,8 +26,8 @@ import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToEx
  */
 public class GroupTasks {
     public static final int     LOADER_ID            = 0;
-    private static final String LAST_FETCH_KEY       = "lfGroups";
-    private static final String LAST_FETCH_THUMB_KEY = "lfGThumb";
+    static final String LAST_FETCH_KEY       = "lfGroups";
+    static final String LAST_FETCH_THUMB_KEY = "lfGThumb";
     private static final int    FETCH_TIMEOUT        = 1000 * 60 * 2; //2min, non-refreshable
     private static final String TAG                  = "background.GroupTasks";
 

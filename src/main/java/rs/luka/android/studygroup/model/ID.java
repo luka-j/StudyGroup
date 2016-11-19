@@ -11,6 +11,16 @@ import java.util.Arrays;
 import java.util.Random;
 
 /**
+ * Hijerarhijski ID, menjao se poprilično kroz vreme. Može predstavljati grupu, kurs ili "item" - belešku, pitanje
+ * ili proveru. Iako je u trenutnoj implementaciji jedan long dovoljan za predstavljanje bilo koje stavke,
+ * to nije od početka bio slučaj, odnosno originalna ideja je bila da svaka stavka vuče ovaj ID sa sobom, na osnovu
+ * koga bi mogla da nađe roditelje, a ID vrednost roditelja je sastavni deo ID-a deteta (grupe i kursevi su imali
+ * svoj prostor, dok su itemovi delili 4 bajta). Ispostavlja se da je to nepraktično čuvati u bazi u tom obliku,
+ * stoga ovaj format.
+ *
+ * ID nije namenjen za prosleđivanje drugima, kao ni za "rasparčavanje" (uzimanje samo određenih bajtova iz njega),
+ * ali su te funkcije neophodne za rad baze i komunikaciju sa serverom, stoga su ovde pružene.
+ *
  * Created by luka on 24.7.15.
  */
 public class ID implements Parcelable, Comparable<ID> {

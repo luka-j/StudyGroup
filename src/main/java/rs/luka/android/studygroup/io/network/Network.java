@@ -1,4 +1,4 @@
-package rs.luka.android.studygroup.network;
+package rs.luka.android.studygroup.io.network;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -39,7 +39,7 @@ public class Network {
     /**
      * debug flag: set to false for using server on LAN
      */
-    public static final boolean USE_REMOTE_SERVER = false;
+    public static final boolean USE_REMOTE_SERVER = true;
 
     private static final int BUFFER_SIZE = 51_200; //50kb
 
@@ -318,8 +318,7 @@ public class Network {
                     (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
             NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-            return activeNetwork != null &&
-                                  activeNetwork.isConnectedOrConnecting();
+            return activeNetwork != null && activeNetwork.isConnected();
         }
     }
 }

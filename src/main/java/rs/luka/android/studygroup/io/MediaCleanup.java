@@ -11,12 +11,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import rs.luka.android.studygroup.io.database.CourseTable;
+import rs.luka.android.studygroup.io.network.Lessons;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
-import rs.luka.android.studygroup.network.Lessons;
 
 /**
  * Created by luka on 7.2.16..
@@ -24,12 +24,12 @@ import rs.luka.android.studygroup.network.Lessons;
 public class MediaCleanup {
     private static final ScheduledExecutorService executor      = Executors.newSingleThreadScheduledExecutor();
 
-    private static final Pattern groupPattern  = Pattern.compile("IMG_Group-[0-9]+\\.jpg");
-    private static final Pattern coursePattern = Pattern.compile("IMG_Course-[0-9]+\\.jpg");
-    private static final Pattern notePattern = Pattern.compile(".*-NIMG_[0-9]+\\.jpg");
-    private static final Pattern questionPattern = Pattern.compile(".*-QIMG_[0-9]+\\.jpg");
-    private static final Pattern noteThumbPattern = Pattern.compile(".*-nthumb[0-9]+\\.jpg");
-    private static final Pattern questionThumbPattern = Pattern.compile(".*-qthumb[0-9]+\\.jpg");
+    private static final Pattern groupPattern  = Pattern.compile("IMG_Group-[0-9]+\\.");
+    private static final Pattern coursePattern = Pattern.compile("IMG_Course-[0-9]+\\.");
+    private static final Pattern notePattern = Pattern.compile(".*-NIMG_[0-9]+\\.");
+    private static final Pattern questionPattern = Pattern.compile(".*-QIMG_[0-9]+\\.");
+    private static final Pattern noteThumbPattern = Pattern.compile(".*-nthumb[0-9]+\\.");
+    private static final Pattern questionThumbPattern = Pattern.compile(".*-qthumb[0-9]+\\.");
     private static final Pattern noteAudioPattern = Pattern.compile(".*-REC_[0-9]+\\.mp3");
 
     public static void cleanupGroups(final Group[] groups) {
@@ -72,10 +72,18 @@ public class MediaCleanup {
         }, 1, TimeUnit.SECONDS);
     }
 
-    private static void removeDirectory(File directory) {
+    /**
+     * Removes all files from current directory, including the directory itself. It won't delete subdirectories
+     * and files inside them, and in that case the passed directory won't be deleted (however, all files inside
+     * the passed directory will be removed nonetheless)
+     * @param directory
+     */
+    private static boolean removeDirectory(File directory) {
+        boolean success = true;
         File[] children = directory.listFiles();
-        for(File child : children) child.delete();
-        directory.delete();
+        for(File child : children) if(!child.delete()) success = false;
+        if(!directory.delete()) success = false;
+        return success;
     }
 
     public static void cleanupLessons(final Context c, final long courseId, final Lessons.Lesson[] lessons) {
@@ -116,7 +124,7 @@ public class MediaCleanup {
                 File[] audio = new File(LocalAudio.APP_AUDIO_DIR, course.getSubject()).listFiles();
                 cleanupItems(audio, noteAudioPattern, noteIds);
             }
-        }, 3, TimeUnit.SECONDS);
+        }, 4, TimeUnit.SECONDS);
     }
 
     public static void cleanupQuestions(final Context c, final long courseId, final Question[] questions) {
@@ -131,7 +139,7 @@ public class MediaCleanup {
                 File[] thumbs = new File(LocalImages.APP_THUMBS_DIR, course.getSubject()).listFiles();
                 cleanupItems(thumbs, questionThumbPattern, questionIds);
             }
-        }, 3, TimeUnit.SECONDS);
+        }, 4, TimeUnit.SECONDS);
     }
 
     private static void cleanupItems(final File[] files, Pattern pattern, Set<Long> ids) {

@@ -10,8 +10,8 @@ import java.util.Date;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.database.ExamTable;
+import rs.luka.android.studygroup.io.network.Exams;
 import rs.luka.android.studygroup.model.ID;
-import rs.luka.android.studygroup.network.Exams;
 
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
 
@@ -21,7 +21,7 @@ import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToEx
 public class ExamTasks {
     public static final int     LOADER_ID      = 4;
     private static final String TAG            = "background.ExamTasks";
-    private static final String LAST_FETCH_KEY = "lfExams";
+    static final String LAST_FETCH_KEY = "lfExams";
     private static final int    FETCH_TIMEOUT  = DataManager.FETCH_TIMEOUT_ITEMS;
 
     public static void getExams(final Context c, final long groupId,

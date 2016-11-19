@@ -15,10 +15,10 @@ import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.io.database.CourseTable;
+import rs.luka.android.studygroup.io.network.Courses;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
-import rs.luka.android.studygroup.network.Courses;
 
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
 
@@ -27,10 +27,10 @@ import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToEx
  */
 public class CourseTasks {
     public static final int     LOADER_ID            = 1;
-    private static final String LAST_FETCH_KEY       = "lfCourses";
-    private static final int    FETCH_TIMEOUT        = 1000 * 60 * 60 * 3; //3h
+    static final String LAST_FETCH_KEY       = "lfCourses";
+    private static final int    FETCH_TIMEOUT        = 1000 * 60 * 40; //40min
     private static final String TAG                  = "background.CourseTasks";
-    private static final String LAST_FETCH_THUMB_KEY = "lfCThumb";
+    static final String LAST_FETCH_THUMB_KEY = "lfCThumb";
 
     public static void getCourses(final Context c, final Group group, final android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor> callbacks,
                                   final android.support.v4.app.LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
@@ -90,7 +90,7 @@ public class CourseTasks {
                 try {
                     String displaySubject = subject;
                     if(isPrivate) {
-                        displaySubject += " (" + c.getString(R.string.priv) + ")";
+                        displaySubject = "{"+c.getString(R.string.private_prefix)+"} " + displaySubject;
                     }
                     Long courseId = Courses.createCourse(groupId.getGroupIdValue(), displaySubject, teacher, year,
                                                          isPrivate?Group.PERM_WRITE:Group.PERM_READ_CAN_REQUEST_WRITE, handler);

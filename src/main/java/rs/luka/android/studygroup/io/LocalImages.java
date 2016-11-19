@@ -177,6 +177,8 @@ public class LocalImages {
         return new File(APP_THUMBS_DIR,
                         "IMG_Group-" + id.getGroupIdValue()
                                               + ".jpg"); // TODO: 19.9.15. support i za druge formate sem jpg
+        //note 18.11.16. drugi formati su podržani, iako ova klasa imenuje sve kao ".jpg", to ne znači da je tip
+        //fajla jpg (može biti i png), tako da se ne bi trebalo oslanjati na ektenziju
     }
 
     public static File generateCourseImageFile(ID id) throws IOException {
@@ -240,7 +242,7 @@ public class LocalImages {
 
     private static void saveImage(File oldImage, File newImage) {
         if (oldImage.getName()
-                    .endsWith("temp")) { // TODO: 10.9.15. minor fix (i drugi fajlovi mogu da se završavaju na temp)
+                    .endsWith(".temp")) { // TODO: 10.9.15. fix: i drugi fajlovi mogu da se završavaju na .temp
             boolean renameSuccess = oldImage.renameTo(newImage);
             if (!renameSuccess) {
                 Log.e(TAG,

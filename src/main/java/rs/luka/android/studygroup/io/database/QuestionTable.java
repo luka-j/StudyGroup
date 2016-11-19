@@ -82,15 +82,15 @@ public class QuestionTable {
             if (isBeforeFirst() || isAfterLast()) {
                 return null;
             }
-            ID id = new ID(getLong(getColumnIndex(QuestionTable.QuestionEntry.COLUMN_NAME_GROUP_ID)),
-                           getLong(getColumnIndex(QuestionTable.QuestionEntry.COLUMN_NAME_COURSE_ID)),
-                           getLong(getColumnIndex(QuestionTable.QuestionEntry.COLUMN_NAME_ID)));
+            ID id = new ID(getLong(getColumnIndex(QuestionEntry.COLUMN_NAME_GROUP_ID)),
+                           getLong(getColumnIndex(QuestionEntry.COLUMN_NAME_COURSE_ID)),
+                           getLong(getColumnIndex(QuestionEntry.COLUMN_NAME_ID)));
             return new Question(id,
-                                getString(getColumnIndex(QuestionTable.QuestionEntry.COLUMN_NAME_LESSON)),
-                                getString(getColumnIndex(QuestionTable.QuestionEntry.COLUMN_NAME_QUESTION)),
-                                getString(getColumnIndex(QuestionTable.QuestionEntry.COLUMN_NAME_ANSWER)),
-                                getInt(getColumnIndex(QuestionTable.QuestionEntry.COLUMN_NAME_IMAGE)) != 0,
-                                getInt(getColumnIndex(QuestionTable.QuestionEntry.COLUMN_NAME_ORDER)));
+                                getString(getColumnIndex(QuestionEntry.COLUMN_NAME_LESSON)),
+                                getString(getColumnIndex(QuestionEntry.COLUMN_NAME_QUESTION)),
+                                getString(getColumnIndex(QuestionEntry.COLUMN_NAME_ANSWER)),
+                                getInt(getColumnIndex(QuestionEntry.COLUMN_NAME_IMAGE)) != 0,
+                                getInt(getColumnIndex(QuestionEntry.COLUMN_NAME_ORDER)));
         }
     }
 
@@ -102,72 +102,72 @@ public class QuestionTable {
 
     public void insertQuestion(ID id, String lesson, String question, String answer, boolean hasImage, int order) {
         ContentValues cv = new ContentValues(5);
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_ID, id.getItemIdValue());
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_LESSON, lesson);
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_QUESTION, question);
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_ANSWER, answer);
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_IMAGE, hasImage);
-        if(order != 0) cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_ORDER, order);
-        else           cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_ORDER, Integer.MAX_VALUE);
+        cv.put(QuestionEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
+        cv.put(QuestionEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
+        cv.put(QuestionEntry.COLUMN_NAME_ID, id.getItemIdValue());
+        cv.put(QuestionEntry.COLUMN_NAME_LESSON, lesson);
+        cv.put(QuestionEntry.COLUMN_NAME_QUESTION, question);
+        cv.put(QuestionEntry.COLUMN_NAME_ANSWER, answer);
+        cv.put(QuestionEntry.COLUMN_NAME_IMAGE, hasImage);
+        if(order != 0) cv.put(QuestionEntry.COLUMN_NAME_ORDER, order);
+        else           cv.put(QuestionEntry.COLUMN_NAME_ORDER, Integer.MAX_VALUE);
         SQLiteDatabase db   = helper.getWritableDatabase();
-        long           code = db.insert(QuestionTable.TABLE_NAME, null, cv);
+        long           code = db.insert(TABLE_NAME, null, cv);
     }
 
     public void updateQuestion(ID id, String lesson, String question, String answer, boolean hasImage) {
         ContentValues cv = new ContentValues(3);
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_LESSON, lesson);
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_QUESTION, question);
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_ANSWER, answer);
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_IMAGE, hasImage);
+        cv.put(QuestionEntry.COLUMN_NAME_LESSON, lesson);
+        cv.put(QuestionEntry.COLUMN_NAME_QUESTION, question);
+        cv.put(QuestionEntry.COLUMN_NAME_ANSWER, answer);
+        cv.put(QuestionEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.update(QuestionTable.TABLE_NAME,
+        db.update(TABLE_NAME,
                   cv,
-                  QuestionTable.QuestionEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
+                  QuestionEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
                   null);
     }
 
     public void reorderQuestion(ID id, String lesson, int newPosition, int currentPosition) {
         SQLiteDatabase db = helper.getWritableDatabase();
         if(newPosition < currentPosition) {
-            db.rawQuery("UPDATE " + QuestionTable.TABLE_NAME + " SET " +
-                        QuestionTable.QuestionEntry.COLUMN_NAME_ORDER + " = " + QuestionTable.QuestionEntry.COLUMN_NAME_ORDER + "+1 "
-                        + "WHERE " + QuestionTable.QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
-                        " AND " + QuestionTable.QuestionEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
-                        QuestionTable.QuestionEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
+            db.rawQuery("UPDATE " + TABLE_NAME + " SET " +
+                        QuestionEntry.COLUMN_NAME_ORDER + " = " + QuestionEntry.COLUMN_NAME_ORDER + "+1 "
+                        + "WHERE " + QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
+                        " AND " + QuestionEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
+                        QuestionEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
                         null);
         } else if(newPosition > currentPosition) {
-            db.rawQuery("UPDATE " + QuestionTable.TABLE_NAME + " SET " +
-                        QuestionTable.QuestionEntry.COLUMN_NAME_ORDER + " = " + QuestionTable.QuestionEntry.COLUMN_NAME_ORDER + "-1 "
-                        + "WHERE " + QuestionTable.QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
-                        " AND " + QuestionTable.QuestionEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
-                        QuestionTable.QuestionEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
+            db.rawQuery("UPDATE " + TABLE_NAME + " SET " +
+                        QuestionEntry.COLUMN_NAME_ORDER + " = " + QuestionEntry.COLUMN_NAME_ORDER + "-1 "
+                        + "WHERE " + QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
+                        " AND " + QuestionEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
+                        QuestionEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
                         null);
         }
         ContentValues cv = new ContentValues(1);
-        cv.put(QuestionTable.QuestionEntry.COLUMN_NAME_ORDER, newPosition);
-        db.update(QuestionTable.TABLE_NAME, cv, QuestionTable.QuestionEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
+        cv.put(QuestionEntry.COLUMN_NAME_ORDER, newPosition);
+        db.update(TABLE_NAME, cv, QuestionEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
     }
 
     public void removeQuestion(ID id, String lesson) {
         SQLiteDatabase db = helper.getWritableDatabase();
-        long code = db.delete(QuestionTable.TABLE_NAME,
-                              QuestionTable.QuestionEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
+        long code = db.delete(TABLE_NAME,
+                              QuestionEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
                               null);
     }
 
     public void clearQuestions(long courseId, String lesson) {
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.delete(QuestionTable.TABLE_NAME,
-                  QuestionTable.QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + courseId + " AND " +
-                  QuestionTable.QuestionEntry.COLUMN_NAME_LESSON + "='" + lesson + "'",
+        db.delete(TABLE_NAME,
+                  QuestionEntry.COLUMN_NAME_COURSE_ID + "=" + courseId + " AND " +
+                  QuestionEntry.COLUMN_NAME_LESSON + "='" + lesson + "'",
                   null);
     }
 
     public void insertQuestions(Question[] questions) {
         SQLiteDatabase  db   = helper.getWritableDatabase();
-        SQLiteStatement stmt = db.compileStatement(QuestionTable.SQL_INSERT);
+        SQLiteStatement stmt = db.compileStatement(SQL_INSERT);
         db.beginTransaction();
 
         for (Question question : questions) {
@@ -189,9 +189,9 @@ public class QuestionTable {
     public QuestionCursor queryQuestions(ID courseId, String lesson) {
         if (lesson.isEmpty()) { return null; }
         SQLiteDatabase db = helper.getReadableDatabase();
-        QuestionCursor c = new QuestionCursor(db.query(QuestionTable.TABLE_NAME,
+        QuestionCursor c = new QuestionCursor(db.query(TABLE_NAME,
                                                        null,
-                                                       QuestionTable.QuestionEntry.COLUMN_NAME_COURSE_ID
+                                                       QuestionEntry.COLUMN_NAME_COURSE_ID
                                                        + "=" + courseId.getCourseIdValue() +
                                                        " AND "
                                                        + NoteTable.NoteEntry.COLUMN_NAME_LESSON + "='"
@@ -199,7 +199,7 @@ public class QuestionTable {
                                                        null,
                                                        null,
                                                        null,
-                                                       QuestionTable.QuestionEntry.COLUMN_NAME_ORDER + " asc"));
+                                                       QuestionEntry.COLUMN_NAME_ORDER + " asc"));
         return c;
     }
 }

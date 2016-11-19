@@ -16,7 +16,7 @@ public class DataManager {
     private static final String PREFS_NAME = "fetchHistory";
 
     static final int FETCH_TIMEOUT_THUMBS = 1000 * 60 * 15; //15min
-    static final int FETCH_TIMEOUT_ITEMS  = 1000 * 60 * 5; //5min
+    static final int FETCH_TIMEOUT_ITEMS  = 1000 * 60 * 3; //3min
 
     static final int THUMB_THRESHOLD = 250;
 
@@ -37,6 +37,13 @@ public class DataManager {
         SharedPreferences.Editor editor      = prefs.edit();
         long                     currentTime = System.currentTimeMillis();
         editor.putLong(key, currentTime);
+        editor.apply();
+    }
+
+    static void resetLastFetch(Context context, String key) {
+        SharedPreferences        prefs       = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor      = prefs.edit();
+        editor.remove(key);
         editor.apply();
     }
 

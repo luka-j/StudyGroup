@@ -13,8 +13,8 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.io.backgroundtasks.NoteTasks;
 import rs.luka.android.studygroup.io.database.NoteTable;
-import rs.luka.android.studygroup.network.Network;
-import rs.luka.android.studygroup.network.Notes;
+import rs.luka.android.studygroup.io.network.Network;
+import rs.luka.android.studygroup.io.network.Notes;
 
 /**
  * Created by luka on 2.7.15..

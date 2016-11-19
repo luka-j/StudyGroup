@@ -241,4 +241,7 @@
     <string name="title_activity_announcements">Announcements</string>
     <string name="invite_only">Invite-only</string>
     <string name="membership_requested">(membership requested)</string>
+    <string name="error_unsupported_op_title">Unsupported operation</string>
+    <string name="error_unsupported_ext_audio">Sorry, selecting audio from (some) SD cards isn\'t supported yet :(</string>
+    <string name="private_prefix">P</string>
 </resources>

@@ -9,9 +9,9 @@ import java.io.IOException;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.database.LessonTable;
+import rs.luka.android.studygroup.io.network.Lessons;
 import rs.luka.android.studygroup.misc.TextUtils;
 import rs.luka.android.studygroup.model.ID;
-import rs.luka.android.studygroup.network.Lessons;
 
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
 
@@ -20,8 +20,8 @@ import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToEx
  */
 public class LessonTasks {
     public static final int     LOADER_ID      = 5;
-    private static final String LAST_FETCH_KEY = "lfLessons";
-    private static final int    FETCH_TIMEOUT  = 1000 * 60 * 30; //30min
+    static final String LAST_FETCH_KEY = "lfLessons";
+    private static final int    FETCH_TIMEOUT  = 1000 * 60 * 15; //15min
     private static final String TAG            = "background.LessonTasks";
 
     public static void getLessons(final Context c, final long courseId,

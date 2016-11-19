@@ -23,6 +23,9 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.util.Log;
+
+import java.io.File;
 
 /**
  * Created by luka on 19.9.15..
@@ -73,6 +76,7 @@ public class FilePathUtils {
      * @param context The context.
      * @param uri     The Uri to query.
      * @author paulburke
+     * @author luka
      */
     @SuppressLint("NewApi")
     public static String getPath(final Context context, final Uri uri) {
@@ -88,9 +92,12 @@ public class FilePathUtils {
 
                 if ("primary".equalsIgnoreCase(type)) {
                     return Environment.getExternalStorageDirectory() + "/" + split[1];
+                } else {
+                    Log.i("FilePathUtils", "storage type: " + type);
+                    File sdcard = getSDCard();
+                    if(sdcard == null) return null;
+                    return sdcard.getPath() + "/" + split[1];
                 }
-
-                // TODO handle non-primary volumes
             }
             // DownloadsProvider
             else if (isDownloadsDocument(uri)) {
@@ -173,5 +180,19 @@ public class FilePathUtils {
      */
     public static boolean isGooglePhotosUri(Uri uri) {
         return "com.google.android.apps.photos.content".equals(uri.getAuthority());
+    }
+
+    private static final String[] sdCardPaths = {"/storage/extSdCard/", "/storage/sdcard1/", "/storage/usbsdcard1/",
+                                                 "/storage/ext_sd/", "/ext-storage/", "/ext-card/", "/mnt/sdcard1/"};
+
+    /**
+     * Guesses where sdcard might be. Sometimes works, sometimes doesn't.
+     * @return File represeting root of the sdcard if found, null otherwise
+     * @author luka
+     */
+    public static File getSDCard() {
+        File f;
+        for(String s : sdCardPaths) if((f=new File(s)).exists()) return f;
+        return null;
     }
 }

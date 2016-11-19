@@ -20,10 +20,10 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.Loaders;
 import rs.luka.android.studygroup.io.backgroundtasks.CourseTasks;
 import rs.luka.android.studygroup.io.backgroundtasks.GroupTasks;
+import rs.luka.android.studygroup.io.network.Courses;
+import rs.luka.android.studygroup.io.network.Groups;
+import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.misc.Utils;
-import rs.luka.android.studygroup.network.Courses;
-import rs.luka.android.studygroup.network.Groups;
-import rs.luka.android.studygroup.network.Network;
 
 /**
  * Created by Luka on 7/1/2015.

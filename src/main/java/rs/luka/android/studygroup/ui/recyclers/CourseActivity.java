@@ -9,8 +9,8 @@ import android.view.Menu;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
+import rs.luka.android.studygroup.io.network.Lessons;
 import rs.luka.android.studygroup.model.Course;
-import rs.luka.android.studygroup.network.Lessons;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
 import rs.luka.android.studygroup.ui.dialogs.InputDialog;

@@ -17,13 +17,14 @@ import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.LocalAudio;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.io.database.NoteTable;
+import rs.luka.android.studygroup.io.network.Notes;
 import rs.luka.android.studygroup.misc.TextUtils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
-import rs.luka.android.studygroup.network.Notes;
 
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
+import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.resetLastFetch;
 
 /**
  * Created by luka on 17.10.16..
@@ -31,9 +32,9 @@ import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToEx
 public class NoteTasks {
     public static final int     LOADER_ID            = 2;
     private static final String TAG                  = "background.NoteTasks";
-    private static final String LAST_FETCH           = "lfNotes";
+    static final String LAST_FETCH           = "lfNotes";
     private static final int    FETCH_TIMEOUT        = DataManager.FETCH_TIMEOUT_ITEMS; //5min
-    private static final String LAST_FETCH_THUMB_KEY = "lfNThumbs";
+    static final String LAST_FETCH_THUMB_KEY = "lfNThumbs";
 
     public static void getNotes(final Context c, final long courseId, final String lesson,
                                 final LoaderManager.LoaderCallbacks<Cursor> callbacks,
@@ -96,6 +97,7 @@ public class NoteTasks {
                             Notes.updateAudio(noteId, audio, handler);
                             LocalAudio.saveNoteAudio(id, courseName, realLesson, audio);
                         }
+                        resetLastFetch(c, LessonTasks.LAST_FETCH_KEY);
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Notes#createNote returned null; exception should have been handled");
@@ -171,7 +173,7 @@ public class NoteTasks {
 
     public static void getNoteImage(final Context c, final ID id, final String courseName, final String lessonName,
                                     final int scaleTo, final NetworkExceptionHandler handler, final ImageView insertInto) {
-        DataManager.executor.execute(new Runnable() {
+        pushToExecutor(new Runnable() {
             @Override
             public void run() {
                 if(scaleTo > DataManager.THUMB_THRESHOLD)
@@ -251,7 +253,7 @@ public class NoteTasks {
 
     public static void getAudio(final int requestId, final ID noteId, final String courseName, final String lessonName,
                                 final NetworkExceptionHandler exceptionHandler, final AudioCallbacks callbacks) {
-        DataManager.executor.execute(new Runnable() {
+        pushToExecutor(new Runnable() {
             @Override
             public void run() {
                 File file = LocalAudio.generateItemAudioFile(courseName, lessonName, noteId);

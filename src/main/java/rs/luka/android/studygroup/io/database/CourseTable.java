@@ -77,12 +77,12 @@ public class CourseTable {
             if (isBeforeFirst() || isAfterLast()) {
                 return null;
             }
-            ID id = new ID(getLong(getColumnIndex(CourseTable.CourseEntry.COLUMN_NAME_GROUP_ID)),
-                           getLong(getColumnIndex(CourseTable.CourseEntry.COLUMN_NAME_ID)));
-            return new Course(id, getString(getColumnIndex(CourseTable.CourseEntry.COLUMN_NAME_SUBJECT)),
-                              getString(getColumnIndex(CourseTable.CourseEntry.COLUMN_NAME_TEACHER)),
-                              getInt(getColumnIndex(CourseTable.CourseEntry.COLUMN_NAME_YEAR)),
-                              getInt(getColumnIndex(CourseTable.CourseEntry.COLUMN_NAME_IMAGE)) != 0);
+            ID id = new ID(getLong(getColumnIndex(CourseEntry.COLUMN_NAME_GROUP_ID)),
+                           getLong(getColumnIndex(CourseEntry.COLUMN_NAME_ID)));
+            return new Course(id, getString(getColumnIndex(CourseEntry.COLUMN_NAME_SUBJECT)),
+                              getString(getColumnIndex(CourseEntry.COLUMN_NAME_TEACHER)),
+                              getInt(getColumnIndex(CourseEntry.COLUMN_NAME_YEAR)),
+                              getInt(getColumnIndex(CourseEntry.COLUMN_NAME_IMAGE)) != 0);
         }
     }
 
@@ -93,27 +93,27 @@ public class CourseTable {
 
     public void insertCourse(ID id, String subject, String teacher, Integer year, boolean hasImage) {
         ContentValues cv = new ContentValues(5);
-        cv.put(CourseTable.CourseEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
-        cv.put(CourseTable.CourseEntry.COLUMN_NAME_ID, id.getCourseIdValue());
-        cv.put(CourseTable.CourseEntry.COLUMN_NAME_SUBJECT, subject);
-        cv.put(CourseTable.CourseEntry.COLUMN_NAME_TEACHER, teacher);
-        cv.put(CourseTable.CourseEntry.COLUMN_NAME_YEAR, year);
-        cv.put(CourseTable.CourseEntry.COLUMN_NAME_IMAGE, hasImage);
+        cv.put(CourseEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
+        cv.put(CourseEntry.COLUMN_NAME_ID, id.getCourseIdValue());
+        cv.put(CourseEntry.COLUMN_NAME_SUBJECT, subject);
+        cv.put(CourseEntry.COLUMN_NAME_TEACHER, teacher);
+        cv.put(CourseEntry.COLUMN_NAME_YEAR, year);
+        cv.put(CourseEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db   = helper.getWritableDatabase();
-        long           code = db.insert(CourseTable.TABLE_NAME, null, cv);
+        long           code = db.insert(TABLE_NAME, null, cv);
     }
 
     public void updateCourse(ID id, String subject, String teacher, Integer year, boolean hasImage) {
         ContentValues cv = new ContentValues(3);
-        cv.put(CourseTable.CourseEntry.COLUMN_NAME_SUBJECT, subject);
-        cv.put(CourseTable.CourseEntry.COLUMN_NAME_TEACHER, teacher);
-        cv.put(CourseTable.CourseEntry.COLUMN_NAME_YEAR, year);
-        cv.put(CourseTable.CourseEntry.COLUMN_NAME_IMAGE, hasImage);
+        cv.put(CourseEntry.COLUMN_NAME_SUBJECT, subject);
+        cv.put(CourseEntry.COLUMN_NAME_TEACHER, teacher);
+        cv.put(CourseEntry.COLUMN_NAME_YEAR, year);
+        cv.put(CourseEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db = helper.getWritableDatabase();
-        long code = db.update(CourseTable.TABLE_NAME,
+        long code = db.update(TABLE_NAME,
                               cv,
-                              CourseTable.CourseEntry.COLUMN_NAME_GROUP_ID + "=" + id.getGroupIdValue() +
-                              " AND " + CourseTable.CourseEntry.COLUMN_NAME_ID + "=" + id.getCourseIdValue(),
+                              CourseEntry.COLUMN_NAME_GROUP_ID + "=" + id.getGroupIdValue() +
+                              " AND " + CourseEntry.COLUMN_NAME_ID + "=" + id.getCourseIdValue(),
                               null);
     }
 
@@ -128,22 +128,22 @@ public class CourseTable {
      */
     public void hideCourse(ID id) {
         SQLiteDatabase db = helper.getWritableDatabase();
-        long code = db.delete(CourseTable.TABLE_NAME,
-                              CourseTable.CourseEntry.COLUMN_NAME_ID + "=" + id.getCourseIdValue(),
+        long code = db.delete(TABLE_NAME,
+                              CourseEntry.COLUMN_NAME_ID + "=" + id.getCourseIdValue(),
                               null);
         Log.i(TAG, "hideCourse status: " + code);
     }
 
     public void clearCourses(long groupId) {
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.delete(CourseTable.TABLE_NAME,
-                  CourseTable.CourseEntry.COLUMN_NAME_GROUP_ID + "=" + groupId,
+        db.delete(TABLE_NAME,
+                  CourseEntry.COLUMN_NAME_GROUP_ID + "=" + groupId,
                   null);
     }
 
     public void insertCourses(Course[] courses) {
         SQLiteDatabase  db   = helper.getWritableDatabase();
-        SQLiteStatement stmt = db.compileStatement(CourseTable.SQL_INSERT);
+        SQLiteStatement stmt = db.compileStatement(SQL_INSERT);
         db.beginTransaction();
 
         for (Course course : courses) {
@@ -166,23 +166,23 @@ public class CourseTable {
 
     public CourseCursor queryCourses(ID groupId) {
         SQLiteDatabase db = helper.getReadableDatabase();
-        CourseCursor c = new CourseCursor(db.query(CourseTable.TABLE_NAME,
+        CourseCursor c = new CourseCursor(db.query(TABLE_NAME,
                                                    null,
-                                                   CourseTable.CourseEntry.COLUMN_NAME_GROUP_ID
+                                                   CourseEntry.COLUMN_NAME_GROUP_ID
                                                    + "=" + groupId.getGroupIdValue(),
                                                    null,
                                                    null,
                                                    null,
-                                                   CourseTable.CourseEntry.COLUMN_NAME_ID
+                                                   CourseEntry.COLUMN_NAME_ID
                                                    + " asc"));
         return c;
     }
 
     public Course queryCourse(ID courseId) {
         SQLiteDatabase db = helper.getReadableDatabase();
-        CourseCursor c = new CourseCursor(db.query(CourseTable.TABLE_NAME,
+        CourseCursor c = new CourseCursor(db.query(TABLE_NAME,
                                                    null,
-                                                   CourseTable.CourseEntry.COLUMN_NAME_ID
+                                                   CourseEntry.COLUMN_NAME_ID
                                                    + "=" + courseId.getCourseIdValue(),
                                                    null,
                                                    null,

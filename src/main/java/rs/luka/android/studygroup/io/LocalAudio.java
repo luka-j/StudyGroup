@@ -34,6 +34,8 @@ public class LocalAudio {
         return new File(courseDir,
                         lessonName + "-REC_" + itemId.toString()
                         + ".mp3"); // TODO: 19.9.15. support i za druge formate sem mp3
+        //note 18.11.16. drugi formati su podržani, iako ova klasa sve imenuje kao ".mp3", to ne znači da je tip
+        //fajla mp3, tako da se ne bi trebalo oslanjati na ekstenziju
     }
 
     private static void saveAudio(File oldFile, File newFile) {

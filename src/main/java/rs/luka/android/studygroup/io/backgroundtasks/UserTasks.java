@@ -11,9 +11,9 @@ import java.io.IOException;
 
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.LocalImages;
+import rs.luka.android.studygroup.io.network.UserManager;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.User;
-import rs.luka.android.studygroup.network.UserManager;
 
 /**
  * Created by luka on 17.10.16..

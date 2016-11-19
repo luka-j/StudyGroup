@@ -48,8 +48,6 @@ public class GroupTable {
                                              GroupEntry.COLUMN_NAME_PERMISSION +
                                              ")" + Database.VALS + "(?, ?, ?, ?, ?, ?)";
 
-    public GroupTable() {}
-
     public static abstract class GroupEntry implements BaseColumns {
         public static final String COLUMN_NAME_ID         = _ID;
         public static final String COLUMN_NAME_SCHOOL     = "name";
@@ -71,10 +69,10 @@ public class GroupTable {
             ID id = new ID(getLong(getColumnIndex(GroupEntry.COLUMN_NAME_ID)));
             Group ret =  new Group(id, getString(getColumnIndex(GroupEntry.COLUMN_NAME_SCHOOL)),
                                    getString(getColumnIndex(GroupEntry.COLUMN_NAME_PLACE)),
-                                   getInt(getColumnIndex(GroupTable.GroupEntry.COLUMN_NAME_IMAGE)) != 0,
-                                   Utils.stringToList(getString(getColumnIndex(GroupTable.GroupEntry.COLUMN_NAME_YEARS))),
-                                   getInt(getColumnIndex(GroupTable.GroupEntry.COLUMN_NAME_PERMISSION)));
-            ret.setFiltering(Utils.stringToList(getString(getColumnIndex(GroupTable.GroupEntry.COLUMN_NAME_FILTERING))));
+                                   getInt(getColumnIndex(GroupEntry.COLUMN_NAME_IMAGE)) != 0,
+                                   Utils.stringToList(getString(getColumnIndex(GroupEntry.COLUMN_NAME_YEARS))),
+                                   getInt(getColumnIndex(GroupEntry.COLUMN_NAME_PERMISSION)));
+            ret.setFiltering(Utils.stringToList(getString(getColumnIndex(GroupEntry.COLUMN_NAME_FILTERING))));
             return ret;
         }
     }
@@ -119,7 +117,7 @@ public class GroupTable {
 
     public void clearGroups() {
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.execSQL(GroupTable.SQL_REMOVE_ENTRIES);
+        db.execSQL(SQL_REMOVE_ENTRIES);
     }
 
     public void insertGroups(Group[] groups) {
@@ -129,7 +127,7 @@ public class GroupTable {
 
         for (Group group : groups) {
             stmt.bindLong(1, group.getIdValue());
-            stmt.bindString(2, group.getName(Database.getContext()));
+            stmt.bindString(2, group.getName(helper.context));
             stmt.bindString(3, group.getPlace());
             stmt.bindLong(4, group.hasImage() ? 1 : 0);
             stmt.bindString(5, Utils.listToString(group.getCourseYears()));
@@ -167,6 +165,6 @@ public class GroupTable {
     }
 
     public long getGroupCount() {
-        return DatabaseUtils.queryNumEntries(helper.getReadableDatabase(), GroupTable.TABLE_NAME);
+        return DatabaseUtils.queryNumEntries(helper.getReadableDatabase(), TABLE_NAME);
     }
 }

@@ -36,11 +36,12 @@ import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.backgroundtasks.CourseTasks;
 import rs.luka.android.studygroup.io.database.CourseTable;
+import rs.luka.android.studygroup.io.network.Courses;
+import rs.luka.android.studygroup.io.network.Groups;
+import rs.luka.android.studygroup.io.network.Network;
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
-import rs.luka.android.studygroup.network.Courses;
-import rs.luka.android.studygroup.network.Groups;
-import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
 import rs.luka.android.studygroup.ui.dialogs.AnnouncementDialog;
@@ -387,6 +388,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         private TextView  teacherTextView;
         private TextView  yearTextView;
         private ImageView imageView;
+        private int imageSize = getResources().getDimensionPixelSize(R.dimen.card_image_size);
 
         private Course course;
 
@@ -412,10 +414,11 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                 yearTextView.setText(getResources().getString(R.string.year_no,
                                                               course.getYear().toString()));
             } else { yearTextView.setText(""); }
+
             if (course.hasImage()) {
-                course.getImage(getContext(), getResources().getDimensionPixelSize(R.dimen.card_image_size), exceptionHandler, imageView);
+                course.getImage(getContext(), imageSize, exceptionHandler, imageView);
             } else {
-                //do nothing
+                imageView.setImageBitmap(Utils.generateBitmapFor(course.getYear(), imageSize, imageSize));
             }
         }
 

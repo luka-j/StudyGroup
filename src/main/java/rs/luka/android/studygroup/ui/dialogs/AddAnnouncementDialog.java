@@ -24,8 +24,8 @@ import java.util.Set;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
+import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.model.Group;
-import rs.luka.android.studygroup.network.Network;
 
 /**
  * Created by luka on 21.10.16..

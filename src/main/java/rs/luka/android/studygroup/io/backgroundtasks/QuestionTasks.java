@@ -16,13 +16,14 @@ import rs.luka.android.studygroup.exceptions.FileIOException;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.LocalImages;
 import rs.luka.android.studygroup.io.database.QuestionTable;
+import rs.luka.android.studygroup.io.network.Questions;
 import rs.luka.android.studygroup.misc.TextUtils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
-import rs.luka.android.studygroup.network.Questions;
 
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
+import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.resetLastFetch;
 
 /**
  * Created by luka on 17.10.16..
@@ -33,8 +34,8 @@ public class QuestionTasks {
 
 
     private static final int    FETCH_TIMEOUT         = DataManager.FETCH_TIMEOUT_ITEMS;
-    private static final String LAST_FETCH_KEY        = "lfQuestions";
-    private static final String LAST_FETCH_THUMBS_KEY = "lfQThumbs";
+    static final String LAST_FETCH_KEY        = "lfQuestions";
+    static final String LAST_FETCH_THUMBS_KEY = "lfQThumbs";
 
     public static void getQuestions(final Context c, final long courseId, final String lesson,
                                     final LoaderManager.LoaderCallbacks<Cursor> callbacks,
@@ -96,6 +97,7 @@ public class QuestionTasks {
                             Questions.updateImage(questionId, image, handler);
                             LocalImages.saveQuestionImage(id, courseName, realLesson, image);
                         }
+                        resetLastFetch(c, LessonTasks.LAST_FETCH_KEY);
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Questions#createQuestion returned null; exception should have been handled");

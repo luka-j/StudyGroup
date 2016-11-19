@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.net.SocketException;
 
 import rs.luka.android.studygroup.R;
+import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.model.User;
-import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.LoginActivity;
 

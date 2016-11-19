@@ -1,6 +1,9 @@
 package rs.luka.android.studygroup.misc;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -179,5 +182,38 @@ public class Utils {
 
     public static boolean isEmailValid(CharSequence email) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    private static final int[] GRADE_COLORS = {0xff81C784, //green 300       (1)
+                                               0xffCDDC39, //lime 500        (2)
+                                               0xff9575CD, //deep purple 300 (3)
+                                               0xffE57373, //red 300         (4)
+                                               0xff4DD0E1, //cyan 300        (5)
+                                               0xffFFD54F, //amber 300       (6)
+                                               0xff7986CB, //indigo 300      (7)
+                                               0xffA1887F, //brown 300       (8)
+                                               0xff4DB6AC, //teal 300        (9)
+                                               0xffF06292, //pink 300        (10)
+                                               0xffBA68C8, //purple 300      (11)
+                                               0xff90A4AE  //blue grey 300   (12)
+    };
+    public static Bitmap generateBitmapFor(int grade, int width, int height) {
+        Bitmap        newImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        int color = 0xFF666666;
+        if(grade>0 && grade<=GRADE_COLORS.length) color = GRADE_COLORS[grade-1];
+
+        Canvas canvas = new Canvas(newImage);
+        int textSize = height*3/4;
+
+        Paint paint = new Paint();
+        paint.setColor(color);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setTextSize(textSize);
+        paint.setFakeBoldText(true);
+        int xPos = (canvas.getWidth() / 2 - textSize / 3 * (grade > 9 ? 2 : 1));
+        int yPos = (int) ((canvas.getHeight() / 2) - ((paint.descent() + paint.ascent()) / 2)) ;
+        canvas.drawText(String.valueOf(grade), xPos, yPos, paint);
+
+        return newImage;
     }
 }

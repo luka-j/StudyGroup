@@ -31,10 +31,10 @@ import java.util.List;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
+import rs.luka.android.studygroup.io.network.Groups;
+import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.User;
-import rs.luka.android.studygroup.network.Groups;
-import rs.luka.android.studygroup.network.Network;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 

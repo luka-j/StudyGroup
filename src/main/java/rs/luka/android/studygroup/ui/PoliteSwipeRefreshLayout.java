@@ -30,10 +30,11 @@ public class PoliteSwipeRefreshLayout extends SwipeRefreshLayout {
     @Override
     public boolean canChildScrollUp() {
         if (scrollNeededListener == null) {
-            Log.e("WIP", "Listener not defined!");
+            Log.e("PoliteSwipe", "Listener not defined!");
             return false;
         } else {
-            return scrollNeededListener.canChildScrollUp();
+            boolean ret = scrollNeededListener.canChildScrollUp();
+            return ret;
         }
     }
 

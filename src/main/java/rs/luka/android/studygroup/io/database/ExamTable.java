@@ -76,22 +76,22 @@ public class ExamTable {
 
         public ExamCursor(Context c, Cursor cursor) {
             super(cursor);
-            context = c;
+            context = c.getApplicationContext();
         }
 
         public Exam getExam() {
             if (isBeforeFirst() || isAfterLast()) {
                 return null;
             }
-            ID id = new ID(getLong(getColumnIndex(ExamTable.ExamEntry.COLUMN_NAME_GROUP_ID)),
-                           getLong(getColumnIndex(ExamTable.ExamEntry.COLUMN_NAME_COURSE_ID)),
-                           getLong(getColumnIndex(ExamTable.ExamEntry.COLUMN_NAME_ID)));
+            ID id = new ID(getLong(getColumnIndex(ExamEntry.COLUMN_NAME_GROUP_ID)),
+                           getLong(getColumnIndex(ExamEntry.COLUMN_NAME_COURSE_ID)),
+                           getLong(getColumnIndex(ExamEntry.COLUMN_NAME_ID)));
             return new Exam(context,
                             id,
-                            getString(getColumnIndex(ExamTable.ExamEntry.COLUMN_NAME_CLASS)),
-                            getString(getColumnIndex(ExamTable.ExamEntry.COLUMN_NAME_LESSON)),
-                            getString(getColumnIndex(ExamTable.ExamEntry.COLUMN_NAME_TYPE)),
-                            new Date(getLong(getColumnIndex(ExamTable.ExamEntry.COLUMN_NAME_DATE))));
+                            getString(getColumnIndex(ExamEntry.COLUMN_NAME_CLASS)),
+                            getString(getColumnIndex(ExamEntry.COLUMN_NAME_LESSON)),
+                            getString(getColumnIndex(ExamEntry.COLUMN_NAME_TYPE)),
+                            new Date(getLong(getColumnIndex(ExamEntry.COLUMN_NAME_DATE))));
         }
     }
 
@@ -103,27 +103,27 @@ public class ExamTable {
 
     public void insertExam(ID id, String klass, String lesson, String type, long date) {
         ContentValues cv = new ContentValues(7);
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_ID, id.getItemIdValue());
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_CLASS, klass);
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_LESSON, lesson);
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_TYPE, type);
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_DATE, date);
+        cv.put(ExamEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
+        cv.put(ExamEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
+        cv.put(ExamEntry.COLUMN_NAME_ID, id.getItemIdValue());
+        cv.put(ExamEntry.COLUMN_NAME_CLASS, klass);
+        cv.put(ExamEntry.COLUMN_NAME_LESSON, lesson);
+        cv.put(ExamEntry.COLUMN_NAME_TYPE, type);
+        cv.put(ExamEntry.COLUMN_NAME_DATE, date);
         SQLiteDatabase db   = helper.getWritableDatabase();
-        long           code = db.insert(ExamTable.TABLE_NAME, null, cv);
+        long           code = db.insert(TABLE_NAME, null, cv);
     }
 
     public void updateExam(ID id, String klass, String lesson, String type, long date) {
         ContentValues cv = new ContentValues(4);
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_CLASS, klass);
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_LESSON, lesson);
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_TYPE, type);
-        cv.put(ExamTable.ExamEntry.COLUMN_NAME_DATE, date);
+        cv.put(ExamEntry.COLUMN_NAME_CLASS, klass);
+        cv.put(ExamEntry.COLUMN_NAME_LESSON, lesson);
+        cv.put(ExamEntry.COLUMN_NAME_TYPE, type);
+        cv.put(ExamEntry.COLUMN_NAME_DATE, date);
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.update(ExamTable.TABLE_NAME, cv, ExamTable.ExamEntry.COLUMN_NAME_GROUP_ID + "=" + id.getGroupIdValue() + " AND "
-                                            + ExamTable.ExamEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() + " AND "
-                                            + ExamTable.ExamEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
+        db.update(TABLE_NAME, cv, ExamEntry.COLUMN_NAME_GROUP_ID + "=" + id.getGroupIdValue() + " AND "
+                                            + ExamEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() + " AND "
+                                            + ExamEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
     }
 
     public void clearExams(long groupId) {
@@ -135,7 +135,7 @@ public class ExamTable {
 
     public void insertExams(Exam[] exams) {
         SQLiteDatabase  db   = helper.getWritableDatabase();
-        SQLiteStatement stmt = db.compileStatement(ExamTable.SQL_INSERT);
+        SQLiteStatement stmt = db.compileStatement(SQL_INSERT);
         db.beginTransaction();
 
         for (Exam exam : exams) {
@@ -155,10 +155,10 @@ public class ExamTable {
 
     public void hideExam(ID id) {
         SQLiteDatabase db = helper.getWritableDatabase();
-        long code = db.delete(ExamTable.TABLE_NAME,
-                              ExamTable.ExamEntry.COLUMN_NAME_GROUP_ID + "=" + id.getGroupIdValue() + " AND "
-                              + ExamTable.ExamEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() + " AND "
-                              + ExamTable.ExamEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
+        long code = db.delete(TABLE_NAME,
+                              ExamEntry.COLUMN_NAME_GROUP_ID + "=" + id.getGroupIdValue() + " AND "
+                              + ExamEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() + " AND "
+                              + ExamEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
                               null);
     }
 
@@ -169,15 +169,14 @@ public class ExamTable {
 
     public ExamCursor queryExams(ID groupId) {
         SQLiteDatabase db = helper.getReadableDatabase();
-        ExamCursor c = new ExamCursor(helper.context, db.query(ExamTable.TABLE_NAME,
+        ExamCursor c = new ExamCursor(helper.context, db.query(TABLE_NAME,
                                                                null,
-                                                               ExamTable.ExamEntry.COLUMN_NAME_GROUP_ID
+                                                               ExamEntry.COLUMN_NAME_GROUP_ID
                                                                + "=" + groupId.getGroupIdValue(),
                                                                null,
                                                                null,
                                                                null,
-                                                               ExamTable.ExamEntry.COLUMN_NAME_ID
-                                                               + " asc"));
+                                                               ExamEntry.COLUMN_NAME_DATE + " asc"));
         return c;
     }
 }

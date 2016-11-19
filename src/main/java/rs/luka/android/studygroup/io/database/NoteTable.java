@@ -83,15 +83,15 @@ public class NoteTable {
             if (isBeforeFirst() || isAfterLast()) {
                 return null;
             }
-            ID id = new ID(getLong(getColumnIndex(NoteTable.NoteEntry.COLUMN_NAME_GROUP_ID)),
-                           getLong(getColumnIndex(NoteTable.NoteEntry.COLUMN_NAME_COURSE_ID)),
-                           getLong(getColumnIndex(NoteTable.NoteEntry.COLUMN_NAME_ID)));
+            ID id = new ID(getLong(getColumnIndex(NoteEntry.COLUMN_NAME_GROUP_ID)),
+                           getLong(getColumnIndex(NoteEntry.COLUMN_NAME_COURSE_ID)),
+                           getLong(getColumnIndex(NoteEntry.COLUMN_NAME_ID)));
             return new Note(id,
-                            getString(getColumnIndex(NoteTable.NoteEntry.COLUMN_NAME_LESSON)),
-                            getString(getColumnIndex(NoteTable.NoteEntry.COLUMN_NAME_TEXT)),
-                            getInt(getColumnIndex(NoteTable.NoteEntry.COLUMN_NAME_IMAGE)) != 0,
-                            getInt(getColumnIndex(NoteTable.NoteEntry.COLUMN_NAME_AUDIO)) != 0,
-                            getInt(getColumnIndex(NoteTable.NoteEntry.COLUMN_NAME_ORDER)));
+                            getString(getColumnIndex(NoteEntry.COLUMN_NAME_LESSON)),
+                            getString(getColumnIndex(NoteEntry.COLUMN_NAME_TEXT)),
+                            getInt(getColumnIndex(NoteEntry.COLUMN_NAME_IMAGE)) != 0,
+                            getInt(getColumnIndex(NoteEntry.COLUMN_NAME_AUDIO)) != 0,
+                            getInt(getColumnIndex(NoteEntry.COLUMN_NAME_ORDER)));
         }
     }
 
@@ -103,71 +103,71 @@ public class NoteTable {
 
     public void insertNote(ID id, String lesson, String text, boolean hasImage, boolean hasAudio, long order) {
         ContentValues cv = new ContentValues(5);
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_ID, id.getItemIdValue());
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_LESSON, lesson);
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_TEXT, text);
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_IMAGE, hasImage);
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_AUDIO, hasAudio);
+        cv.put(NoteEntry.COLUMN_NAME_GROUP_ID, id.getGroupIdValue());
+        cv.put(NoteEntry.COLUMN_NAME_COURSE_ID, id.getCourseIdValue());
+        cv.put(NoteEntry.COLUMN_NAME_ID, id.getItemIdValue());
+        cv.put(NoteEntry.COLUMN_NAME_LESSON, lesson);
+        cv.put(NoteEntry.COLUMN_NAME_TEXT, text);
+        cv.put(NoteEntry.COLUMN_NAME_IMAGE, hasImage);
+        cv.put(NoteEntry.COLUMN_NAME_AUDIO, hasAudio);
         if(order != 0)
-            cv.put(NoteTable.NoteEntry.COLUMN_NAME_ORDER, order);
+            cv.put(NoteEntry.COLUMN_NAME_ORDER, order);
         else
-            cv.put(NoteTable.NoteEntry.COLUMN_NAME_ORDER, Integer.MAX_VALUE);
+            cv.put(NoteEntry.COLUMN_NAME_ORDER, Integer.MAX_VALUE);
         SQLiteDatabase db   = helper.getWritableDatabase();
-        long           code = db.insert(NoteTable.TABLE_NAME, null, cv);
+        long           code = db.insert(TABLE_NAME, null, cv);
     }
 
     public void updateNote(ID id, String lesson, String text, boolean hasImage, boolean hasAudio) {
         ContentValues cv = new ContentValues(4);
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_LESSON, lesson);
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_TEXT, text);
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_IMAGE, hasImage);
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_AUDIO, hasAudio);
+        cv.put(NoteEntry.COLUMN_NAME_LESSON, lesson);
+        cv.put(NoteEntry.COLUMN_NAME_TEXT, text);
+        cv.put(NoteEntry.COLUMN_NAME_IMAGE, hasImage);
+        cv.put(NoteEntry.COLUMN_NAME_AUDIO, hasAudio);
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.update(NoteTable.TABLE_NAME, cv, NoteTable.NoteEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
+        db.update(TABLE_NAME, cv, NoteEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
     }
 
     public void reorderNote(ID id, String lesson, int newPosition, int currentPosition) { //todo fix occasional off-by-1
         SQLiteDatabase db = helper.getWritableDatabase();
         if(newPosition < currentPosition) {
-            db.rawQuery("UPDATE " + NoteTable.TABLE_NAME + " SET " +
-                        NoteTable.NoteEntry.COLUMN_NAME_ORDER + " = " + NoteTable.NoteEntry.COLUMN_NAME_ORDER + "+1 "
-                        + "WHERE " + NoteTable.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
-                        " AND " + NoteTable.NoteEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
-                        NoteTable.NoteEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
+            db.rawQuery("UPDATE " + TABLE_NAME + " SET " +
+                        NoteEntry.COLUMN_NAME_ORDER + " = " + NoteEntry.COLUMN_NAME_ORDER + "+1 "
+                        + "WHERE " + NoteEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
+                        " AND " + NoteEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
+                        NoteEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
                         null);
         } else if(newPosition > currentPosition) {
-            db.rawQuery("UPDATE " + NoteTable.TABLE_NAME + " SET " +
-                        NoteTable.NoteEntry.COLUMN_NAME_ORDER + " = " + NoteTable.NoteEntry.COLUMN_NAME_ORDER + "-1 "
-                        + "WHERE " + NoteTable.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
-                        " AND " + NoteTable.NoteEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
-                        NoteTable.NoteEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
+            db.rawQuery("UPDATE " + TABLE_NAME + " SET " +
+                        NoteEntry.COLUMN_NAME_ORDER + " = " + NoteEntry.COLUMN_NAME_ORDER + "-1 "
+                        + "WHERE " + NoteEntry.COLUMN_NAME_COURSE_ID + "=" + id.getCourseIdValue() +
+                        " AND " + NoteEntry.COLUMN_NAME_LESSON + "='" + lesson + "' AND " +
+                        NoteEntry.COLUMN_NAME_ORDER + " BETWEEN " + currentPosition + " AND " + newPosition,
                         null);
         }
         ContentValues cv = new ContentValues(1);
-        cv.put(NoteTable.NoteEntry.COLUMN_NAME_ORDER, newPosition);
-        db.update(NoteTable.TABLE_NAME, cv, NoteTable.NoteEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
+        cv.put(NoteEntry.COLUMN_NAME_ORDER, newPosition);
+        db.update(TABLE_NAME, cv, NoteEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(), null);
     }
 
     public void removeNote(ID id, String lesson) {
         SQLiteDatabase db = helper.getWritableDatabase();
-        long code = db.delete(NoteTable.TABLE_NAME,
-                              NoteTable.NoteEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
+        long code = db.delete(TABLE_NAME,
+                              NoteEntry.COLUMN_NAME_ID + "=" + id.getItemIdValue(),
                               null);
     }
 
     public void clearNotes(long courseId, String lesson) {
         SQLiteDatabase db = helper.getWritableDatabase();
-        db.delete(NoteTable.TABLE_NAME,
-                  NoteTable.NoteEntry.COLUMN_NAME_COURSE_ID + "=" + courseId + " AND " +
-                  NoteTable.NoteEntry.COLUMN_NAME_LESSON + "='" + lesson + "'",
+        db.delete(TABLE_NAME,
+                  NoteEntry.COLUMN_NAME_COURSE_ID + "=" + courseId + " AND " +
+                  NoteEntry.COLUMN_NAME_LESSON + "='" + lesson + "'",
                   null);
     }
 
     public void insertNotes(Note[] notes) {
         SQLiteDatabase  db   = helper.getWritableDatabase();
-        SQLiteStatement stmt = db.compileStatement(NoteTable.SQL_INSERT);
+        SQLiteStatement stmt = db.compileStatement(SQL_INSERT);
         db.beginTransaction();
 
         for (Note note : notes) {
@@ -189,16 +189,16 @@ public class NoteTable {
     public NoteCursor queryNotes(ID courseId, String lesson) {
         if (lesson.isEmpty()) { return null; }
         SQLiteDatabase db = helper.getReadableDatabase();
-        NoteCursor c = new NoteCursor(db.query(NoteTable.TABLE_NAME,
+        NoteCursor c = new NoteCursor(db.query(TABLE_NAME,
                                                null,
-                                               NoteTable.NoteEntry.COLUMN_NAME_COURSE_ID
+                                               NoteEntry.COLUMN_NAME_COURSE_ID
                                                + "=" + courseId.getCourseIdValue() +
-                                               " AND " + NoteTable.NoteEntry.COLUMN_NAME_LESSON
+                                               " AND " + NoteEntry.COLUMN_NAME_LESSON
                                                + "='" + lesson + "'",
                                                null,
                                                null,
                                                null,
-                                               NoteTable.NoteEntry.COLUMN_NAME_ORDER + " asc"));
+                                               NoteEntry.COLUMN_NAME_ORDER + " asc"));
         return c;
     }
 }
