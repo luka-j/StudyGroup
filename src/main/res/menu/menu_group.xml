@@ -10,10 +10,6 @@
         android:id="@+id/show_all"
         android:title="@string/show_all"
         app:showAsAction="never"/>
-    <item
-        android:id="@+id/settings"
-        android:title="@string/settings"
-        app:showAsAction="never"/>
 
     <item
         android:id="@+id/add_announcement"

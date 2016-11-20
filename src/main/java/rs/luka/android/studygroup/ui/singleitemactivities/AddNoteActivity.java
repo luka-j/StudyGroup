@@ -128,7 +128,7 @@ public class AddNoteActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_add_item, menu);
+        getMenuInflater().inflate(R.menu.menu_help_button, menu);
         return true;
     }
 
@@ -256,7 +256,7 @@ public class AddNoteActivity extends AppCompatActivity {
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
-            case R.id.add_item_show_help:
+            case R.id.menu_item_show_help:
                 new InputHelpDialog().show(getFragmentManager(), "");
                 return true;
         }

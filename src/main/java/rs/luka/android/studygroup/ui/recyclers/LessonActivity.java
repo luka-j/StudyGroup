@@ -106,7 +106,10 @@ public class LessonActivity extends AppCompatActivity
         exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle(lessonName);
+        if(!lessonName.trim().isEmpty())
+            toolbar.setTitle(lessonName);
+        else
+            toolbar.setTitle(R.string.new_course_hint);
         setSupportActionBar(toolbar);
 
         if (NavUtils.getParentActivityIntent(this) != null) {

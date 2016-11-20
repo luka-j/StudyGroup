@@ -9,6 +9,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -82,6 +85,11 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        if(modMode) inflater.inflate(R.menu.menu_help_button, menu);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.group = getArguments().getParcelable(ARG_GROUP);
@@ -90,6 +98,7 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
         User.getLoggedInUser().setPermission(perm);
         ownerMode = perm >= Group.PERM_OWNER;
         modMode = perm >= Group.PERM_MODIFY;
+        if(modMode) setHasOptionsMenu(true);
     }
 
     @Override
@@ -119,6 +128,17 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
     public void onResume() {
         super.onResume();
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName(getContext()));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.menu_item_show_help) {
+            InfoDialog.newInstance(getString(R.string.permissions_help_title),
+                                   getString(R.string.permissions_help_text)).show(getFragmentManager(), "");
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void setData() {

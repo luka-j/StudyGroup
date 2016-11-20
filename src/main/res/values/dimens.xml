@@ -108,9 +108,9 @@
     <dimen name="submit_cpv_size">42dp</dimen>
     <dimen name="helptext_size">13sp</dimen>
     <dimen name="audio_cpv_size">34dp</dimen>
-    <dimen name="greek_table_text_padding">18dp</dimen>
-    <dimen name="greek_table_small_column_padding">30dp</dimen>
-    <dimen name="greek_table_large_column_padding">48dp</dimen>
+    <dimen name="greek_table_text_padding">12dp</dimen>
+    <dimen name="greek_table_small_column_padding">24dp</dimen>
+    <dimen name="greek_table_large_column_padding">44dp</dimen>
     <dimen name="greek_table_margin_top">12dp</dimen>
     <dimen name="add_announcement_text_margin_bottom">8dp</dimen>
     <dimen name="list_item_small_text_size">13sp</dimen>

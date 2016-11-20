@@ -248,7 +248,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         Collections.sort(filterYears);
         String[] items = new String[filterYears.size()];
         for(int i=0; i<items.length; i++) {
-            items[i] = getString(R.string.year_no, filterYears.get(i));
+            items[i] = getString(R.string.year_no, filterYears.get(i).toString());
         }
         return items;
     }

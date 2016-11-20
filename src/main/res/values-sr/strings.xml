@@ -8,7 +8,7 @@
     <string name="questions">Pitanja</string>
     <string name="year_no">%s. godina</string>
     <string name="subject">Predmet</string>
-    <string name="teacher">Nastavnik/profesor</string>
+    <string name="teacher">Predavač</string>
     <string name="add_course">Dodaj predmet</string>
     <string name="add">Dodaj</string>
     <string name="error_empty">Ovo polje je neophodno, </string>
@@ -201,10 +201,10 @@
     <string name="wrong_creds_title">Prijavljivanje neuspešno</string>
     <string name="your_profile_image">Tvoja profilna slika</string>
     <string name="title_activity_member_list">Spisak članova</string>
-    <string name="add_announcement">Kreiraj obaveštenje</string>
-    <string name="add_announcement_title">Kreiraj obaveštenje</string>
-    <string name="announcement_dont_show">Nemoj više prikazivati ovo obaveštenje</string>
-    <string name="announcement_text_hint">Unesi tekst obaveštenja</string>
+    <string name="add_announcement">Kreiraj objavu</string>
+    <string name="add_announcement_title">Kreiraj objavu</string>
+    <string name="announcement_dont_show">Nemoj više prikazivati ovu objavu</string>
+    <string name="announcement_text_hint">Unesi tekst objave</string>
     <string name="announcement_title">Obaveštenja za %s</string>
     <string name="create">Kreiraj</string>
     <string name="edit_created">je kreirao/la stavku</string>
@@ -218,4 +218,11 @@
     <string name="toast_announcement_created">Obaveštenje kreirano</string>
     <string name="view_all_announcements">Vidi sva obaveštenja</string>
     <string name="register_legal_text">Tekst za licencu, politiku privatnosti i to ide ovde</string>
+    <string name="error_unsupported_ext_audio">Biranje fajlova sa (nekih) SD kartica trenutno nije podržano. Izvini :(</string>
+    <string name="error_unsupported_op_title">Operacija nije podržana</string>
+    <string name="invite_only">Samo na poziv</string>
+    <string name="membership_requested">(zahtevano članstvo)</string>
+    <string name="permissions_help_text">Postoji više nivoa dozvola, koje možeš menjati odavde:\nNije član - znači da je korisnik ili zatražio članstvo ili ga je pozvao običan član. Ova grupa se pojavljuje u njegovoj/njenoj aplikaciji, ali ne može videti privatne stavke ni audio snimke ili dodavati novi sadržaj. Možeš prihvatiti zahtev tako što ćeš otkačiti \"Čl\" kutijicu (poslednju)\nObičan član - može da vidi privatne stavke i audio snimke, dodavati nove stvari i menjati beleške, pitanja i ispite.\nMod - može da prihvati zahteve za članstvo, menja kurseve i trajno briše stavke.\nVlasnik - može da kreira objave, menja detalje grupe, izbacuje ili uklanja moderatore i korisnike, kao i da dodeljuje tu dozvolu drugima</string>
+    <string name="private_prefix">P</string>
+    <string name="permissions_help_title">Pomoć u vezi sa dozvolama</string>
 </resources>

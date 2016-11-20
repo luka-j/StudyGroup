@@ -168,7 +168,7 @@
 
     <string name="join">Join</string>
     <string name="join_request_sent_title">Request sent</string>
-    <string name="join_request_sent_text">Your request has been sent. You\'ll be a group member as soon as one of the owners or mods accepts your request.</string>
+    <string name="join_request_sent_text">Your request has been sent. You\'ll be a group member as soon as one of mods accepts your request.</string>
     <string name="remove">Remove</string>
 
     <string name="role_owner">Owner</string>
@@ -217,14 +217,13 @@
     <string name="invite">Invite</string>
     <string name="send_invitation">Send an invitation</string>
     <string name="dialog_invite_hint">Enter friend\'s email address</string>
-    <string name="dialog_invite_text">Enter your friend\'s email address. If he/she isn\'t using %1$s already, they will be sent an invitation to sign up for the app, along with the group invitation.</string>
+    <string name="dialog_invite_text">Enter your friend\'s email address. If he/she isn\'t using %1$s already, they will be sent an invitation to sign up for the app, along with the group invitation. (email invites don\'t work currently, due to lack of email server)</string>
     <string name="invite_sent">Invitation sent</string>
     <string name="leave">Leave</string>
     <string name="change_password">Change password</string>
     <string name="title_activity_member_list">Member List</string>
     <string name="register_underlined"><u>Register</u></string>
-    <string name="register_legal_text">By registering for an account, I agree to the
-        <a href="http://192.168.0.15:9000/eula">EULA</a> and <a href="http://192.168.0.15:9000/pp">Privacy Policy</a></string>
+    <string name="register_legal_text">By registering for an account, I agree to the [legal stuff goes here]</string>
     <string name="priv">Private</string>
     <string name="private_items_help">Private items are visible only to the members of the group. All items inside categories marked as private are going to be private as well. If first note or question created in lesson is private, whole lesson is made private.</string>
     <string name="input_help_text">All Unicode characters represent valid input (yes, emojis too). However, in order to simplify typing, there are some shortcuts for frequently used characters: a caret (^) puts a letter, digit or mathematical symbol (+,-,=,(,)) in superscript, an underscore (_) before a digit puts it in subscript, and a backslash (\\) transforms a Latin letter into the appropriate Greek equivalent. If you want to type those symbols normally, double them (i.e. \\\\ becomes \\). The Latin-to-Greek conversion table is as follows:</string>
@@ -244,4 +243,7 @@
     <string name="error_unsupported_op_title">Unsupported operation</string>
     <string name="error_unsupported_ext_audio">Sorry, selecting audio from (some) SD cards isn\'t supported yet :(</string>
     <string name="private_prefix">P</string>
+    <string name="permissions_help_title">Permissions management help</string>
+    <string name="permissions_help_text">There are multiple permission levels, which you can change from here:\n<b>Not a  member</b> - means the user either requested access to the group, or was invited by a regular member. This group appears in his app, but he can\'t see private items or contribute new content. You can accept the request by ticking the \"Mem\" box (last one)\n<b>Regular member</b> - can view private items, add new things and edit notes, questions and exams\n<b>Mod</b> - can accept join requests, edit courses and delete items permanently\n<b>Owner</b> - is able to create announcements, edit group details, kick out or demote mods and users, as well as promote new ones. There\'s a special \"owner\" permission not displayed here, <b>creator</b>, which is assigned only to the person who created the group with only difference being that (s)he can\'t be kicked out.</string>
+    <string name="new_course_hint">Use the + button</string>
 </resources>
