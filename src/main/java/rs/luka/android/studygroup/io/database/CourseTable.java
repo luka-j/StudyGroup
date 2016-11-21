@@ -173,8 +173,8 @@ public class CourseTable {
                                                    null,
                                                    null,
                                                    null,
-                                                   CourseEntry.COLUMN_NAME_ID
-                                                   + " asc"));
+                                                   CourseEntry.COLUMN_NAME_YEAR + " asc, " +
+                                                   CourseEntry.COLUMN_NAME_SUBJECT + " asc"));
         return c;
     }
 

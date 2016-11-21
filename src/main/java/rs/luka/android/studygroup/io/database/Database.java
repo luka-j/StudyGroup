@@ -30,7 +30,7 @@ public class Database extends SQLiteOpenHelper {
     static final String DELETE        = "DELETE FROM ";
     static final String VALS          = " VALUES ";
     static Database instance;
-           Context  context;
+           final Context  context;
 
     private Database(Context context) {
         super(context, DB_NAME, null, VERSION);

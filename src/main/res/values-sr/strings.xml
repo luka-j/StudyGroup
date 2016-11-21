@@ -68,7 +68,7 @@
     <string name="prop_date">Datum:</string>
     <string name="prop_lessons">Lekcija(e):</string>
     <string name="prop_subject">Predmet:</string>
-    <string name="prop_teacher">Profesor:</string>
+    <string name="prop_teacher">Predavač:</string>
     <string name="prop_type">Tip:</string>
     <string name="question">Pitanja</string>
     <string name="confirm_remove_lesson_message">Ako je obrišeš, svi njeni podaci su nestali zauvek, ukiljučujući sve beleške i pitanja; niko više neće moći da ih vidi (možeš je prevući da je sakriješ samo za sebe)</string>
@@ -225,4 +225,5 @@
     <string name="permissions_help_text">Postoji više nivoa dozvola, koje možeš menjati odavde:\nNije član - znači da je korisnik ili zatražio članstvo ili ga je pozvao običan član. Ova grupa se pojavljuje u njegovoj/njenoj aplikaciji, ali ne može videti privatne stavke ni audio snimke ili dodavati novi sadržaj. Možeš prihvatiti zahtev tako što ćeš otkačiti \"Čl\" kutijicu (poslednju)\nObičan član - može da vidi privatne stavke i audio snimke, dodavati nove stvari i menjati beleške, pitanja i ispite.\nMod - može da prihvati zahteve za članstvo, menja kurseve i trajno briše stavke.\nVlasnik - može da kreira objave, menja detalje grupe, izbacuje ili uklanja moderatore i korisnike, kao i da dodeljuje tu dozvolu drugima</string>
     <string name="private_prefix">P</string>
     <string name="permissions_help_title">Pomoć u vezi sa dozvolama</string>
+    <string name="new_course_hint">Koristi + dugme</string>
 </resources>

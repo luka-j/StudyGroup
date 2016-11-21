@@ -24,12 +24,12 @@ import rs.luka.android.studygroup.model.Question;
 public class MediaCleanup {
     private static final ScheduledExecutorService executor      = Executors.newSingleThreadScheduledExecutor();
 
-    private static final Pattern groupPattern  = Pattern.compile("IMG_Group-[0-9]+\\.");
-    private static final Pattern coursePattern = Pattern.compile("IMG_Course-[0-9]+\\.");
-    private static final Pattern notePattern = Pattern.compile(".*-NIMG_[0-9]+\\.");
-    private static final Pattern questionPattern = Pattern.compile(".*-QIMG_[0-9]+\\.");
-    private static final Pattern noteThumbPattern = Pattern.compile(".*-nthumb[0-9]+\\.");
-    private static final Pattern questionThumbPattern = Pattern.compile(".*-qthumb[0-9]+\\.");
+    private static final Pattern groupPattern  = Pattern.compile("IMG_Group-[0-9]+\\.jpg");
+    private static final Pattern coursePattern = Pattern.compile("IMG_Course-[0-9]+\\.jpg");
+    private static final Pattern notePattern = Pattern.compile(".*-NIMG_[0-9]+\\.jpg");
+    private static final Pattern questionPattern = Pattern.compile(".*-QIMG_[0-9]+\\.jpg");
+    private static final Pattern noteThumbPattern = Pattern.compile(".*-nthumb[0-9]+\\.jpg");
+    private static final Pattern questionThumbPattern = Pattern.compile(".*-qthumb[0-9]+\\.jpg");
     private static final Pattern noteAudioPattern = Pattern.compile(".*-REC_[0-9]+\\.mp3");
 
     public static void cleanupGroups(final Group[] groups) {
