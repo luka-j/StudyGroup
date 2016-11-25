@@ -158,4 +158,8 @@ public class Note implements Parcelable, Comparable<Note>, PastEvents {
     public int getOrder() {
         return order;
     }
+
+    public Note requery(Context c) {
+        return new NoteTable(c).queryNote(id);
+    }
 }

@@ -162,7 +162,7 @@ public class QuestionListFragment extends Fragment implements LoaderManager.Load
         swipe.setOnChildScrollUpListener(new PoliteSwipeRefreshLayout.OnChildScrollUpListener() {
             @Override
             public boolean canChildScrollUp() {
-                return lm.findFirstCompletelyVisibleItemPosition() != 0 || toolbar.getHeight() < toolbarHeight;
+                return lm.findFirstCompletelyVisibleItemPosition() > 0 || toolbar.getHeight() < toolbarHeight;
             }
         });
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {

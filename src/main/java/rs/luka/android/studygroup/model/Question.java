@@ -121,6 +121,10 @@ public class Question implements Parcelable, Comparable<Question>, PastEvents {
         QuestionTasks.reorderQuestion(context, id, lesson, toPosition, order, handler);
     }
 
+    public Question requery(Context c) {
+        return new QuestionTable(c).queryQuestion(id);
+    }
+
     @Override
     public boolean equals(Object o) {
         return o instanceof Question && ((Question) o).id.equals(id);

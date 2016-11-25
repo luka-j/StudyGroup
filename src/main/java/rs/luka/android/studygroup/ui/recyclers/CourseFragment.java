@@ -47,7 +47,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
 
     protected static final int REQUEST_REMOVE_LESSON = 1;
     private static final int REQUEST_SHOW_ALL      = 0;
-    private static String TAG = "studygroup.CourseFragment";
+    private static String TAG = "ui.CourseFragment";
     private Course course;
     private int permission;
     private NetworkExceptionHandler exceptionHandler;
@@ -110,7 +110,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         swipe.setOnChildScrollUpListener(new PoliteSwipeRefreshLayout.OnChildScrollUpListener() {
             @Override
             public boolean canChildScrollUp() {
-                return layoutManager.findFirstCompletelyVisibleItemPosition() != 0;
+                return layoutManager.findFirstCompletelyVisibleItemPosition() > 0;
             }
         });
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {

@@ -3,9 +3,13 @@
     <item android:id="@+id/nav_join_group"
           android:title="@string/join_group"
           android:icon="@drawable/ic_search"
-        android:orderInCategory="10000"/>
+          android:orderInCategory="10000"/>
     <item android:id="@+id/nav_create_group"
           android:title="@string/create_group"
           android:icon="@drawable/ic_add"
-        android:orderInCategory="10001"/>
+          android:orderInCategory="10001"/>
+    <item android:id="@+id/nav_logout"
+          android:title="@string/logout"
+          android:icon="@drawable/ic_logout"
+          android:orderInCategory="10002" />
 </menu>

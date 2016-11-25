@@ -47,6 +47,10 @@ public class DataManager {
         editor.apply();
     }
 
+    public static void clearFetchHistory(Context context) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply();
+    }
+
     static void pushToExecutor(Runnable r) {
         executor.execute(r);
     }

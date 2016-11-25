@@ -5,12 +5,12 @@ android {
         release {
         }
     }
-    compileSdkVersion 23
+    compileSdkVersion 23 // ne menjati ako nije neophodno ili imaš viška vremena
     buildToolsVersion "23.0.3"
     defaultConfig {
         applicationId "rs.luka.android.studygroup"
         minSdkVersion 15
-        targetSdkVersion 22
+        targetSdkVersion 22 //jer nisam pisao zahteve za dozvole koje koristim - TODO
         versionCode 3
         versionName "0.99"
     }
@@ -25,7 +25,7 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:appcompat-v7:23.1.1' //ovo posebno ne menjati ako nije neophodno ili imaš baš viška vremena
     compile 'com.android.support:cardview-v7:23.1.1'
     compile 'com.android.support:recyclerview-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'

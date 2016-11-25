@@ -83,7 +83,7 @@ public class UserManager {
                 } catch (MalformedURLException ex) {
                     throw new RuntimeException(ex); //should NOT happen
                 } catch (IOException ex) {
-                    ex.printStackTrace(); //todo
+                    exceptionHandler.handleIOException(ex);
                 }
             } else
                 throw new NotLoggedInException(UserManager.class, "handleTokenError(Response): server token error");

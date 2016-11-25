@@ -201,4 +201,19 @@ public class NoteTable {
                                                NoteEntry.COLUMN_NAME_ORDER + " asc"));
         return c;
     }
+
+    public Note queryNote(ID noteId) {
+        SQLiteDatabase db = helper.getReadableDatabase();
+        NoteCursor c = new NoteCursor(db.query(TABLE_NAME,
+                                                   null,
+                                                   NoteEntry.COLUMN_NAME_ID
+                                                   + "=" + noteId.getItemIdValue(),
+                                                   null,
+                                                   null,
+                                                   null,
+                                                   null,
+                                                   "1"));
+        c.moveToNext();
+        return c.getNote();
+    }
 }

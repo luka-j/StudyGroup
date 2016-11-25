@@ -226,4 +226,8 @@
     <string name="private_prefix">P</string>
     <string name="permissions_help_title">Pomoć u vezi sa dozvolama</string>
     <string name="new_course_hint">Koristi + dugme</string>
+    <string name="invite_unapproved_info_title">Tvoja pozivnica još nije odobrena</string>
+    <string name="invite_unapproved_info_text">Pozvan/a si da se priključiš ovoj grupi, ali tvoju pozivnicu nijedan od moderatora grupe još nije odobrio. Kada se to desi, postaćeš član ove grupe.</string>
+    <string name="logout">Odjavi se</string>
+    <string name="role_creator">Osnivač</string>
 </resources>

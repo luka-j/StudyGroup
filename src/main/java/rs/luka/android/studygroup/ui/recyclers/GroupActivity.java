@@ -42,6 +42,7 @@ import rs.luka.android.studygroup.ui.dialogs.InputDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddGroupActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.LoadingActivity;
+import rs.luka.android.studygroup.ui.singleitemactivities.LoginActivity;
 import rs.luka.android.studygroup.ui.singleitemactivities.UserInfoActivity;
 
 public class GroupActivity extends SingleFragmentActivity implements GroupFragment.Callbacks,
@@ -366,6 +367,9 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         } else if(menuItem.getItemId() == R.id.nav_join_group) {
             InputDialog.newInstance(R.string.search_groups, null, R.string.search, R.string.cancel, "", 0)
                 .show(getSupportFragmentManager(), DIALOG_SEARCH);
+        } else if(menuItem.getItemId() == R.id.nav_logout) {
+            User.getLoggedInUser().logOut(this);
+            startActivity(new Intent(this, LoginActivity.class));
         } else {
             switch (menuItem.getItemId() % NAVBAR_ITEMS) {
                 case NAVBAR_VIEW_COURSES_POSITION:

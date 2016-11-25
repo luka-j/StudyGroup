@@ -21,13 +21,20 @@ import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.backgroundtasks.NoteTasks;
+import rs.luka.android.studygroup.io.database.CourseTable;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
+
+import static rs.luka.android.studygroup.ui.recyclers.LessonActivity.EXTRA_CURRENT_COURSE;
+import static rs.luka.android.studygroup.ui.recyclers.LessonActivity.EXTRA_CURRENT_LESSON;
+import static rs.luka.android.studygroup.ui.recyclers.LessonActivity.EXTRA_SELECTED_NOTES;
 
 /**
  * Created by luka on 12.7.15..
@@ -39,6 +46,7 @@ public class NoteFragment extends Fragment implements NoteTasks.AudioCallbacks {
     public static final String ARG_NOTE          = "anote";
     public static final String ARG_COURSE_NAME   = "acourse";
     public static final String ARG_MY_PERMISSION = "aperm";
+    private static final int REQUEST_EDIT        = 10;
     private static int  IMAGE_IDEAL_DIMEN        = 720;
     private Note     note;
     private String   courseName;
@@ -86,8 +94,6 @@ public class NoteFragment extends Fragment implements NoteTasks.AudioCallbacks {
         if (NavUtils.getParentActivityIntent(ac) != null) {
             ac.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        if(note.hasAudio())
-            note.getAudio(REQUEST_PRELOAD_AUDIO, courseName, exceptionHandler, this);
 
         text = (TextView) view.findViewById(R.id.note_text);
         image = (ImageView) view.findViewById(R.id.note_image);
@@ -125,6 +131,8 @@ public class NoteFragment extends Fragment implements NoteTasks.AudioCallbacks {
         if (note.hasImage()) {
             note.getImage(getContext(), courseName, IMAGE_IDEAL_DIMEN, exceptionHandler, image);
         }
+        if(note.hasAudio())
+            note.getAudio(REQUEST_PRELOAD_AUDIO, courseName, exceptionHandler, this);
     }
 
     @Override
@@ -132,6 +140,7 @@ public class NoteFragment extends Fragment implements NoteTasks.AudioCallbacks {
         getActivity().getMenuInflater().inflate(R.menu.menu_note, menu);
         if(permission < Group.PERM_WRITE) {
             menu.removeItem(R.id.note_history);
+            menu.removeItem(R.id.note_edit);
         }
     }
 
@@ -144,8 +153,24 @@ public class NoteFragment extends Fragment implements NoteTasks.AudioCallbacks {
             case R.id.note_history:
                 startActivity(new Intent(getContext(), HistoryActivity.class).putExtra(HistoryActivity.EXTRA_ITEM, note));
                 return true;
+            case R.id.note_edit:
+                Intent i = new Intent(getContext(), AddNoteActivity.class);
+                ArrayList<Note> l = new ArrayList<>(1); l.add(note);
+                i.putParcelableArrayListExtra(EXTRA_SELECTED_NOTES, l);
+                i.putExtra(EXTRA_CURRENT_LESSON, note.getLesson());
+                i.putExtra(EXTRA_CURRENT_COURSE, new CourseTable(getContext())
+                        .queryCourse(new ID(note.getGroupIdValue(), note.getCourseIdValue())));
+                startActivityForResult(i, REQUEST_EDIT);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == REQUEST_EDIT) {
+            note = note.requery(getContext());
+            updateUI();
+        }
     }
 
     @Override

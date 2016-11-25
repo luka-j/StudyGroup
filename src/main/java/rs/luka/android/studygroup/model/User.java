@@ -2,11 +2,14 @@ package rs.luka.android.studygroup.model;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.widget.ImageView;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
+import rs.luka.android.studygroup.io.backgroundtasks.DataManager;
 import rs.luka.android.studygroup.io.backgroundtasks.UserTasks;
+import rs.luka.android.studygroup.io.database.Database;
 
 /**
  * Created by luka on 25.7.15..
@@ -109,6 +112,8 @@ public class User {
     }
 
     public String getRoleDescription(Context c) {
+        if(permission >= Group.PERM_CREATOR)
+            return c.getString(R.string.role_creator);
         if(permission >= Group.PERM_OWNER)
             return c.getString(R.string.role_owner);
         if(permission >= Group.PERM_MODIFY)
@@ -140,6 +145,15 @@ public class User {
         prefsEditor.putString(PREFS_KEY_TOKEN, token);
         prefsEditor.apply();
         this.token = token;
+    }
+
+    public void logOut(Context c) {
+        prefs.edit().clear().apply();
+        DataManager.clearFetchHistory(c);
+        prefs = null;
+        instance = null;
+        SQLiteOpenHelper dbHelper = Database.getInstance(c);
+        dbHelper.onUpgrade(dbHelper.getWritableDatabase(), 0, 1);
     }
 
     public String getName() {return name;}

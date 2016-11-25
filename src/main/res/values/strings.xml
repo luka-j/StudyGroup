@@ -246,4 +246,8 @@
     <string name="permissions_help_title">Permissions management help</string>
     <string name="permissions_help_text">There are multiple permission levels, which you can change from here:\n<b>Not a  member</b> - means the user either requested access to the group, or was invited by a regular member. This group appears in his app, but he can\'t see private items or contribute new content. You can accept the request by ticking the \"Mem\" box (last one)\n<b>Regular member</b> - can view private items, add new things and edit notes, questions and exams\n<b>Mod</b> - can accept join requests, edit courses and delete items permanently\n<b>Owner</b> - is able to create announcements, edit group details, kick out or demote mods and users, as well as promote new ones. There\'s a special \"owner\" permission not displayed here, <b>creator</b>, which is assigned only to the person who created the group with only difference being that (s)he can\'t be kicked out.</string>
     <string name="new_course_hint">Use the + button</string>
+    <string name="logout">Log out</string>
+    <string name="role_creator">Creator</string>
+    <string name="invite_unapproved_info_title">Your invitation hasn\'t been approved yet</string>
+    <string name="invite_unapproved_info_text">You have been invited to join this group, but your invitation hasn\'t been approved by a group mod yet. When it gets approved, you will become a member of this group.</string>
 </resources>

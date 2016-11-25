@@ -17,21 +17,29 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
+import rs.luka.android.studygroup.io.database.CourseTable;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.model.ID;
 import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.ui.recyclers.HistoryActivity;
+
+import static rs.luka.android.studygroup.ui.recyclers.LessonActivity.EXTRA_CURRENT_COURSE;
+import static rs.luka.android.studygroup.ui.recyclers.LessonActivity.EXTRA_CURRENT_LESSON;
+import static rs.luka.android.studygroup.ui.recyclers.LessonActivity.EXTRA_SELECTED_QUESTIONS;
 
 /**
  * Created by luka on 12.7.15.
  */
 public class QuestionFragment extends Fragment {
-    public static final  String ARG_QUESTION      = "aquestion";
-    public static final  String ARG_COURSE_NAME   = "acourse";
+    public static final  String ARG_QUESTION     = "aquestion";
+    public static final  String ARG_COURSE_NAME  = "acourse";
     public static final String ARG_MY_PERMISSION = "aperm";
-    private static int    IMAGE_IDEAL_DIMEN = 720;
+    private static final int REQUEST_EDIT        = 10;
+    private static int    IMAGE_IDEAL_DIMEN      = 720;
     private Question question;
     private String courseName;
     private int permission;
@@ -122,7 +130,23 @@ public class QuestionFragment extends Fragment {
             case R.id.question_history:
                 startActivity(new Intent(getContext(), HistoryActivity.class).putExtra(HistoryActivity.EXTRA_ITEM, question));
                 return true;
+            case R.id.question_edit:
+                Intent i = new Intent(getContext(), AddQuestionActivity.class);
+                ArrayList<Question> l = new ArrayList<>(1); l.add(question);
+                i.putParcelableArrayListExtra(EXTRA_SELECTED_QUESTIONS, l);
+                i.putExtra(EXTRA_CURRENT_LESSON, question.getLesson());
+                i.putExtra(EXTRA_CURRENT_COURSE, new CourseTable(getContext())
+                        .queryCourse(new ID(question.getGroupIdValue(), question.getCourseIdValue())));
+                startActivityForResult(i, REQUEST_EDIT);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == REQUEST_EDIT) {
+            question = question.requery(getContext());
+            updateUI();
+        }
     }
 }

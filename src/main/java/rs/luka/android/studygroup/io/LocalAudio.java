@@ -13,7 +13,7 @@ import rs.luka.android.studygroup.model.ID;
  */
 public class LocalAudio {
     public static final File APP_AUDIO_DIR = new File(Environment.getExternalStorageDirectory(),
-                                                      "recordings/StudyGroup/");
+                                                      "recordings/Notekeeper/");
 
     public static void saveNoteAudio(ID id, String courseName, String lessonName, File audio) {
         saveAudio(audio, generateItemAudioFile(courseName, lessonName, id));

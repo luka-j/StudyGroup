@@ -119,6 +119,9 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_pencil));
         } else if (group.getPermission() <= Group.PERM_REQUEST_WRITE) {
             fab.setVisibility(View.GONE);
+        } else if (group.getPermission() <= Group.PERM_INVITED) {
+            fab.setVisibility(View.VISIBLE);
+            fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_invite));
         } else {
             fab.setVisibility(View.VISIBLE);
             fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_add));
@@ -132,10 +135,11 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                     i.putExtra(AddCourseActivity.EXTRA_MY_PERMISSION, group.getPermission());
                     i.putExtra(AddCourseActivity.EXTRA_GROUP, group);
                     startActivityForResult(i, REQUEST_ADD_COURSE);
-                }/* else if(group.getPermission() >= Group.PERM_INVITED) {
-                    //todo --accept invitation-- show info describing why can't add stuff yet
-                    refresh(); // move to callback
-                }*/ else {
+                } else if(group.getPermission() >= Group.PERM_INVITED) {
+                    InfoDialog.newInstance(getString(R.string.invite_unapproved_info_title),
+                                           getString(R.string.invite_unapproved_info_text))
+                              .show(getFragmentManager(), "");
+                } else {
                     callbacks.onRequestJoin(group);
                 }
             }
@@ -154,7 +158,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         swipe.setOnChildScrollUpListener(new PoliteSwipeRefreshLayout.OnChildScrollUpListener() {
             @Override
             public boolean canChildScrollUp() {
-                return lm.findFirstCompletelyVisibleItemPosition() != 0;
+                return adapter.getItemCount()>0 && lm.findFirstCompletelyVisibleItemPosition() != 0;
             }
         });
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -211,7 +215,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                 callbacks.onRemoveCourse(adapter.selectedCourse);
                 return true;
         }
-        return onContextItemSelected(item);
+        return super.onContextItemSelected(item);
     }
 
     @Override
@@ -231,6 +235,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             courseRecyclerView.setAdapter(adapter);
         }
         Groups.getGroupsInBackground(getContext(), exceptionHandler);
+        Log.i(TAG, "loading courses");
         CourseTasks.getCourses(getContext(), group, this, getActivity().getSupportLoaderManager(),
                                exceptionHandler);
     }
@@ -254,6 +259,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         adapter.changeCursor(data);
+        Log.i(TAG, "load finished; count: " + data.getCount());
         if (progress != null) {
             progress.setVisibility(View.GONE);
         }

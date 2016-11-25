@@ -202,4 +202,19 @@ public class QuestionTable {
                                                        QuestionEntry.COLUMN_NAME_ORDER + " asc"));
         return c;
     }
+
+    public Question queryQuestion(ID questionId) {
+        SQLiteDatabase db = helper.getReadableDatabase();
+        QuestionCursor c = new QuestionCursor(db.query(TABLE_NAME,
+                                               null,
+                                               QuestionEntry.COLUMN_NAME_ID
+                                               + "=" + questionId.getItemIdValue(),
+                                               null,
+                                               null,
+                                               null,
+                                               null,
+                                               "1"));
+        c.moveToNext();
+        return c.getQuestion();
+    }
 }

@@ -17,7 +17,7 @@ import rs.luka.android.studygroup.model.ID;
  */
 public class LocalImages {
     public static final File   APP_IMAGE_DIR = new File(Environment.getExternalStorageDirectory(),
-                                                         "DCIM/StudyGroup/");
+                                                         "DCIM/Notekeeper/");
     public static final File APP_THUMBS_DIR = new File(APP_IMAGE_DIR, "thumbs/");
     private static final String TEMP_THUMB_NAME = "temp";
     private static final String TAG           = "studygroup.Images";

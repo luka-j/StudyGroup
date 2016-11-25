@@ -123,7 +123,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
         swipe.setOnChildScrollUpListener(new PoliteSwipeRefreshLayout.OnChildScrollUpListener() {
             @Override
             public boolean canChildScrollUp() {
-                return lm.findFirstCompletelyVisibleItemPosition() != 0;
+                return lm.findFirstCompletelyVisibleItemPosition() > 0;
             }
         });
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
