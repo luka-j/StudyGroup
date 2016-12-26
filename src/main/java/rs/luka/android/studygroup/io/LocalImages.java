@@ -21,6 +21,10 @@ public class LocalImages {
     public static final File APP_THUMBS_DIR = new File(APP_IMAGE_DIR, "thumbs/");
     private static final String TEMP_THUMB_NAME = "temp";
     private static final String TAG           = "studygroup.Images";
+    static {
+        if(!APP_IMAGE_DIR.isDirectory()) APP_IMAGE_DIR.mkdirs();
+        if(!APP_THUMBS_DIR.isDirectory()) APP_THUMBS_DIR.mkdirs();
+    }
 
     public static void saveGroupImage(ID id, File image) throws IOException {
         saveImage(image, generateGroupImageFile(id));
@@ -215,7 +219,7 @@ public class LocalImages {
         return new File(APP_THUMBS_DIR, "IMG_User-" + userId);
     }
 
-    protected static File generateMyImageFile() throws IOException {
+    public static File generateMyImageFile() throws IOException {
         if(!APP_IMAGE_DIR.isDirectory()) APP_IMAGE_DIR.mkdirs();
         return new File(APP_IMAGE_DIR, "myImage");
     }

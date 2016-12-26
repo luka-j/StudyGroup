@@ -37,6 +37,7 @@ import rs.luka.android.studygroup.io.backgroundtasks.ExamTasks;
 import rs.luka.android.studygroup.io.database.ExamTable;
 import rs.luka.android.studygroup.io.network.Exams;
 import rs.luka.android.studygroup.io.network.Network;
+import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
@@ -357,7 +358,9 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
                                     getResources().getDimensionPixelSize(R.dimen.card_image_size),
                                     exceptionHandler, imageView);
             } else {
-                //do nothing. Set placeholder image?
+                imageView.setImageBitmap(Utils.generateBitmapFor(examCourse.getYear(),
+                                                                 getResources().getDimensionPixelSize(R.dimen.card_image_size),
+                                                                 getResources().getDimensionPixelSize(R.dimen.card_image_size)));
             }
         }
 

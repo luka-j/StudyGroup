@@ -114,7 +114,11 @@ public class EditUserInfoActivity extends AppCompatActivity implements InputDial
                 Intent camera  = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 Intent gallery = new Intent(Intent.ACTION_PICK);
                 gallery.setType("image/*");
-                imageFile = new File(LocalImages.APP_IMAGE_DIR + "users/me.jpg");
+                try {
+                    imageFile = LocalImages.generateMyImageFile();
+                } catch (IOException e) {
+                    handler.handleIOException(e);
+                }
                 camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
                 Intent chooserIntent = Intent.createChooser(camera,
                                                             getString(R.string.select_image));

@@ -31,10 +31,10 @@ public class ExamTasks {
         pushToExecutor(new Runnable() {
             @Override
             public void run() {
-                if((currentTime - DataManager.getLastFetch(c, LAST_FETCH_KEY)) > FETCH_TIMEOUT) {
+                if((currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH_KEY, groupId)) > FETCH_TIMEOUT) {
                     try {
                         Exams.getExams(c, groupId, exceptionHandler);
-                        DataManager.writeLastFetch(c, LAST_FETCH_KEY);
+                        DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, groupId);
                         exceptionHandler.finished();
                     } catch (IOException e) {
                         exceptionHandler.handleIOException(e);
@@ -53,7 +53,7 @@ public class ExamTasks {
             public void run() {
                 try {
                     Exams.getExams(c, groupId, exceptionHandler);
-                    DataManager.writeLastFetch(c, LAST_FETCH_KEY);
+                    DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, groupId);
                     exceptionHandler.finished();
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);

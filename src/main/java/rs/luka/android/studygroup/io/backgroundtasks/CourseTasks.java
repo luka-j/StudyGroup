@@ -20,7 +20,9 @@ import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 
+import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.getLastFetchTagged;
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
+import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.writeLastFetchTagged;
 
 /**
  * Created by luka on 17.10.16..
@@ -38,11 +40,11 @@ public class CourseTasks {
         pushToExecutor(new Runnable() {
             @Override
             public void run() {
-                if((currentTime - DataManager.getLastFetch(c, LAST_FETCH_KEY)) > FETCH_TIMEOUT) {
+                if((currentTime - getLastFetchTagged(c, LAST_FETCH_KEY, group.getIdValue())) > FETCH_TIMEOUT) {
                     try {
                         Courses.getCourses(c, group, exceptionHandler);
                         exceptionHandler.finished();
-                        DataManager.writeLastFetch(c, LAST_FETCH_KEY);
+                        writeLastFetchTagged(c, LAST_FETCH_KEY, group.getIdValue());
                     } catch (IOException e) {
                         exceptionHandler.handleIOException(e);
                     }
@@ -72,7 +74,7 @@ public class CourseTasks {
                 try {
                     Courses.getCourses(c, group, exceptionHandler);
                     exceptionHandler.finished();
-                    DataManager.writeLastFetch(c, LAST_FETCH_KEY);
+                    writeLastFetchTagged(c, LAST_FETCH_KEY, group.getIdValue());
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);
                 }
@@ -159,12 +161,13 @@ public class CourseTasks {
                 try {
                     long currentTime = System.currentTimeMillis();
                     boolean exists = LocalImages.courseImageExists(id);
-                    if(!exists || currentTime - DataManager.getLastFetch(c, LAST_FETCH_THUMB_KEY) > DataManager.FETCH_TIMEOUT_THUMBS) {
+                    if(!exists || currentTime - getLastFetchTagged(c, LAST_FETCH_THUMB_KEY, id.getCourseIdValue())
+                                  > DataManager.FETCH_TIMEOUT_THUMBS) {
                         Courses.loadImage(id.getCourseIdValue(),
                                           scaleTo,
                                           LocalImages.generateCourseImageFile(id),
                                           handler);
-                        DataManager.writeLastFetch(c, LAST_FETCH_THUMB_KEY);
+                        writeLastFetchTagged(c, LAST_FETCH_THUMB_KEY, id.getCourseIdValue());
                     }
                 } catch (IOException e) {
                     handler.handleIOException(e);
@@ -174,7 +177,8 @@ public class CourseTasks {
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            insertInto.setImageBitmap(image);
+                            if(insertInto.getContext() != null)
+                                insertInto.setImageBitmap(image);
                         }
                     });
                 } catch (IOException e) {

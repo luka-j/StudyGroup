@@ -23,7 +23,7 @@ public class DataManager {
     static ThreadPoolExecutor executor;
 
     static {
-        executor = new ThreadPoolExecutor(6, 6, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        executor = new ThreadPoolExecutor(3, 3, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
         executor.allowCoreThreadTimeOut(true);
     }
 
@@ -45,6 +45,25 @@ public class DataManager {
         SharedPreferences.Editor editor      = prefs.edit();
         editor.remove(key);
         editor.apply();
+    }
+
+    static long getLastFetchTagged(Context context, String key, long itemId) {
+        return getLastFetch(context, key+"/"+itemId);
+    }
+    static void writeLastFetchTagged(Context context, String key, long itemId) {
+        writeLastFetch(context, key);
+        writeLastFetch(context, key+"/"+itemId);
+    }
+    static long getLastFetchTagged(Context context, String key, String tag) {
+        return getLastFetch(context, key+"/"+tag);
+    }
+    static void writeLastFetchTagged(Context context, String key, String tag) {
+        writeLastFetch(context, key);
+        writeLastFetch(context, key+"/"+tag);
+    }
+    static void resetLastFetchTagged(Context context, String key, long itemId) {
+        resetLastFetch(context, key);
+        resetLastFetch(context, key+"/"+itemId);
     }
 
     public static void clearFetchHistory(Context context) {

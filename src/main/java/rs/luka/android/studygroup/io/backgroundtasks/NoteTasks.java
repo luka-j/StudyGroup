@@ -24,7 +24,7 @@ import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
-import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.resetLastFetch;
+import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.resetLastFetchTagged;
 
 /**
  * Created by luka on 17.10.16..
@@ -43,10 +43,10 @@ public class NoteTasks {
         pushToExecutor(new Runnable() {
             @Override
             public void run() {
-                if((currentTime - DataManager.getLastFetch(c, LAST_FETCH)) > FETCH_TIMEOUT) {
+                if((currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH, courseId+lesson)) > FETCH_TIMEOUT) {
                     try {
                         Notes.getNotes(c, courseId, lesson, exceptionHandler);
-                        DataManager.writeLastFetch(c, LAST_FETCH);
+                        DataManager.writeLastFetchTagged(c, LAST_FETCH, courseId+lesson);
                         exceptionHandler.finished();
                     } catch (IOException e) {
                         exceptionHandler.handleIOException(e);
@@ -65,7 +65,7 @@ public class NoteTasks {
             public void run() {
                 try {
                     Notes.getNotes(c, courseId, lesson, exceptionHandler);
-                    DataManager.writeLastFetch(c, LAST_FETCH);
+                    DataManager.writeLastFetchTagged(c, LAST_FETCH, courseId+lesson);
                     exceptionHandler.finished();
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);
@@ -97,7 +97,7 @@ public class NoteTasks {
                             Notes.updateAudio(noteId, audio, handler);
                             LocalAudio.saveNoteAudio(id, courseName, realLesson, audio);
                         }
-                        resetLastFetch(c, LessonTasks.LAST_FETCH_KEY);
+                        resetLastFetchTagged(c, LessonTasks.LAST_FETCH_KEY, courseId.getCourseIdValue());
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Notes#createNote returned null; exception should have been handled");
@@ -203,7 +203,8 @@ public class NoteTasks {
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {
-                    insertInto.setImageBitmap(image);
+                    if(insertInto.getContext() != null)
+                        insertInto.setImageBitmap(image);
                 }
             });
         } catch (IOException e) {
@@ -222,8 +223,9 @@ public class NoteTasks {
                                 scaleTo,
                                 LocalImages.generateNoteThumbFile(courseName, lessonName, id),
                                 exceptionHandler);
-                DataManager.writeLastFetch(c, LAST_FETCH_THUMB_KEY);
-            } else if(currentTime - DataManager.getLastFetch(c, LAST_FETCH_THUMB_KEY) > DataManager.FETCH_TIMEOUT_THUMBS) {
+                DataManager.writeLastFetchTagged(c, LAST_FETCH_THUMB_KEY, id.getItemIdValue());
+            } else if(currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH_THUMB_KEY, id.getItemIdValue())
+                      > DataManager.FETCH_TIMEOUT_THUMBS) {
                 File current = LocalImages.generateNoteThumbFile(courseName, lessonName, id);
                 File old = LocalImages.invalidateThumb(current);
                 Notes.loadThumb(id.getItemIdValue(), scaleTo, current, exceptionHandler);
@@ -232,7 +234,7 @@ public class NoteTasks {
                 if(!same) {
                     LocalImages.deleteNoteImage(courseName, lessonName, id);
                 }
-                DataManager.writeLastFetch(c, LAST_FETCH_THUMB_KEY);
+                DataManager.writeLastFetchTagged(c, LAST_FETCH_THUMB_KEY, id.getItemIdValue());
             }
         } catch (IOException e) {
             exceptionHandler.handleIOException(e);
@@ -243,7 +245,8 @@ public class NoteTasks {
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {
-                    insertInto.setImageBitmap(image);
+                    if(insertInto.getContext() != null)
+                        insertInto.setImageBitmap(image);
                 }
             });
         } catch (IOException e) {
@@ -262,7 +265,8 @@ public class NoteTasks {
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);
                 }
-                callbacks.onAudioReady(requestId, file);
+                if(callbacks != null)
+                    callbacks.onAudioReady(requestId, file);
             }
         });
     }

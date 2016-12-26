@@ -28,7 +28,7 @@ public class GroupTasks {
     public static final int     LOADER_ID            = 0;
     static final String LAST_FETCH_KEY       = "lfGroups";
     static final String LAST_FETCH_THUMB_KEY = "lfGThumb";
-    private static final int    FETCH_TIMEOUT        = 1000 * 60 * 2; //2min, non-refreshable
+    private static final int    FETCH_TIMEOUT        = 1000 * 60 * 1; //1min, non-refreshable
     private static final String TAG                  = "background.GroupTasks";
 
     public static void loadGroups(final Context c, final NetworkExceptionHandler exceptionHandler, final GroupLoaderCallbacks callbacks) {

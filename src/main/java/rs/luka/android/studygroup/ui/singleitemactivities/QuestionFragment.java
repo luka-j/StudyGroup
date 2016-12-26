@@ -117,8 +117,10 @@ public class QuestionFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_question, menu);
-        if(permission < Group.PERM_WRITE)
+        if(permission < Group.PERM_WRITE) {
             menu.removeItem(R.id.question_history);
+            menu.removeItem(R.id.question_edit);
+        }
     }
 
     @Override

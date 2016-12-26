@@ -31,11 +31,11 @@ public class LessonTasks {
         pushToExecutor(new Runnable() {
             @Override
             public void run() {
-                if((currentTime - DataManager.getLastFetch(c, LAST_FETCH_KEY)) > FETCH_TIMEOUT) {
+                if((currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH_KEY, courseId)) > FETCH_TIMEOUT) {
                     try {
                         Lessons.getLessons(c, courseId, exceptionHandler);
                         exceptionHandler.finished();
-                        DataManager.writeLastFetch(c, LAST_FETCH_KEY);
+                        DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, courseId);
                     } catch (IOException e) {
                         exceptionHandler.handleIOException(e);
                     }
@@ -54,7 +54,7 @@ public class LessonTasks {
                 try {
                     Lessons.getLessons(c, courseId, exceptionHandler);
                     exceptionHandler.finished();
-                    DataManager.writeLastFetch(c, LAST_FETCH_KEY);
+                    DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, courseId);
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);
                 }

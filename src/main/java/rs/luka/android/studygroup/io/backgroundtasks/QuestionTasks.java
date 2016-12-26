@@ -23,7 +23,7 @@ import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
-import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.resetLastFetch;
+import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.resetLastFetchTagged;
 
 /**
  * Created by luka on 17.10.16..
@@ -44,10 +44,10 @@ public class QuestionTasks {
         pushToExecutor(new Runnable() {
             @Override
             public void run() {
-                if((currentTime - DataManager.getLastFetch(c, LAST_FETCH_KEY)) > FETCH_TIMEOUT) {
+                if((currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH_KEY, courseId+lesson)) > FETCH_TIMEOUT) {
                     try {
                         Questions.getQuestions(c, courseId, lesson, exceptionHandler);
-                        DataManager.writeLastFetch(c, LAST_FETCH_KEY);
+                        DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, courseId+lesson);
                         exceptionHandler.finished();
                     } catch (IOException e) {
                         exceptionHandler.handleIOException(e);
@@ -66,7 +66,7 @@ public class QuestionTasks {
             public void run() {
                 try {
                     Questions.getQuestions(c, courseId, lesson, exceptionHandler);
-                    DataManager.writeLastFetch(c, LAST_FETCH_KEY);
+                    DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, courseId+lesson);
                     manager.restartLoader(LOADER_ID, null, callbacks);
                     exceptionHandler.finished();
                 } catch (IOException e) {
@@ -97,7 +97,7 @@ public class QuestionTasks {
                             Questions.updateImage(questionId, image, handler);
                             LocalImages.saveQuestionImage(id, courseName, realLesson, image);
                         }
-                        resetLastFetch(c, LessonTasks.LAST_FETCH_KEY);
+                        resetLastFetchTagged(c, LessonTasks.LAST_FETCH_KEY, courseId.getCourseIdValue());
                         handler.finished();
                     } else {
                         Log.w(TAG, "network.Questions#createQuestion returned null; exception should have been handled");
@@ -200,7 +200,8 @@ public class QuestionTasks {
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {
-                    insertInto.setImageBitmap(image);
+                    if(insertInto.getContext() != null)
+                        insertInto.setImageBitmap(image);
                 }
             });
         } catch (IOException e) {
@@ -219,8 +220,9 @@ public class QuestionTasks {
                                     scaleTo,
                                     LocalImages.generateQuestionThumbFile(courseName, lessonName, id),
                                     exceptionHandler);
-                DataManager.writeLastFetch(c, LAST_FETCH_THUMBS_KEY);
-            } else if(currentTime - DataManager.getLastFetch(c, LAST_FETCH_THUMBS_KEY) > DataManager.FETCH_TIMEOUT_THUMBS) {
+                DataManager.writeLastFetchTagged(c, LAST_FETCH_THUMBS_KEY, id.getItemIdValue());
+            } else if(currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH_THUMBS_KEY, id.getItemIdValue())
+                      > DataManager.FETCH_TIMEOUT_THUMBS) {
                 File current = LocalImages.generateQuestionThumbFile(courseName, lessonName, id);
                 File old = LocalImages.invalidateThumb(current);
                 Questions.loadThumb(id.getItemIdValue(), scaleTo, current, exceptionHandler);
@@ -229,7 +231,7 @@ public class QuestionTasks {
                 if(!same) {
                     LocalImages.deleteQuestionImage(courseName, lessonName, id);
                 }
-                DataManager.writeLastFetch(c, LAST_FETCH_THUMBS_KEY);
+                DataManager.writeLastFetchTagged(c, LAST_FETCH_THUMBS_KEY, id.getItemIdValue());
             }
         } catch (IOException e) {
             exceptionHandler.handleIOException(e);
@@ -240,7 +242,8 @@ public class QuestionTasks {
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {
-                    insertInto.setImageBitmap(image);
+                    if(insertInto.getContext() != null)
+                        insertInto.setImageBitmap(image);
                 }
             });
         } catch (IOException e) {

@@ -29,9 +29,10 @@ public class UserTasks {
                 try {
                     long currentTime = System.currentTimeMillis();
                     boolean exists = LocalImages.userThumbExists(id);
-                    if(!exists || currentTime - DataManager.getLastFetch(c, LAST_FETCH_THUMB_KEY) > DataManager.FETCH_TIMEOUT_THUMBS) {
+                    if(!exists || currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH_THUMB_KEY, id)
+                                  > DataManager.FETCH_TIMEOUT_THUMBS) {
                         UserManager.getImage(id, scaleTo, LocalImages.generateUserThumbFile(id), handler);
-                        DataManager.writeLastFetch(c, LAST_FETCH_THUMB_KEY);
+                        DataManager.writeLastFetchTagged(c, LAST_FETCH_THUMB_KEY, id);
                     }
                 } catch (IOException e) {
                     handler.handleIOException(e);
@@ -41,7 +42,8 @@ public class UserTasks {
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            insertInto.setImageBitmap(image);
+                            if(insertInto.getContext() != null)
+                                insertInto.setImageBitmap(image);
                         }
                     });
                 } catch (IOException e) {
