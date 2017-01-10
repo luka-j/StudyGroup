@@ -42,9 +42,11 @@ import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Note;
+import rs.luka.android.studygroup.ui.Showcase;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.dialogs.InputHelpDialog;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 
 /**
  * Created by luka on 14.7.15..
@@ -60,6 +62,7 @@ public class AddNoteActivity extends AppCompatActivity {
     private static final int  INTENT_IMAGE          = 0;
     private static final int  INTENT_AUDIO          = 1;
     private RelativeLayout       content;
+    private Toolbar              toolbar;
     private EditText             text;
     private EditText             lesson;
     private TextInputLayout      textTil;
@@ -113,6 +116,12 @@ public class AddNoteActivity extends AppCompatActivity {
         });
         initTextListeners();
         initMediaListeners();
+
+        if(!MaterialShowcaseView.hasAlreadyFired(this, "add-item")) {
+            Utils.simulateBackButton();
+            new Showcase(this).showSequence("add-item", new View[]{lessonTil, toolbar},
+                                            new int[]{R.string.tut_additem_lesson, R.string.tut_additem_specialchars});
+        }
     }
 
     @Override
@@ -320,7 +329,7 @@ public class AddNoteActivity extends AppCompatActivity {
     }
 
     private void initToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (NavUtils.getParentActivityIntent(this) != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons

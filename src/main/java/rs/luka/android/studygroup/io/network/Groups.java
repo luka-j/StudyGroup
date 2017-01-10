@@ -30,6 +30,7 @@ import rs.luka.android.studygroup.model.ID;
  * Created by luka on 2.1.16..
  */
 public class Groups  {
+    private static final String V = Network.API_VERSION;
     public static final String GROUPS                       = "groups/";
     private static final String TAG                         = "studygroup.net.Groups";
     private static final String JSON_KEY_ID                 = "id";
@@ -52,7 +53,7 @@ public class Groups  {
      */
     public static void getGroups(Context c, NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
-            URL              url      = new URL(Network.getDomain(), GROUPS);
+            URL              url      = new URL(Network.getDomain(), V + GROUPS);
             Network.Response<String> response = NetworkRequests.requestGetData(url);
             if(response.responseCode == Network.Response.RESPONSE_OK) {
                 JSONArray array = new JSONArray(response.responseData);
@@ -101,7 +102,7 @@ public class Groups  {
     public static Long createGroup(String name, String place, boolean inviteOnly, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL                 url      = new URL(Network.getDomain(), GROUPS);
+            URL                 url      = new URL(Network.getDomain(), V + GROUPS);
             Map<String, String> params   = new HashMap<>(2);
             params.put(JSON_KEY_NAME, name);
             params.put(JSON_KEY_PLACE, place);
@@ -125,7 +126,7 @@ public class Groups  {
                                       NetworkExceptionHandler exceptionHandler)
         throws IOException {
         try {
-            URL                 url      = new URL(Network.getDomain(), GROUPS + id);
+            URL                 url      = new URL(Network.getDomain(), V + GROUPS + id);
             Map<String, String> params   = new HashMap<>(2);
             params.put(JSON_KEY_NAME, name);
             params.put(JSON_KEY_PLACE, place);
@@ -145,7 +146,7 @@ public class Groups  {
     public static boolean loadImage(long id, int size, File loadInto, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL url = new URL(Network.getDomain(), GROUPS + id + "/image?size=" + size);
+            URL url = new URL(Network.getDomain(), V + GROUPS + id + "/image?size=" + size);
             Network.Response<File> response = NetworkRequests.requestGetFile(url, loadInto);
 
             if(response.responseCode == Network.Response.RESPONSE_OK)
@@ -160,7 +161,7 @@ public class Groups  {
     public static boolean updateImage(long id, File image, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL url = new URL(Network.getDomain(), GROUPS + id + "/image");
+            URL url = new URL(Network.getDomain(), V + GROUPS + id + "/image");
             Network.Response<File> response = NetworkRequests.requestPutFile(url, image);
 
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
@@ -175,7 +176,7 @@ public class Groups  {
     public static void addAnnouncement(int requestId, long groupId, String text, Set<Integer> years,
                                        Network.NetworkCallbacks<String> callbacks) throws IOException {
         try {
-            URL url = new URL(Network.getDomain(), GROUPS + groupId + "/announcement");
+            URL url = new URL(Network.getDomain(), V + GROUPS + groupId + "/announcement");
             StringBuilder yearSb = new StringBuilder(years.size()*3);
             yearSb.append(",");
             for(Integer year : years) yearSb.append(year).append(",");
@@ -192,7 +193,7 @@ public class Groups  {
     public static void getAnnouncements(int requestId, long groupId, Network.NetworkCallbacks<String> callbacks) {
         try {
             NetworkRequests.getDataAsync(requestId,
-                                         new URL(Network.getDomain(), GROUPS + groupId + "/announcements"),
+                                         new URL(Network.getDomain(), V + GROUPS + groupId + "/announcements"),
                                          callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -202,7 +203,7 @@ public class Groups  {
     public static void getAllAnnouncements(int requestId, long groupId, Network.NetworkCallbacks<String> callbacks) {
         try {
             NetworkRequests.getDataAsync(requestId,
-                                         new URL(Network.getDomain(), GROUPS + groupId + "/announcements/all"),
+                                         new URL(Network.getDomain(), V + GROUPS + groupId + "/announcements/all"),
                                          callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -211,7 +212,7 @@ public class Groups  {
 
     public static void getUsers(int requestId, long id, Network.NetworkCallbacks<String> callbacks) {
         try {
-            NetworkRequests.getDataAsync(requestId, new URL(Network.getDomain(), GROUPS + id + "/members"), callbacks);
+            NetworkRequests.getDataAsync(requestId, new URL(Network.getDomain(), V + GROUPS + id + "/members"), callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
@@ -219,7 +220,7 @@ public class Groups  {
 
     public static void requestJoin(int requestId, long id, Network.NetworkCallbacks<String> callbacks) {
         try {
-            NetworkRequests.postDataAsync(requestId, new URL(Network.getDomain(), "group/" + id + "/requestWrite"),
+            NetworkRequests.postDataAsync(requestId, new URL(Network.getDomain(), V + "group/" + id + "/requestWrite"),
                                           NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -228,7 +229,7 @@ public class Groups  {
 
     public static void grantOwner(int requestId, long groupId, long userId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), GROUPS + groupId + "/grantOwner/" + userId),
+            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), V + GROUPS + groupId + "/grantOwner/" + userId),
                                          NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -237,7 +238,7 @@ public class Groups  {
 
     public static void grantMod(int requestId, long groupId, long userId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), GROUPS + groupId + "/grantModify/" + userId),
+            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), V + GROUPS + groupId + "/grantModify/" + userId),
                                          NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -246,7 +247,7 @@ public class Groups  {
 
     public static void grantMember(int requestId, long groupId, long userId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), GROUPS + groupId + "/grantWrite/" + userId),
+            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), V + GROUPS + groupId + "/grantWrite/" + userId),
                                          NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -255,7 +256,7 @@ public class Groups  {
 
     public static void revokeMember(int requestId, long groupId, long userId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), GROUPS + groupId + "/revokeWrite/" + userId),
+            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), V + GROUPS + groupId + "/revokeWrite/" + userId),
                                          NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -264,7 +265,7 @@ public class Groups  {
 
     public static void search(int requestId, String name, Network.NetworkCallbacks<String> callbacks) {
         try {
-            NetworkRequests.getDataAsync(requestId, new URL(Network.getDomain(), GROUPS +
+            NetworkRequests.getDataAsync(requestId, new URL(Network.getDomain(), V + GROUPS +
                                                                                  URLEncoder.encode(name, "UTF-8")
                                                                                  + "/search"
             ), callbacks);
@@ -275,7 +276,7 @@ public class Groups  {
 
     public static void invite(int requestId, long groupId, String email, Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL url = new URL(Network.getDomain(), GROUPS + groupId + "/invite");
+            URL url = new URL(Network.getDomain(), V + GROUPS + groupId + "/invite");
             Map<String, String> params = new HashMap<>(1);
             params.put("email", email);
             NetworkRequests.putDataAsync(requestId, url, params, callbacks);
@@ -286,7 +287,7 @@ public class Groups  {
 
     public static void leave(int requestId, long groupId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), GROUPS + groupId + "/leave"),
+            NetworkRequests.putDataAsync(requestId, new URL(Network.getDomain(), V + GROUPS + groupId + "/leave"),
                                          NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);

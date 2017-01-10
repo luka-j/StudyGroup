@@ -14,6 +14,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -44,9 +45,11 @@ import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
+import rs.luka.android.studygroup.ui.Showcase;
 import rs.luka.android.studygroup.ui.dialogs.AnnouncementDialog;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.AddCourseActivity;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 
 //import rs.luka.android.studygroup.ui.Snackbar;
 
@@ -62,14 +65,17 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     private static final   int    REQUEST_ADD_COURSE    = 2; //intent request
     private static final int      REQUEST_SHOW_ALL      = 3; //network request
     private static final int      REQUEST_GET_ANNOUNCEMENTS = 4; //network request
-    private Group                group;
-    private RecyclerView         courseRecyclerView;
-    private Callbacks            callbacks;
-    private CourseAdapter        adapter;
-    private FloatingActionButton fab;
+    private static final String TUTORIAL_ID = "course-display";
+
+    private Group                    group;
+    private RecyclerView             courseRecyclerView;
+    private Callbacks                callbacks;
+    private CourseAdapter            adapter;
+    private FloatingActionButton     fab;
     private PoliteSwipeRefreshLayout swipe;
-    private CoordinatorLayout    coordinator;
+    private CoordinatorLayout        coordinator;
     private CircularProgressView     progress;
+    private boolean                  showCourseTutorial;
 
     private NetworkExceptionHandler exceptionHandler;
 
@@ -89,6 +95,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         group = getArguments().getParcelable(GroupActivity.EXTRA_GROUP);
 
         Groups.getAnnouncements(REQUEST_GET_ANNOUNCEMENTS, group.getIdValue(), this);
+        showCourseTutorial = !MaterialShowcaseView.hasAlreadyFired(getContext(), TUTORIAL_ID) && group.getPermission() >= Group.PERM_WRITE;
         //setRetainInstance(true);
     }
 
@@ -144,6 +151,10 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                 }
             }
         });
+        if(group.getPermission() >= Group.PERM_READ_REQUEST_WRITE_FORBIDDEN
+           && group.getPermission() <= Group.PERM_READ_CAN_REQUEST_WRITE) {
+            new Showcase(getActivity()).showShowcase("request-join", fab, false, R.string.tut_reqjoin, true, true);
+        }
         final LinearLayoutManager lm = new LinearLayoutManager(getActivity());
         courseRecyclerView.setLayoutManager(lm);
         if(group.getPermission() >= Group.PERM_MODIFY) //context menu postoji samo za one koji mogu da ga koriste
@@ -235,7 +246,6 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             courseRecyclerView.setAdapter(adapter);
         }
         Groups.getGroupsInBackground(getContext(), exceptionHandler);
-        Log.i(TAG, "loading courses");
         CourseTasks.getCourses(getContext(), group, this, getActivity().getSupportLoaderManager(),
                                exceptionHandler);
     }
@@ -259,7 +269,6 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         adapter.changeCursor(data);
-        Log.i(TAG, "load finished; count: " + data.getCount());
         if (progress != null) {
             progress.setVisibility(View.GONE);
         }
@@ -340,6 +349,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         void onEditSelected(Course course, int requestCode);
         void onRequestJoin(Group group);
         void onRemoveCourse(Course course);
+        Toolbar getToolbar();
     }
 
     private class TouchHelperCallbacks extends ItemTouchHelper.SimpleCallback {
@@ -468,6 +478,12 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         @Override
         public void onBindViewHolder(CourseHolder viewHolder, Cursor cursor) {
             viewHolder.bindCourse(((CourseTable.CourseCursor) cursor).getCourse());
+            if(showCourseTutorial) {
+                new Showcase(getActivity()).showSequence(TUTORIAL_ID,
+                                                         new View[]{viewHolder.itemView, viewHolder.itemView, callbacks.getToolbar()},
+                                                         new int[] {R.string.tut_course_intro, R.string.tut_course_hide,
+                                                                    R.string.tut_course_filter});
+            }
         }
     }
 }

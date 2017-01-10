@@ -32,8 +32,10 @@ import rs.luka.android.studygroup.io.backgroundtasks.GroupTasks;
 import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.ui.Showcase;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 
 /**
  * Created by luka on 18.7.15..
@@ -79,6 +81,10 @@ public class AddGroupActivity extends AppCompatActivity {
         });
         initTextListeners();
         initMediaListeners();
+
+        if(!MaterialShowcaseView.hasAlreadyFired(this, "add-group")) Utils.simulateBackButton();
+        new Showcase(this).showSequence("add-group", new View[]{nameTil, inviteOnly},
+                                        new int[]{R.string.tut_addgroup_basicinfo, R.string.tut_addgroup_inviteonly});
     }
 
     @Override

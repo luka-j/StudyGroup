@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Notekeeper</string>
     <string name="settings">Settings</string>
     <string name="lessons_title">Lessons</string>
@@ -217,13 +217,13 @@
     <string name="invite">Invite</string>
     <string name="send_invitation">Send an invitation</string>
     <string name="dialog_invite_hint">Enter friend\'s email address</string>
-    <string name="dialog_invite_text">Enter your friend\'s email address. If he/she isn\'t using %1$s already, they will be sent an invitation to sign up for the app, along with the group invitation. (email invites don\'t work currently, due to lack of email server)</string>
+    <string name="dialog_invite_text">Enter your friend\'s email address. If he/she isn\'t using %1$s already, they will be sent an invitation to sign up for the app, along with the group invitation.</string>
     <string name="invite_sent">Invitation sent</string>
     <string name="leave">Leave</string>
     <string name="change_password">Change password</string>
     <string name="title_activity_member_list">Member List</string>
     <string name="register_underlined"><u>Register</u></string>
-    <string name="register_legal_text">By registering for an account, I agree to the [legal stuff goes here]</string>
+    <string name="register_legal_text">By registering for an account, I agree to the <a href="http://notekeep.me/eula">EULA</a> and <a href="http://notekeep.me/pp">Privacy Policy</a></string>
     <string name="priv">Private</string>
     <string name="private_items_help">Private items are visible only to the members of the group. All items inside categories marked as private are going to be private as well. If first note or question created in lesson is private, whole lesson is made private.</string>
     <string name="input_help_text">All Unicode characters represent valid input (yes, emojis too). However, in order to simplify typing, there are some shortcuts for frequently used characters: a caret (^) puts a letter, digit or mathematical symbol (+,-,=,(,)) in superscript, an underscore (_) before a digit puts it in subscript, and a backslash (\\) transforms a Latin letter into the appropriate Greek equivalent. If you want to type those symbols normally, double them (i.e. \\\\ becomes \\). The Latin-to-Greek conversion table is as follows:</string>
@@ -250,4 +250,58 @@
     <string name="role_creator">Creator</string>
     <string name="invite_unapproved_info_title">Your invitation hasn\'t been approved yet</string>
     <string name="invite_unapproved_info_text">You have been invited to join this group, but your invitation hasn\'t been approved by a group mod yet. When it gets approved, you will become a member of this group.</string>
+    <string name="error_offline_announcements_text">You cannot view group announcements while you\'re offline. Please reconnect and try again.</string>
+    <string name="error_default_server_down">Server is down for maintenance. Please try again later.</string>
+    <string name="error_default_server_unreachable">Server is unreachable. If issue persists, please report it.</string>
+    <string name="error_maintenance_title">Maintenance</string>
+    <string name="error_maintenance_text">Server is down for planned maintenance. Please try again later.</string>
+    <string name="error_unreachable_title">Server is unreachable</string>
+    <string name="error_unreachable_text">Server is unreachable at the moment. If the problem persists, please report it.</string>
+    <string name="uncaught_exception">Encountered unexpected %s</string>
+    <string name="default_showcase_dismiss_text">Got it</string>
+    <string name="welcome">Welcome</string>
+    <string name="tut_intro_groups">Use the \"Join group\" option from the left panel to search for your school or faculty, or if it isn\'t present tap the \"Create group\" to add it</string>
+    <string name="tut_intro_profile">Tap on the header to see your profile</string>
+    <string name="default_showcase_skip_text">Skip</string>
+    <string name="tut_addgroup_basicinfo">Enter your institution name and place to distinguish it from the others, and add an image</string>
+    <string name="tut_addgroup_inviteonly">Check this box to disallow join requests (you will have to invite the others)</string>
+    <string name="tut_course_intro">Inside courses you can find all the useful materials, or add your own.</string>
+    <string name="tut_course_hide">Swipe course left or right to hide it if you\'re not interested, and re-show it later using \"Show all\" option from the options menu. Swipe up the screen to refresh.</string>
+    <string name="tut_course_filter">Use the filter icon from the top of the screen to display only years you\'re interested in</string>
+    <string name="tut_reqjoin">Use the pencil button to request access to this group</string>
+    <string name="tut_additem_lesson">All items are categorized by lessons. If the lesson with the specified name doesn\'t already exist, it is automatically created, and this item is placed inside it</string>
+    <string name="tut_additem_specialchars">Also check out the special shortcuts you can use in both lesson names and item content by tapping the rightmost icon!</string>
+    <string name="tut_notelist">Tap a note to show its contents, swipe it right to hide it, hold and drag up or down to reorder, or hold to access additional options</string>
+    <string name="tut_addexam_selectcourse">Pick a course this exam should refer to</string>
+    <string name="tut_addexam_lesson">Everything this exam encompasses, can be different from course lessons (e.g. comma-separated list). Combined with other properties, it will be a part of unique name for a private lesson which will be created in the selected course.</string>
+    <string name="tut_addexam_class" tools:ignore="TypographyDashes">A way to differentiate it from the other students of the same year who are taking the same exam, e.g. 2-1, 2-A or 2014-E</string>
+    <string name="tut_addexam_type">Type of the examination, could be anything e.g. oral or written test</string>
+    <string name="tut_addexam_date">Date this exam is planned for (can be changed later). Exams (but not the associated lessons!) will be deleted from schedule two days after they have been held.</string>
+    <string name="error_unauthorized_title">Unauthorized</string>
+    <string name="error_unauthorized_text">Server says you don\'t have the permission to do that</string>
+    <string name="error_too_many_invites_title">Invitation limit reached</string>
+    <string name="error_too_many_invites_text">Seems like you have reached the invitation limit. Try again in few days, and meanwhile you can instruct your friends how to install the app and join your group (sorry \'bout that)</string>
+    <string name="error_invite_sending_failed_title">Sending failed</string>
+    <string name="error_invite_sending_failed_text">Something has gone wrong while sending your invite, sorry! (Meanwhile, you can always instruct your friends how to install the app and join your group)</string>
+    <string name="error_unknown_http_code_title">Something isn\'t quite right…</string>
+    <string name="error_unknown_http_code_text">…and I\'m not sure what. If you could pass me this: \"%s\" I\'d be grateful</string>
+    <string name="error_invites_partial_title">I have sent some…</string>
+    <string name="error_invites_partial_text">…or to be exact, %1$d (out of %2$d). The rest failed to send for unknown reason. You can still tell your friends how to install and join your group, to make sure (also, check the members screen).</string>
+    <string name="error_default_too_many_requests">Seems like you are making too many requests to server. Try again in a minute.</string>
+    <string name="error_default_bad_gateway">Error: 502 Bad Gateway (server error). Got this, will be fixed soon.</string>
+    <string name="error_too_many_requests_title">Too many requests</string>
+    <string name="error_too_many_requests_text">It seems that you\'re making too many requests to server. Try again in a minute</string>
+    <string name="error_bad_gateway_title" translatable="false">502: Bad Gateway</string>
+    <string name="error_bad_gateway_text">That\'s a server error, sorry. It will be fixed soon.</string>
+    <string name="error_default_accepted">202, Accepted, everything seems ok (at least partially). Please tell me if you see this.</string>
+    <string name="error_password_too_short">Password is too short. Please use at least %1$d characters</string>
+    <string name="error_password_too_long">Password is too long. Please use at most %d characters.</string>
+    <string name="error_username_too_long">Username is too long. Please use at most %d characters.</string>
+    <string name="error_email_too_long">Email address is too long</string>
+    <string name="error_default_gateway_timeout">Gateway has timed out (504)</string>
+    <string name="error_gateway_timeout_title" translatable="false">504 Gateway Timeout</string>
+    <string name="error_gateway_timeout_text">Seems like things are slow or overloaded at my end, sorry about that. Please try again later.</string>
+    <string name="error_default_entity_too_large">413 Entity Too Large: seems like you\'re uploading too big file</string>
+    <string name="error_entity_too_large_title">Entity Too Large</string>
+    <string name="error_entity_too_large_text">It seems that you\'re trying to send too large file. Try something smaller.</string>
 </resources>

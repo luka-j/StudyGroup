@@ -54,7 +54,9 @@
             android:layout_height="@dimen/submit_cpv_size"
             android:layout_gravity="center_horizontal"
             android:visibility="gone"
-            app:cpv_animAutostart="true"/>
+            app:cpv_animAutostart="true"
+            app:cpv_indeterminate="true"
+            />
 
         <TextView
             android:id="@+id/button_register"

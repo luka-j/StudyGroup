@@ -21,13 +21,17 @@ public class AnnouncementsActivity extends SingleFragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AddAnnouncementDialog.newInstance(getIntent().<Group>getParcelableExtra(EXTRA_GROUP))
-                                     .show(getFragmentManager(), "");
-            }
-        });
+        if(getIntent().<Group>getParcelableExtra(EXTRA_GROUP).getPermission() < Group.PERM_OWNER) {
+            fab.setVisibility(View.GONE);
+        } else {
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AddAnnouncementDialog.newInstance(getIntent().<Group>getParcelableExtra(EXTRA_GROUP))
+                                         .show(getFragmentManager(), "");
+                }
+            });
+        }
     }
 
     @Override

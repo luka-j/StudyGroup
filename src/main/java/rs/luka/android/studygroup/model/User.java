@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.widget.ImageView;
 
+import rs.luka.android.studygroup.Notekeeper;
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
 import rs.luka.android.studygroup.io.backgroundtasks.DataManager;
@@ -13,6 +14,7 @@ import rs.luka.android.studygroup.io.database.Database;
 
 /**
  * Created by luka on 25.7.15..
+ * 9.1.'17.: definitely needs rewrite
  */
 public class User {
     public static final String PREFS_NAME       = "userdata";
@@ -25,15 +27,17 @@ public class User {
     private static User   instance;
     private String email;
     private String name;
-    private String token;
     private long id;
     private int permission;
     private boolean hasImage;
-    private static SharedPreferences prefs; //todo fix mess
+    private SharedPreferences prefs;
 
-    public User(String token, SharedPreferences prefs) {
-        this.token = token;
-        User.prefs = prefs; //todo really?
+    private User() {
+        prefs = Notekeeper.getAppContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE); //better than the last version
+        loadDetailsFromPrefs();
+    }
+    private User(SharedPreferences prefs) {
+        this.prefs = prefs;
     }
 
     public User(long id, String name, int permission, boolean hasImage) {
@@ -43,44 +47,33 @@ public class User {
         this.hasImage = hasImage;
     }
 
-    public static boolean hasSavedToken(SharedPreferences prefs) {
-        User.prefs = prefs;
-        return prefs.contains(PREFS_KEY_TOKEN);
+    public String getToken() {
+        return prefs.getString(PREFS_KEY_TOKEN, "");
     }
 
-    public static boolean recoverUser() {
-        if(prefs != null) {
-            instance = new User(prefs.getString(PREFS_KEY_TOKEN, null), prefs);
-            //todo I've said it once, and I'll say it again: fix mess
-            loadMyDetailsFromPrefs();
-            return true;
-        }
-        return false;
+    public static boolean hasSavedToken() {
+        if(instance == null) instance = new User();
+        return instance.prefs.contains(PREFS_KEY_TOKEN);
     }
 
     public static void clearToken() {
-        if(prefs != null)
-            prefs.edit().remove(PREFS_KEY_TOKEN).apply();
-        instance.token=null;
+        if(instance == null) instance = new User();
+        instance.prefs.edit().remove(PREFS_KEY_TOKEN).apply();
     }
-    public static void instantiateUser(String token, SharedPreferences prefs) {
+    public static void instantiateUser(String token, Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = prefs.edit();
         prefsEditor.putString(PREFS_KEY_TOKEN, token);
         prefsEditor.apply();
-        instance = new User(token, prefs);
+        instance = new User(prefs);
     }
     public static void setOfflineUser(SharedPreferences prefs) {
-        instance = new User(prefs.getString(PREFS_KEY_TOKEN, "0"), prefs);
+        instance = new User(prefs);
     }
 
-    public static String getToken() {
-        if(instance != null)
-            return instance.token;
-        if(prefs != null && hasSavedToken(prefs)) {
-            instantiateUser(prefs.getString(PREFS_KEY_TOKEN, null), prefs);
-            return instance.token;
-        }
-        return null;
+    public static String getInstanceToken() {
+        if(instance == null) instance = new User();
+        return instance.getToken();
     }
 
     public static void setMyDetails(long id, String name, String email, boolean hasImage) {
@@ -88,7 +81,7 @@ public class User {
         if(name != null) instance.name = name;
         if(email != null) instance.email = email;
         instance.hasImage = hasImage;
-        SharedPreferences.Editor editor = prefs.edit();
+        SharedPreferences.Editor editor = instance.prefs.edit();
         editor.putLong(PREFS_KEY_ID, id);
         editor.putString(PREFS_KEY_NAME, name);
         editor.putString(PREFS_KEY_EMAIL, email);
@@ -96,11 +89,15 @@ public class User {
         editor.apply();
     }
 
+    public void loadDetailsFromPrefs() {
+        id = prefs.getLong(PREFS_KEY_ID, 0);
+        name = prefs.getString(PREFS_KEY_NAME, "");
+        email = prefs.getString(PREFS_KEY_EMAIL, "");
+        hasImage = prefs.getBoolean(PREFS_KEY_HASIMAGE, false);
+    }
     public static void loadMyDetailsFromPrefs() {
-        instance.id = prefs.getLong(PREFS_KEY_ID, 0);
-        instance.name = prefs.getString(PREFS_KEY_NAME, "");
-        instance.email = prefs.getString(PREFS_KEY_EMAIL, "");
-        instance.hasImage = prefs.getBoolean(PREFS_KEY_HASIMAGE, false);
+        if(instance == null) instance = new User();
+        instance.loadDetailsFromPrefs();
     }
 
     public static String getMyEmail() {
@@ -126,14 +123,8 @@ public class User {
     }
 
     public static User getLoggedInUser() {
-        if(instance == null)
-            if(!recoverUser())
-                return null;
+        if(instance == null) instance = new User();
         return instance;
-    }
-
-    public static void injectPrefs(Context ctx) { //todo fix tangled mess
-        prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
     public static boolean isLoggedIn() {
@@ -144,7 +135,6 @@ public class User {
         SharedPreferences.Editor prefsEditor = prefs.edit();
         prefsEditor.putString(PREFS_KEY_TOKEN, token);
         prefsEditor.apply();
-        this.token = token;
     }
 
     public void logOut(Context c) {

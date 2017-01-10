@@ -11,8 +11,8 @@ android {
         applicationId "rs.luka.android.studygroup"
         minSdkVersion 15
         targetSdkVersion 22 //jer nisam pisao zahteve za dozvole koje koristim - TODO
-        versionCode 3
-        versionName "0.99"
+        versionCode 5
+        versionName "1.0-beta1"
     }
     buildTypes {
         release {
@@ -36,6 +36,7 @@ dependencies {
     compile 'com.github.rahatarmanahmed:circularprogressview:2.3.2'
     compile 'com.davemorrissey.labs:subsampling-scale-image-view:3.5.0'
     compile 'com.pkmmte.view:circularimageview:1.1'
+    compile project(path: ':showcase')
 }
 
 /*sourceSets {

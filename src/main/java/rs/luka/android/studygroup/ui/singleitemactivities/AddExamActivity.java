@@ -32,9 +32,11 @@ import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Exam;
 import rs.luka.android.studygroup.model.Group;
+import rs.luka.android.studygroup.ui.Showcase;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.recyclers.GroupActivity;
 import rs.luka.android.studygroup.ui.recyclers.SelectCourseActivity;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 
 public class AddExamActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
@@ -85,6 +87,7 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
             getSupportActionBar().setTitle(course.getSubject() +
                                            (exam.getType().isEmpty() ? "" : " - " + exam.getType()));
             initViews();
+            initListeners();
         } else if (savedInstanceState == null || savedInstanceState.getParcelable(DATA_SELECTED_COURSE) == null) {
             group = getIntent().getParcelableExtra(EXTRA_GROUP);
             startActivityForResult(new Intent(this,
@@ -98,6 +101,7 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
                 selectedDate.setTimeInMillis(savedInstanceState.getLong(DATA_SELECTED_DATE));
             }
             initViews();
+            initListeners();
         }
     }
 
@@ -108,6 +112,15 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
             if (requestCode == REQUEST_SELECT_COURSE) {
                 course = data.getParcelableExtra(SelectCourseActivity.EXTRA_COURSE);
                 initViews();
+                initListeners();
+                if(!MaterialShowcaseView.hasAlreadyFired(this, "add-exam")) {
+                    //Utils.simulateBackButton();
+                    new Showcase(this).showSequence("add-exam", new View[]{lessonTil, classTil, typeTil, date},
+                                                    new int[]{R.string.tut_addexam_lesson,
+                                                              R.string.tut_addexam_class,
+                                                              R.string.tut_addexam_type,
+                                                              R.string.tut_addexam_date});
+                }
             }
         } else {
             goBack = true;
@@ -202,7 +215,9 @@ public class AddExamActivity extends AppCompatActivity implements DatePickerDial
             typeEdit.setText(exam.getType());
             typeEdit.setEnabled(false);
         }
+    }
 
+    private void initListeners() {
         typeEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {

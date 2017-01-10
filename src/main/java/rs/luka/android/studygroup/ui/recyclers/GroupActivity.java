@@ -33,6 +33,7 @@ import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.User;
+import rs.luka.android.studygroup.ui.Showcase;
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 import rs.luka.android.studygroup.ui.dialogs.AddAnnouncementDialog;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
@@ -70,8 +71,36 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     private Course pendingRemove;
 
     private NetworkExceptionHandler exceptionHandler = new NetworkExceptionHandler.DefaultHandler(this);
+    private NetworkExceptionHandler inviteExHandler = new NetworkExceptionHandler.DefaultHandler(this) {
+        @Override
+        public void handleServerError(String message) {
+            InfoDialog.newInstance(getString(R.string.error_invite_sending_failed_title),
+                                   getString(R.string.error_invite_sending_failed_text))
+                    .show(getSupportFragmentManager(), "error_sending_failed");
+        }
+
+        @Override
+        public void handleInsufficientPermissions(String message) {
+            InfoDialog.newInstance(getString(R.string.error_too_many_invites_title),
+                                   getString(R.string.error_too_many_invites_text))
+                      .show(getSupportFragmentManager(), "error_too_many_invites");
+        }
+
+        @Override
+        public void handleUnknownHttpCode(int responseCode, String message) {
+            if(responseCode == 202) {
+                String[] stats = message.split(" ")[1].split("/");
+                int succ = Integer.parseInt(stats[0]), total = Integer.parseInt(stats[1]);
+                InfoDialog.newInstance(getString(R.string.error_invites_partial_title),
+                                       getString(R.string.error_invites_partial_text, succ, total))
+                        .show(getSupportFragmentManager(), "error_invites_partial");
+            }
+        }
+    };
+
     private Group group;
 
+    private Toolbar toolbar;
     private DrawerLayout drawer;
     private NavigationView navigation;
     private HashMap<Integer, Group> navbarGroups                 = new HashMap<>();
@@ -99,21 +128,28 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         navigation = (NavigationView) findViewById(R.id.nav_view);
         drawer = (DrawerLayout)findViewById(R.id.group_drawer);
         setNavigationView();
-        if(getSupportActionBar() == null) setSupportActionBar((Toolbar)findViewById(R.id.toolbar));
+        toolbar = (Toolbar)findViewById(R.id.toolbar);
+        if(getSupportActionBar() == null) setSupportActionBar(toolbar);
         ActionBar ac = getSupportActionBar();
         ac.setHomeAsUpIndicator(R.drawable.ic_menu);
         ac.setDisplayHomeAsUpEnabled(true);
         navigation.setNavigationItemSelectedListener(this);
         if(group == null) group = getIntent().getParcelableExtra(EXTRA_GROUP);
-        if(group == null) drawer.openDrawer(GravityCompat.START);
+        if(group == null) {
+            drawer.openDrawer(GravityCompat.START);
+            new Showcase(this).showSequence("intro-groups", new View[]{null, navigation.getHeaderView(0)},
+                                            new int[]{R.string.welcome, 0},
+                                            new int[]{R.string.tut_intro_groups, R.string.tut_intro_profile});
+        }
         else LoadingActivity.setPreferredGroup(this, group);
     }
 
     private void setNavigationView() {
         Menu                 navMenu = navigation.getMenu();
+
         for(int i=1; i<=navbarGroups.size(); i++)
             navMenu.removeGroup(i);
-        for(int i=1; i<=navbarGroups.size()*3; i++) //DOESN'T WORK
+        for(int i=1; i<=navbarGroups.size()*NAVBAR_ITEMS; i++) //DOESN'T WORK
             navMenu.removeItem(i);
         navbarGroups.clear();
 
@@ -142,10 +178,6 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         TextView          email    = (TextView)headerContainer.findViewById(R.id.nav_header_email);
         CircularImageView avatar   = (CircularImageView)headerContainer.findViewById(R.id.nav_header_image);
         User loggedInUser = User.getLoggedInUser();
-        if(loggedInUser == null) {
-            User.injectPrefs(this);
-            loggedInUser = User.getLoggedInUser();
-        }
         username.setText(loggedInUser.getName());
         email.setText(User.getMyEmail());
         if(loggedInUser.hasImage())
@@ -234,6 +266,11 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                                   R.string.confirm_remove_singular,
                                   R.string.cancel)
                      .show(getSupportFragmentManager(), DIALOG_REMOVE);
+    }
+
+    @Override
+    public Toolbar getToolbar() {
+        return toolbar;
     }
 
     @Override
@@ -337,7 +374,11 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                 }
             });
         } else {
-            response.handleErrorCode(exceptionHandler);
+            if(id == REQUEST_INVITE) {
+                response.handleErrorCode(inviteExHandler);
+            } else {
+                response.handleErrorCode(exceptionHandler);
+            }
         }
     }
 

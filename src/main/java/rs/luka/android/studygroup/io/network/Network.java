@@ -35,6 +35,7 @@ import rs.luka.android.studygroup.model.User;
  * Created by luka on 1.1.16..
  */
 public class Network {
+    static final String API_VERSION = "v1/";
 
     /**
      * debug flag: set to false for using server on LAN
@@ -48,7 +49,7 @@ public class Network {
     static {
         try {
             if(USE_REMOTE_SERVER)
-                DOMAIN = new URL("http://79.101.8.6/");
+                DOMAIN = new URL("http://api.notekeep.me/");
             else
                 DOMAIN = new URL("http://192.168.0.15:9000/");
         } catch (MalformedURLException e) {
@@ -67,16 +68,23 @@ public class Network {
     }
 
     public static class Response<T> {
-        public static final int RESPONSE_OK           = 200;
-        public static final int RESPONSE_CREATED      = 201;
-        public static final int NOT_MODIFIED          = 304;
-        public static final int RESPONSE_BAD_REQUEST  = 400;
-        public static final int RESPONSE_UNAUTHORIZED = 401;
-        public static final int RESPONSE_FORBIDDEN    = 403;
-        public static final int RESPONSE_NOT_FOUND    = 404;
-        public static final int RESPONSE_DUPLICATE    = 409;
-        public static final int RESPONSE_GONE         = 410;
-        public static final int RESPONSE_SERVER_ERROR = 500;
+        public static final int RESPONSE_OK                 = 200;
+        public static final int RESPONSE_CREATED            = 201;
+        public static final int RESPONSE_ACCEPTED           = 202;
+        public static final int NOT_MODIFIED                = 304;
+        public static final int RESPONSE_BAD_REQUEST        = 400;
+        public static final int RESPONSE_UNAUTHORIZED       = 401;
+        public static final int RESPONSE_FORBIDDEN          = 403;
+        public static final int RESPONSE_NOT_FOUND          = 404;
+        public static final int RESPONSE_DUPLICATE          = 409;
+        public static final int RESPONSE_GONE               = 410;
+        public static final int RESPONSE_ENTITY_TOO_LARGE   = 413;
+        public static final int RESPONSE_TOO_MANY_REQUESTS  = 429;
+        public static final int RESPONSE_SERVER_ERROR       = 500;
+        public static final int RESPONSE_BAD_GATEWAY        = 502;
+        public static final int RESPONSE_SERVER_DOWN        = 503;
+        public static final int RESPONSE_GATEWAY_TIMEOUT    = 504;
+        public static final int RESPONSE_SERVER_UNREACHABLE = 521;
         public final  int     responseCode;
         public final  T       responseData;
         public final String   errorMessage;
@@ -101,13 +109,20 @@ public class Network {
             switch(responseCode) {
                 case RESPONSE_OK: return context.getString(R.string.error_default_ok);
                 case RESPONSE_CREATED: return context.getString(R.string.error_default_created);
+                case RESPONSE_ACCEPTED: return context.getString(R.string.error_default_accepted);
                 case RESPONSE_BAD_REQUEST: return context.getString(R.string.error_bad_request_text);
                 case RESPONSE_UNAUTHORIZED: return context.getString(R.string.error_default_unauthorized);
                 case RESPONSE_FORBIDDEN: return context.getString(R.string.error_insufficient_permissions_text);
                 case RESPONSE_NOT_FOUND: return context.getString(R.string.error_not_found_text);
                 case RESPONSE_DUPLICATE: return context.getString(R.string.error_duplicate_text);
                 case RESPONSE_GONE: return context.getString(R.string.error_default_gone);
+                case RESPONSE_ENTITY_TOO_LARGE: return context.getString(R.string.error_default_entity_too_large);
+                case RESPONSE_TOO_MANY_REQUESTS: return context.getString(R.string.error_default_too_many_requests);
                 case RESPONSE_SERVER_ERROR: return context.getString(R.string.error_default_server_error);
+                case RESPONSE_BAD_GATEWAY: return context.getString(R.string.error_default_bad_gateway);
+                case RESPONSE_GATEWAY_TIMEOUT: return context.getString(R.string.error_default_gateway_timeout);
+                case RESPONSE_SERVER_DOWN: return context.getString(R.string.error_default_server_down);
+                case RESPONSE_SERVER_UNREACHABLE: return  context.getString(R.string.error_default_server_unreachable);
                 default: return context.getString(R.string.error_default_unknown);
             }
         }
@@ -115,23 +130,29 @@ public class Network {
         public Response<T> handleErrorCode(NetworkExceptionHandler handler) {
             switch (responseCode) {
                 case RESPONSE_UNAUTHORIZED:
-                    try {
-                        UserManager.handleTokenError(this, handler);
-                        request.swapToken(User.getToken());
-                        Response<T> handled = request.call();
-                        handled.handleErrorCode(handler);
-                        return handled;
-                    } catch (NotLoggedInException ex) {
+                    if("Expired".equals(errorMessage)) {
+                        try {
+                            UserManager.handleTokenError(this, handler);
+                            request.swapToken(User.getInstanceToken());
+                            Response<T> handled = request.call();
+                            handled.handleErrorCode(handler);
+                            return handled;
+                        } catch (NotLoggedInException ex) {
+                            handler.handleUserNotLoggedIn();
+                        } catch (IOException e) {
+                            handler.handleIOException(e);
+                        }
+                    } else if("Invalid".equals(errorMessage)) {
                         handler.handleUserNotLoggedIn();
-                    } catch (IOException e) {
-                        handler.handleIOException(e);
+                    } else {
+                        handler.handleUnauthorized(errorMessage);
                     }
                     break;
                 case RESPONSE_FORBIDDEN:
-                    handler.handleInsufficientPermissions();
+                    handler.handleInsufficientPermissions(errorMessage);
                     return this;
                 case RESPONSE_SERVER_ERROR:
-                    handler.handleServerError();
+                    handler.handleServerError(errorMessage);
                     return this;
                 case RESPONSE_NOT_FOUND:
                     handler.handleNotFound(RESPONSE_NOT_FOUND);
@@ -140,16 +161,39 @@ public class Network {
                 case RESPONSE_GONE:
                     handler.handleNotFound(RESPONSE_GONE);
                     return this;
+                case RESPONSE_ENTITY_TOO_LARGE:
+                    handler.handleEntityTooLarge();
+                    return this;
                 case RESPONSE_DUPLICATE:
                     handler.handleDuplicate();
                     return this;
                 case RESPONSE_BAD_REQUEST:
-                    handler.handleBadRequest();
+                    handler.handleBadRequest(errorMessage);
+                    return this;
+                case RESPONSE_TOO_MANY_REQUESTS:
+                    handler.handleRateLimited(""); //todo read retry-after header
+                    return this;
+                case RESPONSE_SERVER_UNREACHABLE:
+                    handler.handleUnreachable();
+                    return this;
+                case RESPONSE_BAD_GATEWAY:
+                    handler.handleBadGateway();
+                    return this;
+                case RESPONSE_SERVER_DOWN:
+                    if("Maintenance".equals(errorMessage)) handler.handleMaintenance(""); //todo read retry-after header
+                    else handler.handleUnreachable();
+                    return this;
+                case RESPONSE_GATEWAY_TIMEOUT:
+                    handler.handleGatewayTimeout();
+                    return this;
+                default:
+                    handler.handleUnknownHttpCode(responseCode, responseData == null ? errorMessage : responseData.toString());
                     return this;
             }
             return this;
         }
     }
+
 
     protected static abstract class Request<T> implements Callable<Response<T>> {
         private int                 requestId;
@@ -161,7 +205,17 @@ public class Network {
         private Request(int requestId, URL url, String token, String httpVerb,
                              NetworkCallbacks<T> callback) {
             this.requestId = requestId;
-            this.url = url;
+            if(!USE_REMOTE_SERVER) {
+                try {
+                    this.url = new URL(url.getProtocol(),
+                                       url.getHost(),
+                                       url.getPort(),
+                                       "api" + url.getFile());
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+            }
+            else this.url = url;
             this.token = token;
             this.httpVerb = httpVerb;
             this.callback = callback;
@@ -181,7 +235,7 @@ public class Network {
 
                 int responseCode = conn.getResponseCode();
                 if (Response.isError(responseCode)) {
-                    char[] errorMsg = new char[256];
+                    char[] errorMsg = new char[512];
                     Arrays.fill(errorMsg, '\0');
                     Reader errorReader = new InputStreamReader(conn.getErrorStream());
                     errorReader.read(errorMsg);

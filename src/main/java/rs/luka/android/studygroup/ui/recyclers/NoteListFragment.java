@@ -40,13 +40,15 @@ import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.ui.CursorAdapter;
 import rs.luka.android.studygroup.ui.PoliteSwipeRefreshLayout;
+import rs.luka.android.studygroup.ui.Showcase;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 //import rs.luka.android.studygroup.ui.Snackbar;
 
 /**
  * Created by luka on 11.7.15..
  */
 public class NoteListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-
+    private static final String TUTORIAL_ID = "item-list-movements";
     private NetworkExceptionHandler exceptionHandler;
 
     private int toolbarHeight;
@@ -61,6 +63,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
     private PoliteSwipeRefreshLayout swipe;
     private CircularProgressView     progress;
     private Snackbar                 snackbar;
+    private boolean showTutorial;
     private ActionMode.Callback selectItems = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -130,6 +133,8 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         course = getArguments().getParcelable(CourseActivity.EXTRA_COURSE);
         lessonName = getArguments().getString(CourseActivity.EXTRA_LESSON_NAME);
         permission = getArguments().getInt(LessonActivity.EXTRA_MY_PERMISSION);
+        showTutorial = !MaterialShowcaseView.hasAlreadyFired(getContext(), TUTORIAL_ID)
+                       && permission >= Group.PERM_WRITE;
     }
 
     @Override
@@ -411,6 +416,8 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         @Override
         public void onBindViewHolder(NoteHolder holder, Cursor data) {
             holder.bindNote(((NoteTable.NoteCursor) data).getNote());
+            if(showTutorial)
+                new Showcase(getActivity()).showShowcase(TUTORIAL_ID, holder.itemView, true, R.string.tut_notelist, true, true);
         }
     }
 }

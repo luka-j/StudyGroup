@@ -15,4 +15,5 @@
     <color name="actionmode_background">@color/color_primary_dark</color>
     <color name="secondary_text">#4f4f4f</color>
     <color name="light_text">#9f9f9f</color>
+    <color name="showcase_text">#d9ffffff</color>
 </resources>

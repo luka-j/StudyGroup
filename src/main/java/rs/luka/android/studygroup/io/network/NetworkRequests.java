@@ -28,18 +28,18 @@ public class NetworkRequests {
     private static final ExecutorService     executor = Executors.newCachedThreadPool();
 
     private static void requestDataAsync(int requestId, URL url, Map<String, String> data, Network.NetworkCallbacks<String> callback, String verb) {
-        executor.submit(new Network.StringRequest(requestId, url, User.getToken(), data, verb, callback));
+        executor.submit(new Network.StringRequest(requestId, url, User.getInstanceToken(), data, verb, callback));
     }
 
     private static void requestFileAsync(int requestId, URL url, File data, File saveTo,
                                          Network.NetworkCallbacks<File> callbacks, String verb) {
-        executor.submit(new Network.FileRequest(requestId, url, User.getToken(), data, verb, callbacks, saveTo));
+        executor.submit(new Network.FileRequest(requestId, url, User.getInstanceToken(), data, verb, callbacks, saveTo));
     }
 
     private static Network.Response<String> requestDataBlocking(int requestId, URL url, Map<String, String> data, long timeout,
                                                         TimeUnit unit, String verb)
             throws ExecutionException, TimeoutException, FileNotFoundException, IOException {
-        Future<Network.Response<String>> task = executor.submit(new Network.StringRequest(requestId, url, User.getToken(), data, verb, null));
+        Future<Network.Response<String>> task = executor.submit(new Network.StringRequest(requestId, url, User.getInstanceToken(), data, verb, null));
         try {
             return task.get(timeout, unit);
         } catch (InterruptedException ex) {
@@ -65,7 +65,7 @@ public class NetworkRequests {
     }
 
     public static Network.Response<String> requestPostData(URL url, Map<String, String> param) throws IOException {
-        return new Network.StringRequest(-1, url, User.getToken(), param, VERB_POST, null).call();
+        return new Network.StringRequest(-1, url, User.getInstanceToken(), param, VERB_POST, null).call();
     }
 
     public static void getDataAsync(int requestId, URL url, Network.NetworkCallbacks<String> callback) {
@@ -78,7 +78,7 @@ public class NetworkRequests {
     }
 
     public static Network.Response<String> requestGetData(URL url) throws IOException {
-        return new Network.StringRequest(-1, url, User.getToken(), emptyMap, VERB_GET, null).call();
+        return new Network.StringRequest(-1, url, User.getInstanceToken(), emptyMap, VERB_GET, null).call();
     }
 
     public static void putDataAsync(int requestId, URL url, Map<String, String> data, Network.NetworkCallbacks<String> callback) {
@@ -91,7 +91,7 @@ public class NetworkRequests {
     }
 
     public static Network.Response<String> requestPutData(URL url, Map<String, String> param) throws IOException {
-        return new Network.StringRequest(-1, url, User.getToken(), param, VERB_PUT, null).call();
+        return new Network.StringRequest(-1, url, User.getInstanceToken(), param, VERB_PUT, null).call();
     }
 
     public static void deleteDataAsync(int requestId, URL url, Network.NetworkCallbacks<String> callback) {
@@ -104,10 +104,10 @@ public class NetworkRequests {
     }
 
     public static Network.Response<File> requestGetFile(URL url, File saveTo) throws IOException {
-        return new Network.FileRequest(-1, url, User.getToken(), null, VERB_GET, null, saveTo).call();
+        return new Network.FileRequest(-1, url, User.getInstanceToken(), null, VERB_GET, null, saveTo).call();
     }
     public static Network.Response<File> requestPutFile(URL url, File data) throws IOException {
-        return new Network.FileRequest(-1, url, User.getToken(), data, VERB_PUT, null, null).call();
+        return new Network.FileRequest(-1, url, User.getInstanceToken(), data, VERB_PUT, null, null).call();
     }
 
 }

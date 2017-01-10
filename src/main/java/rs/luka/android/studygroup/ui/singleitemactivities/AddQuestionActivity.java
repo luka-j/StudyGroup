@@ -42,9 +42,11 @@ import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Question;
+import rs.luka.android.studygroup.ui.Showcase;
 import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.dialogs.InputHelpDialog;
 import rs.luka.android.studygroup.ui.recyclers.LessonActivity;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 
 /**
  * Created by luka on 14.7.15..
@@ -58,6 +60,7 @@ public class AddQuestionActivity extends AppCompatActivity {
     public static final String STATE_IMAGE_FILE_PATH = "stateimg";
     private static final int  INTENT_IMAGE          = 0;
     private LinearLayout         content;
+    private Toolbar              toolbar;
     private EditText             lesson;
     private EditText             answer;
     private EditText             question;
@@ -103,6 +106,12 @@ public class AddQuestionActivity extends AppCompatActivity {
 
         initTextListeners();
         initMediaListeners();
+
+        if(!MaterialShowcaseView.hasAlreadyFired(this, "add-item")) {
+            Utils.simulateBackButton();
+            new Showcase(this).showSequence("add-item", new View[]{lessonTil, toolbar},
+                                            new int[]{R.string.tut_additem_lesson, R.string.tut_additem_specialchars});
+        }
     }
 
     @Override
@@ -279,7 +288,7 @@ public class AddQuestionActivity extends AppCompatActivity {
     }
 
     private void initToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (NavUtils.getParentActivityIntent(this) != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true); //because reasons

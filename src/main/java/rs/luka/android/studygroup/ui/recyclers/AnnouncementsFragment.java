@@ -27,7 +27,6 @@ import java.util.List;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.exceptions.NetworkExceptionHandler;
-import rs.luka.android.studygroup.io.network.Groups;
 import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.model.Announcement;
 import rs.luka.android.studygroup.model.Group;
@@ -63,7 +62,7 @@ public class AnnouncementsFragment extends Fragment implements Network.NetworkCa
             @Override
             public void handleOffline() {
                 InfoDialog.newInstance(getString(R.string.error_offline_memberlist_title),
-                                       getString(R.string.error_offline_memberlist_text))
+                                       getString(R.string.error_offline_announcements_text))
                           .show(((AppCompatActivity) context).getSupportFragmentManager(), "");
                 Network.Status.setOffline();
             }
@@ -108,7 +107,7 @@ public class AnnouncementsFragment extends Fragment implements Network.NetworkCa
             recycler.setAdapter(adapter);
         }
         progress.setVisibility(View.VISIBLE);
-        Groups.getAllAnnouncements(REQUEST_GET_ANNOUNCEMENTS, group.getIdValue(), this);
+        group.getAllAnnouncements(REQUEST_GET_ANNOUNCEMENTS, this);
     }
 
     @Override

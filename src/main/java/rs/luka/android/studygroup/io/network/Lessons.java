@@ -25,6 +25,7 @@ import rs.luka.android.studygroup.io.database.LessonTable;
  * Created by luka on 4.1.16..
  */
 public class Lessons {
+    private static final String V = Network.API_VERSION;
     public static final String LESSONS = "/lessons";
     private static final String TAG = "studygroup.net.Lessons";
     private static final String COURSE = "course/";
@@ -60,7 +61,7 @@ public class Lessons {
     public static void getLessons(Context c, long courseId, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL              url      = new URL(Network.getDomain(), COURSE + courseId + LESSONS);
+            URL              url      = new URL(Network.getDomain(), V + COURSE + courseId + LESSONS);
             Network.Response<String> response = NetworkRequests.requestGetData(url);
             if(response.responseCode == Network.Response.RESPONSE_OK) {
                 JSONArray array   = new JSONArray(response.responseData);
@@ -93,7 +94,7 @@ public class Lessons {
         try {
             oldName = URLEncoder.encode(oldName, "UTF-8").replace("+", "%20");
             newName = URLEncoder.encode(newName, "UTF-8").replace("+", "%20");
-            URL              url      = new URL(Network.getDomain(), COURSE + courseId + LESSON + oldName);
+            URL              url      = new URL(Network.getDomain(), V + COURSE + courseId + LESSON + oldName);
             Map<String, String> params = new HashMap<>(1);
             params.put(JSON_KEY_NAME, newName);
 
@@ -112,7 +113,7 @@ public class Lessons {
             throws IOException {
         try {
             lesson = URLEncoder.encode(lesson, "UTF-8").replace("+", "%20");
-            URL              url      = new URL(Network.getDomain(), COURSE + courseId + "/" + lesson + "/hide");
+            URL              url      = new URL(Network.getDomain(), V + COURSE + courseId + "/" + lesson + "/hide");
 
             Network.Response    response = NetworkRequests.requestPutData(url, NetworkRequests.emptyMap);
             if(response.responseCode == Network.Response.RESPONSE_OK)
@@ -127,7 +128,7 @@ public class Lessons {
 
     public static void showAllLessons(int requestId, long courseId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL                 url      = new URL(Network.getDomain(), COURSE + courseId + "/showAllLessons");
+            URL                 url      = new URL(Network.getDomain(), V + COURSE + courseId + "/showAllLessons");
             NetworkRequests.putDataAsync(requestId, url, NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -137,7 +138,7 @@ public class Lessons {
     public static void removeLesson(int requestId, long courseId, String name,
                                     Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL url = new URL(Network.getDomain(), COURSE + courseId + LESSON + URLEncoder.encode(name, "UTF-8"));
+            URL url = new URL(Network.getDomain(), V + COURSE + courseId + LESSON + URLEncoder.encode(name, "UTF-8"));
             NetworkRequests.deleteDataAsync(requestId, url, callbacks);
         } catch (MalformedURLException | UnsupportedEncodingException ex) {
             throw new RuntimeException(ex);

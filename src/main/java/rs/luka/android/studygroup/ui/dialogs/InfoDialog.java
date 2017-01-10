@@ -1,6 +1,5 @@
 package rs.luka.android.studygroup.ui.dialogs;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -29,11 +28,6 @@ public class InfoDialog extends DialogFragment {
         args.putString(ARG_MESSAGE, content);
         f.setArguments(args);
         return f;
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
     }
 
     public InfoDialog registerCallbacks(Callbacks callbacks) {

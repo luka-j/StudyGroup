@@ -72,6 +72,7 @@ public class AddAnnouncementDialog extends DialogFragment implements Network.Net
 
         MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity());
         return builder.customView(v, true)
+                      .autoDismiss(false)
                       .title(getString(R.string.add_announcement_title))
                       .positiveText(R.string.create)
                       .negativeText(R.string.cancel)
@@ -90,6 +91,12 @@ public class AddAnnouncementDialog extends DialogFragment implements Network.Net
                                   exceptionHandler.handleIOException(e);
                               }
                           }
+                      })
+                      .onNegative(new MaterialDialog.SingleButtonCallback() {
+                          @Override
+                          public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                              dismiss();
+                          }
                       }).show();
     }
 
@@ -101,6 +108,7 @@ public class AddAnnouncementDialog extends DialogFragment implements Network.Net
                     @Override
                     public void run() {
                         Toast.makeText(attachedTo, R.string.toast_announcement_created, Toast.LENGTH_SHORT).show();
+                        dismiss();
                     }
                 });
             } else {

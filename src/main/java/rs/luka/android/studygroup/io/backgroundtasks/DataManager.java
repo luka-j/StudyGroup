@@ -2,6 +2,7 @@ package rs.luka.android.studygroup.io.backgroundtasks;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -12,7 +13,9 @@ import java.util.concurrent.TimeUnit;
  * Created by luka on 18.8.15..
  */
 public class DataManager {
+    public static final int EXECUTOR_THREADS = 3;
 
+    private static final String TAG = "DataManager";
     private static final String PREFS_NAME = "fetchHistory";
 
     static final int FETCH_TIMEOUT_THUMBS = 1000 * 60 * 15; //15min
@@ -23,7 +26,8 @@ public class DataManager {
     static ThreadPoolExecutor executor;
 
     static {
-        executor = new ThreadPoolExecutor(3, 3, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        executor = new ThreadPoolExecutor(EXECUTOR_THREADS, EXECUTOR_THREADS, 60, TimeUnit.SECONDS,
+                                          new LinkedBlockingQueue<Runnable>());
         executor.allowCoreThreadTimeOut(true);
     }
 
@@ -70,7 +74,25 @@ public class DataManager {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply();
     }
 
-    static void pushToExecutor(Runnable r) {
-        executor.execute(r);
+    //todo fix shitty workaround
+    static void pushToExecutor(final Runnable r) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    r.run();
+                } catch (IllegalStateException e) {
+                    Log.w(TAG, "got illegalstate, retrying"); //timing issue/race condition (probably)
+                    try {
+                        Thread.sleep(500);
+                        r.run(); //call recursively? enough evil for today
+                    } catch (IllegalStateException e2) {
+                        Log.e(TAG, "got illegalstate twice, ignoring"); //doesn't happen (for now)
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace(); //doesn't happen (really)
+                    }
+                }
+            }
+        });
     }
 }

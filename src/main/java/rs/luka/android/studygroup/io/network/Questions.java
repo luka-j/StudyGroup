@@ -26,6 +26,7 @@ import rs.luka.android.studygroup.model.Question;
  * Created by luka on 4.1.16..
  */
 public class Questions {
+    private static final String V = Network.API_VERSION;
     public static final String QUESTIONS = "questions/";
     private static final String TAG = "net.Questions";
     private static final String COURSE = "course/";
@@ -43,7 +44,7 @@ public class Questions {
     public static void getQuestions(Context c, long courseId, String lesson, NetworkExceptionHandler handler)
             throws IOException {
         try {
-            URL url      = new URL(Network.getDomain(), COURSE + courseId + "/" +
+            URL url      = new URL(Network.getDomain(), V + COURSE + courseId + "/" +
                                                         (lesson.isEmpty() ? "%20":URLEncoder.encode(lesson, "UTF-8")).replace("+", "%20")
                                                         + "/" + QUESTIONS);
             Network.Response<String> response = NetworkRequests.requestGetData(url);
@@ -80,7 +81,7 @@ public class Questions {
     public static Long createQuestion(long courseId, String lesson, String question, String answer,
                                     NetworkExceptionHandler exceptionHandler, int permission) throws IOException {
         try {
-            URL                 url    = new URL(Network.getDomain(), QUESTIONS);
+            URL                 url    = new URL(Network.getDomain(), V + QUESTIONS);
             Map<String, String> params = new HashMap<>(5);
             params.put(JSON_KEY_COURSEID, String.valueOf(courseId));
             params.put(JSON_KEY_LESSON, lesson);
@@ -104,7 +105,7 @@ public class Questions {
     public static boolean updateQuestion(long id, String lesson, String question, String answer,
                                      NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
-            URL                 url      = new URL(Network.getDomain(), QUESTIONS + id);
+            URL                 url      = new URL(Network.getDomain(), V + QUESTIONS + id);
             Map<String, String> params   = new HashMap<>(3);
             params.put(JSON_KEY_LESSON, lesson);
             params.put(JSON_KEY_QUESTION, question);
@@ -125,7 +126,7 @@ public class Questions {
     public static boolean hideQuestion(long questionId, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL              url      = new URL(Network.getDomain(), QUESTIONS + questionId + "/hide");
+            URL              url      = new URL(Network.getDomain(), V + QUESTIONS + questionId + "/hide");
 
             Network.Response    response = NetworkRequests.requestPutData(url, NetworkRequests.emptyMap);
             if(response.responseCode == Network.Response.RESPONSE_OK)
@@ -141,7 +142,7 @@ public class Questions {
     public static void showAllQuestions(int requestId, long courseId, String lesson,
                                         Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL url = new URL(Network.getDomain(), COURSE + courseId + "/" + lesson + "/showAllQuestions");
+            URL url = new URL(Network.getDomain(), V + COURSE + courseId + "/" + lesson + "/showAllQuestions");
             NetworkRequests.putDataAsync(requestId, url, NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -150,7 +151,7 @@ public class Questions {
 
     public static void getEdits(int requestId, long questionId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL url = new URL(Network.getDomain(), QUESTIONS + questionId + "/edits");
+            URL url = new URL(Network.getDomain(), V + QUESTIONS + questionId + "/edits");
             NetworkRequests.getDataAsync(requestId, url, callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -162,7 +163,7 @@ public class Questions {
         try {
             URL url;
             for(Long id : questionIds) {
-                url = new URL(Network.getDomain(), QUESTIONS + id);
+                url = new URL(Network.getDomain(), V + QUESTIONS + id);
                 NetworkRequests.deleteDataAsync(requestId, url, callbacks);
             }
         } catch (MalformedURLException ex) {
@@ -173,7 +174,7 @@ public class Questions {
     public static boolean loadImage(long id, File loadInto, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL url = new URL(Network.getDomain(), QUESTIONS + id + "/image");
+            URL url = new URL(Network.getDomain(), V + QUESTIONS + id + "/image");
             Network.Response<File> response = NetworkRequests.requestGetFile(url, loadInto);
 
             if(response.responseCode == Network.Response.RESPONSE_OK)
@@ -188,7 +189,7 @@ public class Questions {
     public static boolean loadThumb(long id, int size, File loadInto, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL url = new URL(Network.getDomain(), QUESTIONS + id + "/image?size=" + size);
+            URL url = new URL(Network.getDomain(), V + QUESTIONS + id + "/image?size=" + size);
             Network.Response<File> response = NetworkRequests.requestGetFile(url, loadInto);
 
             if(response.responseCode == Network.Response.RESPONSE_OK)
@@ -203,7 +204,7 @@ public class Questions {
     public static boolean updateImage(long id, File image, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL url = new URL(Network.getDomain(), QUESTIONS + id + "/image");
+            URL url = new URL(Network.getDomain(), V + QUESTIONS + id + "/image");
             Network.Response<File> response = NetworkRequests.requestPutFile(url, image);
 
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
@@ -217,7 +218,7 @@ public class Questions {
 
     public static boolean reorderQuestion(long id, int newOrder, NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
-            URL url = new URL(Network.getDomain(), QUESTIONS + id + "/reorder/" + newOrder);
+            URL url = new URL(Network.getDomain(), V + QUESTIONS + id + "/reorder/" + newOrder);
 
             Network.Response    response = NetworkRequests.requestPutData(url, NetworkRequests.emptyMap);
             if(response.responseCode == Network.Response.RESPONSE_OK)

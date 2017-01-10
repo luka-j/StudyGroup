@@ -114,7 +114,7 @@ public class LoadingActivity extends AppCompatActivity implements GroupTasks.Gro
         exceptionHandler = new ExceptionHandler();
         if(!User.isLoggedIn()) {
             SharedPreferences userPrefs = getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE);
-            if (User.hasSavedToken(userPrefs)) {
+            if (User.hasSavedToken()) {
                 currentRequest = REQUEST_REFRESH;
                 UserManager.refreshToken(REQUEST_REFRESH,
                                          userPrefs.getString(User.PREFS_KEY_TOKEN, null),
@@ -181,8 +181,7 @@ public class LoadingActivity extends AppCompatActivity implements GroupTasks.Gro
                     }
                     break;
                 case REQUEST_REFRESH:
-                    User.instantiateUser(response.responseData,
-                                         LoadingActivity.this.getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
+                    User.instantiateUser(response.responseData, this);
             }
             if(id==REQUEST_GET_DETAILS) runOnUiThread(userLoaded);
             if(id==REQUEST_REFRESH) loadData();

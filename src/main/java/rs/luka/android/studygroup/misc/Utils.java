@@ -1,5 +1,6 @@
 package rs.luka.android.studygroup.misc;
 
+import android.app.Instrumentation;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -7,6 +8,7 @@ import android.graphics.Paint;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.KeyEvent;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +43,29 @@ public class Utils {
 
     public static int integerObjToPrimitive(Integer val, int invalidValue) {
         return val == null ? invalidValue : val;
+    }
+
+    public static int getTransparentColor(int color, int transparency) {
+        int transparencyMask = 255 * (transparency)/100;
+        int fullyTransparent = color & 0x00ffffff;
+        return fullyTransparent | (transparencyMask << 24);
+    }
+
+    /**
+     * Used for hiding keyboard
+     */
+    public static void simulateBackButton() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(700); //because it doesn't pop up immediately
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                new Instrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+            }
+        }).start();
     }
 
     /**

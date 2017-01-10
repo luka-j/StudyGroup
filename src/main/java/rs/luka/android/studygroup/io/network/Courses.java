@@ -30,6 +30,7 @@ public class Courses {
     public static final String COURSES   = "courses/";
     private static final String TAG = "studygroup.net.Courses";
     private static final String GROUP    = "group/";
+    private static final String V = Network.API_VERSION;
 
     private static final String JSON_KEY_COURSES_ARRAY = "courses";
     private static final String JSON_KEY_FILTERING_YEARS = "filtering";
@@ -46,7 +47,7 @@ public class Courses {
             throws IOException {
         long groupId = group.getIdValue();
         try {
-            URL              url      = new URL(Network.getDomain(), GROUP + groupId + "/" + COURSES);
+            URL              url      = new URL(Network.getDomain(), V + GROUP + groupId + "/" + COURSES);
             Network.Response<String> response = NetworkRequests.requestGetData(url);
             if(response.responseCode == Network.Response.RESPONSE_OK) {
                 JSONObject jsonResponse = new JSONObject(response.responseData);
@@ -90,7 +91,7 @@ public class Courses {
     public static Long createCourse(long groupId, String subject, String teacher, Integer year, int permission,
                                     NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
-            URL                 url    = new URL(Network.getDomain(), COURSES);
+            URL                 url    = new URL(Network.getDomain(), V + COURSES);
             Map<String, String> params = new HashMap<>(5);
             params.put(JSON_KEY_GROUP, String.valueOf(groupId));
             params.put(JSON_KEY_SUBJECT, subject);
@@ -114,7 +115,7 @@ public class Courses {
     public static boolean updateCourse(long id, String subject, String teacher, Integer year,
                                       NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
-            URL                 url      = new URL(Network.getDomain(), COURSES + id);
+            URL                 url      = new URL(Network.getDomain(), V + COURSES + id);
             Map<String, String> params   = new HashMap<>(3);
             params.put(JSON_KEY_SUBJECT, subject);
             params.put(JSON_KEY_TEACHER, teacher);
@@ -134,7 +135,7 @@ public class Courses {
 
     public static boolean hideCourse(long id, NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
-            URL                 url      = new URL(Network.getDomain(), COURSES + id + "/hide");
+            URL                 url      = new URL(Network.getDomain(), V + COURSES + id + "/hide");
 
             Network.Response    response = NetworkRequests.requestPutData(url, NetworkRequests.emptyMap);
             if(response.responseCode == Network.Response.RESPONSE_OK)
@@ -148,7 +149,7 @@ public class Courses {
     }
     public static void showAllCourses(int requestId, long groupId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL                 url      = new URL(Network.getDomain(), GROUP + groupId + "/showAllCourses");
+            URL                 url      = new URL(Network.getDomain(), V + GROUP + groupId + "/showAllCourses");
             NetworkRequests.putDataAsync(requestId, url, NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -157,7 +158,7 @@ public class Courses {
 
     public static void removeCourse(int requestId, long courseId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL url = new URL(Network.getDomain(), COURSES + courseId);
+            URL url = new URL(Network.getDomain(), V + COURSES + courseId);
             NetworkRequests.deleteDataAsync(requestId, url, callbacks);
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
@@ -167,7 +168,7 @@ public class Courses {
     public static boolean loadImage(long id, int size, File loadInto, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL url = new URL(Network.getDomain(), COURSES + id + "/image?size=" + size);
+            URL url = new URL(Network.getDomain(), V + COURSES + id + "/image?size=" + size);
             Network.Response<File> response = NetworkRequests.requestGetFile(url, loadInto);
 
             if(response.responseCode == Network.Response.RESPONSE_OK)
@@ -182,7 +183,7 @@ public class Courses {
     public static boolean updateImage(long id, File image, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL url = new URL(Network.getDomain(), COURSES + id + "/image");
+            URL url = new URL(Network.getDomain(), V + COURSES + id + "/image");
             Network.Response<File> response = NetworkRequests.requestPutFile(url, image);
 
             if(response.responseCode == Network.Response.RESPONSE_CREATED)
@@ -198,7 +199,8 @@ public class Courses {
                                         Network.NetworkCallbacks<String> callbacks) {
         try {
             if(years.length == 0) throw new IllegalArgumentException("Years array for filter can't be empty");
-            URL url = new URL(Network.getDomain(), GROUP + groupId + "/filterCourses");
+
+            URL url = new URL(Network.getDomain(), V + GROUP + groupId + "/filterCourses");
             StringBuilder yearsParam = new StringBuilder(years.length*2);
             for(int year : years)
                 yearsParam.append(year).append(',');

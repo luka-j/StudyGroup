@@ -2,6 +2,7 @@ package rs.luka.android.studygroup.ui.singleitemactivities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -15,7 +16,6 @@ import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import java.net.SocketException;
 
 import rs.luka.android.studygroup.R;
-import rs.luka.android.studygroup.io.Limits;
 import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.io.network.UserManager;
 import rs.luka.android.studygroup.model.User;
@@ -46,7 +46,7 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
         setContentView(R.layout.activity_login);
 
         SharedPreferences userPrefs = getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE);
-        if(User.hasSavedToken(userPrefs)) {
+        if(User.hasSavedToken()) {
             UserManager.refreshToken(REQUEST_REFRESH,
                                      userPrefs.getString(User.PREFS_KEY_TOKEN, null),
                                      this);
@@ -77,23 +77,13 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
 
     private void login() {
         requestInProgress = true;
-        boolean hasErrors = false;
-        if( email.getText().length() > Limits.USER_EMAIL_MAX_LENGTH) {
-            emailTil.setError(getString(R.string.error_too_long));
-            hasErrors=true;
-        } else emailTil.setError(null);
-        if(password.getText().length() > Limits.USER_PASSWORD_MAX_LENGTH) {
-            passwordTil.setError(getString(R.string.error_too_long));
-            hasErrors=true;
-        } else passwordTil.setError(null);
-        if(!hasErrors) {
-            UserManager.login(REQUEST_LOGIN,
-                              email.getText().toString(),
-                              password.getText().toString(),
-                              this);
-            //login.setVisibility(View.GONE);
-            //progressView.setVisibility(View.VISIBLE); todo
-        }
+        UserManager.login(REQUEST_LOGIN,
+                          email.getText().toString(),
+                          password.getText().toString(),
+                          this);
+        login.setVisibility(View.GONE);
+        register.setVisibility(View.GONE);
+        forceShow(progressView);
     }
 
     @Override
@@ -106,7 +96,7 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
         if(dialog.getTag().equals(TAG_DIALOG_ERROR))
             password.setText("");
         else if(dialog.getTag().equals(TAG_DIALOG_NO_NETWORK))
-            if(User.hasSavedToken(getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE)))
+            if(User.hasSavedToken())
                 startActivity(new Intent(LoginActivity.this, LoadingActivity.class));
     }
 
@@ -118,9 +108,7 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
                 if(id == REQUEST_LOGIN) {
                     switch (response.responseCode) {
                         case Network.Response.RESPONSE_OK:
-                            User.instantiateUser(response.responseData,
-                                                 LoginActivity.this.getSharedPreferences(User.PREFS_NAME,
-                                                                                         MODE_PRIVATE));
+                            User.instantiateUser(response.responseData, LoginActivity.this);
                             startActivity(new Intent(LoginActivity.this, LoadingActivity.class));
                             break;
                         case Network.Response.RESPONSE_UNAUTHORIZED:
@@ -128,22 +116,19 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
                                                    getString(R.string.wrong_creds))
                                       .registerCallbacks(LoginActivity.this)
                                       .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
-                            //progressView.setVisibility(View.GONE);
-                            //login.setVisibility(View.VISIBLE);
+                            reshowButtons();
                             break;
                         default:
                             InfoDialog.newInstance(getString(R.string.unexpected_server_error),
                                                    response.getDefaultErrorMessage(LoginActivity.this))
                                       .registerCallbacks(LoginActivity.this)
                                       .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
-                            //progressView.setVisibility(View.GONE);
-                            //login.setVisibility(View.VISIBLE);
+                            reshowButtons();
                     }
                 } else if(id == REQUEST_REFRESH) {
                     switch (response.responseCode) {
                         case Network.Response.RESPONSE_OK:
-                            User.instantiateUser(response.responseData,
-                                                 LoginActivity.this.getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
+                            User.instantiateUser(response.responseData, LoginActivity.this);
                             startActivity(new Intent(LoginActivity.this, LoadingActivity.class));
                             break;
                         case Network.Response.RESPONSE_UNAUTHORIZED: break; //proceed to login
@@ -153,6 +138,26 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
             }
         });
         requestInProgress = false;
+    }
+
+    private void forceShow(View v) {
+        v.setVisibility(View.VISIBLE);
+        v.bringToFront();
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            v.getParent().requestLayout();
+            if(v.getParent() instanceof View)
+                ((View)v.getParent()).invalidate();
+        }
+    }
+    private void reshowButtons() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progressView.setVisibility(View.GONE);
+                forceShow(login);
+                forceShow(register);
+            }
+        });
     }
 
     @Override

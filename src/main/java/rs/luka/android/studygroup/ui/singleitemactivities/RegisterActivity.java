@@ -66,16 +66,20 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
 
     private void register() {
         boolean hasErrors = false;
-        if( email.getText().length() > Limits.USER_EMAIL_MAX_LENGTH) {
-            emailTil.setError(getString(R.string.error_too_long));
+        if(email.getText().length() > Limits.USER_EMAIL_MAX_LENGTH) {
+            emailTil.setError(getString(R.string.error_email_too_long));
             hasErrors = true;
         } else emailTil.setError(null);
         if(username.getText().length() > Limits.USER_NAME_MAX_LENGTH) {
-            usernameTil.setError(getString(R.string.error_too_long));
+            usernameTil.setError(getString(R.string.error_username_too_long, Limits.USER_NAME_MAX_LENGTH));
             hasErrors = true;
         } else usernameTil.setError(null);
         if(password.getText().length() > Limits.USER_PASSWORD_MAX_LENGTH) {
-            passwordTil.setError(getString(R.string.error_too_long));
+            passwordTil.setError(getString(R.string.error_password_too_long, Limits.USER_PASSWORD_MAX_LENGTH));
+            hasErrors = true;
+        } else passwordTil.setError(null);
+        if(password.getText().length() < Limits.USER_PASSWORD_MIN_LENGTH) {
+            passwordTil.setError(getString(R.string.error_password_too_short,Limits.USER_PASSWORD_MIN_LENGTH));
             hasErrors = true;
         } else passwordTil.setError(null);
         if(!Utils.isEmailValid(email.getText())) {
@@ -101,8 +105,7 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
                 if (id == REQUEST_REGISTER) {
                     switch (response.responseCode) {
                         case Network.Response.RESPONSE_CREATED:
-                            User.instantiateUser(response.responseData,
-                                                 RegisterActivity.this.getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
+                            User.instantiateUser(response.responseData, RegisterActivity.this);
                             startActivity(new Intent(RegisterActivity.this, LoadingActivity.class));
                             break;
                         case Network.Response.RESPONSE_DUPLICATE:
@@ -121,8 +124,7 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
                     }
                 } else if (id == REQUEST_LOGIN) {
                     if(response.responseCode == Network.Response.RESPONSE_OK) {
-                        User.instantiateUser(response.responseData,
-                                             RegisterActivity.this.getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
+                        User.instantiateUser(response.responseData, RegisterActivity.this);
                         startActivity(new Intent(RegisterActivity.this, LoadingActivity.class).addFlags(
                                 Intent.FLAG_ACTIVITY_CLEAR_TOP));
                     } else {

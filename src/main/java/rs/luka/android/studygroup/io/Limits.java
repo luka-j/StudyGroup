@@ -12,9 +12,10 @@ public class Limits {
     public static final int GROUP_NAME_MAX_LENGTH     = 255;
     public static final int GROUP_PLACE_MAX_LENGTH    = 255;
     public static final int USER_EMAIL_MAX_LENGTH     = 254;
+    public static final int USER_PASSWORD_MIN_LENGTH  = 6;
     public static final int USER_PASSWORD_MAX_LENGTH  = 127;
     public static final int USER_NAME_MAX_LENGTH      = 127;
-    public static final int EXAM_LESSON_MAX_LENGTH    = LESSON_MAX_LENGTH * 2;
-    public static final int EXAM_TYPE_MAX_LENGTH      = 127;
-    public static final int EXAM_CLASS_MAX_LENGTH     = 63;
+    public static final int EXAM_LESSON_MAX_LENGTH    = 192;
+    public static final int EXAM_TYPE_MAX_LENGTH      = 64;
+    public static final int EXAM_CLASS_MAX_LENGTH     = 32;
 }

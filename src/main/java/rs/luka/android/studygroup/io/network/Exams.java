@@ -23,6 +23,8 @@ import rs.luka.android.studygroup.model.ID;
  * Created by luka on 5.1.16..
  */
 public class Exams {
+
+    private static final String V = Network.API_VERSION;
     public static final String  EXAMS = "exams/";
     private static final String TAG = "studygroup.net.Exams";
     private static final String GROUP = "group/";
@@ -37,7 +39,7 @@ public class Exams {
     public static void getExams(Context c, long groupId, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL url      = new URL(Network.getDomain(), GROUP + groupId + "/" + EXAMS);
+            URL url      = new URL(Network.getDomain(), V + GROUP + groupId + "/" + EXAMS);
             Network.Response<String> response = NetworkRequests.requestGetData(url);
             if(response.responseCode == Network.Response.RESPONSE_OK) {
                 JSONArray array = new JSONArray(response.responseData);
@@ -71,7 +73,7 @@ public class Exams {
     public static Long createExam(long groupId, long courseId, String klass, String lesson, String type, long date,
                                   NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
-            URL                 url    = new URL(Network.getDomain(), EXAMS);
+            URL                 url    = new URL(Network.getDomain(), V + EXAMS);
             Map<String, String> params = new HashMap<>(6);
             params.put(JSON_KEY_GROUPID, String.valueOf(groupId));
             params.put(JSON_KEY_COURSEID, String.valueOf(courseId));
@@ -96,7 +98,7 @@ public class Exams {
     public static boolean updateExam(long id, String lesson, long date,
                                      NetworkExceptionHandler exceptionHandler) throws IOException {
         try {
-            URL                 url      = new URL(Network.getDomain(), EXAMS + id);
+            URL                 url      = new URL(Network.getDomain(), V + EXAMS + id);
             Map<String, String> params   = new HashMap<>(2);
             params.put(JSON_KEY_LESSON, lesson);
             params.put(JSON_KEY_DATE, String.valueOf(date));
@@ -114,7 +116,7 @@ public class Exams {
 
     public static void getEdits(int requestId, long examId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL url = new URL(Network.getDomain(), EXAMS + examId + "/edits");
+            URL url = new URL(Network.getDomain(), V + EXAMS + examId + "/edits");
             NetworkRequests.getDataAsync(requestId, url, callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -124,7 +126,7 @@ public class Exams {
     public static boolean hideExam(long examId, NetworkExceptionHandler exceptionHandler)
             throws IOException {
         try {
-            URL              url      = new URL(Network.getDomain(), EXAMS + examId + "/hide");
+            URL              url      = new URL(Network.getDomain(), V + EXAMS + examId + "/hide");
 
             Network.Response    response = NetworkRequests.requestPutData(url, NetworkRequests.emptyMap);
             if(response.responseCode == Network.Response.RESPONSE_OK)
@@ -139,7 +141,7 @@ public class Exams {
 
     public static void showAllExams(int requestId, long groupId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL                 url      = new URL(Network.getDomain(), GROUP + groupId + "/showAllExams");
+            URL                 url      = new URL(Network.getDomain(), V + GROUP + groupId + "/showAllExams");
             NetworkRequests.putDataAsync(requestId, url, NetworkRequests.emptyMap, callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -148,7 +150,7 @@ public class Exams {
 
     public static void removeExam(int requestId, long examId, Network.NetworkCallbacks<String> callbacks) {
         try {
-            URL url = new URL(Network.getDomain(), EXAMS + examId);
+            URL url = new URL(Network.getDomain(), V + EXAMS + examId);
             NetworkRequests.deleteDataAsync(requestId, url, callbacks);
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);

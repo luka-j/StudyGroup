@@ -49,7 +49,7 @@ public class CourseTasks {
                         exceptionHandler.handleIOException(e);
                     }
                 }
-                manager.destroyLoader(LOADER_ID);
+                manager.destroyLoader(LOADER_ID); //todo videti svrhu ovoga, primeniti na notetasks?
                 manager.initLoader(LOADER_ID, null, callbacks);
             }
         });
