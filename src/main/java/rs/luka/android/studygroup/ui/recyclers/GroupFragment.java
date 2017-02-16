@@ -151,7 +151,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                 }
             }
         });
-        if(group.getPermission() >= Group.PERM_READ_REQUEST_WRITE_FORBIDDEN
+        if(group.getPermission() > Group.PERM_READ_REQUEST_WRITE_FORBIDDEN
            && group.getPermission() <= Group.PERM_READ_CAN_REQUEST_WRITE) {
             new Showcase(getActivity()).showShowcase("request-join", fab, false, R.string.tut_reqjoin, true, true);
         }
@@ -453,6 +453,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v,
                                         ContextMenu.ContextMenuInfo menuInfo) {
+            Log.i(TAG, "registering holder for contextmenu, perm " + group.getPermission());
             if(group.getPermission() >= Group.PERM_MODIFY)
                 getActivity().getMenuInflater().inflate(R.menu.context_group, menu);
         }
@@ -483,6 +484,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                                                          new View[]{viewHolder.itemView, viewHolder.itemView, callbacks.getToolbar()},
                                                          new int[] {R.string.tut_course_intro, R.string.tut_course_hide,
                                                                     R.string.tut_course_filter});
+                showCourseTutorial = false;
             }
         }
     }

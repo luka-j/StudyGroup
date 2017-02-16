@@ -416,8 +416,15 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         @Override
         public void onBindViewHolder(NoteHolder holder, Cursor data) {
             holder.bindNote(((NoteTable.NoteCursor) data).getNote());
-            if(showTutorial)
-                new Showcase(getActivity()).showShowcase(TUTORIAL_ID, holder.itemView, true, R.string.tut_notelist, true, true);
+            if(showTutorial) {
+                new Showcase(getActivity()).showShowcase(TUTORIAL_ID,
+                                                         holder.itemView,
+                                                         true,
+                                                         R.string.tut_notelist,
+                                                         true,
+                                                         true);
+                showTutorial = false;
+            }
         }
     }
 }

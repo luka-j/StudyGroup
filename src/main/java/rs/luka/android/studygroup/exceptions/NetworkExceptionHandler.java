@@ -57,7 +57,6 @@ public interface NetworkExceptionHandler {
                     if(hostActivity instanceof InfoDialog.Callbacks)
                         dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
                     dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
-                    hostActivity.startActivity(new Intent(hostActivity, LoginActivity.class));
                 }
             });
         }
@@ -69,6 +68,7 @@ public interface NetworkExceptionHandler {
         public void handleUserNotLoggedIn() {
             User.clearToken();
             showErrorDialog(R.string.error_session_expired_title, R.string.error_session_expired_text);
+            hostActivity.startActivity(new Intent(hostActivity, LoginActivity.class));
             hasErrors=true;
         }
 

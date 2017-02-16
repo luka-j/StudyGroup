@@ -67,7 +67,7 @@ public class Courses {
                                                    jsonCourse.getLong(JSON_KEY_ID)),
                                             jsonCourse.getString(JSON_KEY_SUBJECT),
                                             jsonCourse.getString(JSON_KEY_TEACHER),
-                                            (Integer) jsonCourse.get(JSON_KEY_YEAR), //nullable
+                                            (Integer) jsonCourse.opt(JSON_KEY_YEAR), //nullable
                                             jsonCourse.getBoolean(JSON_KEY_HASIMAGE));
                 }
                 CourseTable db = new CourseTable(c);
@@ -96,7 +96,8 @@ public class Courses {
             params.put(JSON_KEY_GROUP, String.valueOf(groupId));
             params.put(JSON_KEY_SUBJECT, subject);
             params.put(JSON_KEY_TEACHER, teacher);
-            params.put(JSON_KEY_YEAR, String.valueOf(year));
+            if(year != null)
+                params.put(JSON_KEY_YEAR, String.valueOf(year));
             params.put(JSON_KEY_PERMISSION, String.valueOf(permission));
 
             Network.Response<String> response = NetworkRequests.requestPostData(url, params);
@@ -119,7 +120,8 @@ public class Courses {
             Map<String, String> params   = new HashMap<>(3);
             params.put(JSON_KEY_SUBJECT, subject);
             params.put(JSON_KEY_TEACHER, teacher);
-            params.put(JSON_KEY_YEAR, String.valueOf(year));
+            if(year != null)
+                params.put(JSON_KEY_YEAR, String.valueOf(year));
 
             Network.Response    response = NetworkRequests.requestPutData(url, params);
             if(response.responseCode == Network.Response.RESPONSE_OK)

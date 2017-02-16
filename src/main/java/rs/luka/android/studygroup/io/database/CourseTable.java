@@ -97,7 +97,7 @@ public class CourseTable {
         cv.put(CourseEntry.COLUMN_NAME_ID, id.getCourseIdValue());
         cv.put(CourseEntry.COLUMN_NAME_SUBJECT, subject);
         cv.put(CourseEntry.COLUMN_NAME_TEACHER, teacher);
-        cv.put(CourseEntry.COLUMN_NAME_YEAR, year);
+        cv.put(CourseEntry.COLUMN_NAME_YEAR, year==null?0:year);
         cv.put(CourseEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db   = helper.getWritableDatabase();
         long           code = db.insert(TABLE_NAME, null, cv);
@@ -107,7 +107,7 @@ public class CourseTable {
         ContentValues cv = new ContentValues(3);
         cv.put(CourseEntry.COLUMN_NAME_SUBJECT, subject);
         cv.put(CourseEntry.COLUMN_NAME_TEACHER, teacher);
-        cv.put(CourseEntry.COLUMN_NAME_YEAR, year);
+        cv.put(CourseEntry.COLUMN_NAME_YEAR, year==null?0:year);
         cv.put(CourseEntry.COLUMN_NAME_IMAGE, hasImage);
         SQLiteDatabase db = helper.getWritableDatabase();
         long code = db.update(TABLE_NAME,

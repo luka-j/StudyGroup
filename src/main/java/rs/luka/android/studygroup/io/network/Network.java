@@ -51,7 +51,7 @@ public class Network {
             if(USE_REMOTE_SERVER)
                 DOMAIN = new URL("http://api.notekeep.me/");
             else
-                DOMAIN = new URL("http://192.168.0.15:9000/");
+                DOMAIN = new URL("http://192.168.0.12:9000/");
         } catch (MalformedURLException e) {
             DOMAIN = null; //wtf Java?
             e.printStackTrace();

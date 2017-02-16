@@ -11,8 +11,8 @@ android {
         applicationId "rs.luka.android.studygroup"
         minSdkVersion 15
         targetSdkVersion 22 //jer nisam pisao zahteve za dozvole koje koristim - TODO
-        versionCode 5
-        versionName "1.0-beta1"
+        versionCode 7
+        versionName "1.0-beta2"
     }
     buildTypes {
         release {
