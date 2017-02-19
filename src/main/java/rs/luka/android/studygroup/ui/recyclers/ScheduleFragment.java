@@ -184,8 +184,9 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
                 return true;
             case R.id.context_remove_exam:
                 Exams.removeExam(REQUEST_REMOVE, adapter.selectedExam.getIdValue(), this);
+                return true;
         }
-        return onContextItemSelected(item);
+        return super.onContextItemSelected(item);
     }
 
     @Override
@@ -295,22 +296,26 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             return false;
         }
 
+        private boolean undoHide;
         @Override
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             final Exam exam   = ((ExamHolder) viewHolder).exam;
             exam.shallowHide(getActivity());
+            undoHide = false;
             getActivity().getSupportLoaderManager().restartLoader(ExamTasks.LOADER_ID, null, ScheduleFragment.this);
             Snackbar snackbar = Snackbar.make(coordinator, R.string.exam_hidden, Snackbar.LENGTH_LONG)
                                         .setCallback(new Snackbar.Callback() {
                                             @Override
                                             public void onDismissed(Snackbar snackbar, int event) {
-                                                exam.hide(getContext(), exceptionHandler);
+                                                if(!undoHide)
+                                                    exam.hide(getContext(), exceptionHandler);
                                             }
                                         })
                                         .setAction(R.string.undo, new View.OnClickListener() {
                                             @Override
                                             public void onClick(View v) {
                                                 exam.show(getActivity());
+                                                undoHide=true;
                                                 refresh();
                                             }
                                         })
@@ -358,9 +363,10 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
                                     getResources().getDimensionPixelSize(R.dimen.card_image_size),
                                     exceptionHandler, imageView);
             } else {
-                imageView.setImageBitmap(Utils.generateBitmapFor(examCourse.getYear(),
-                                                                 getResources().getDimensionPixelSize(R.dimen.card_image_size),
-                                                                 getResources().getDimensionPixelSize(R.dimen.card_image_size)));
+                if(examCourse.getYear() != null)
+                    imageView.setImageBitmap(Utils.generateBitmapFor(examCourse.getYear(),
+                                                                     getResources().getDimensionPixelSize(R.dimen.card_image_size),
+                                                                     getResources().getDimensionPixelSize(R.dimen.card_image_size)));
             }
         }
 

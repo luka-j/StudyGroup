@@ -373,22 +373,26 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             return false;
         }
 
+        private boolean undoHide;
         @Override
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             final Course course   = ((CourseHolder) viewHolder).course;
             course.shallowHide(getActivity());
+            undoHide = false;
             getActivity().getSupportLoaderManager().restartLoader(CourseTasks.LOADER_ID, null, GroupFragment.this);
             Snackbar snackbar = Snackbar.make(coordinator, R.string.course_hidden, Snackbar.LENGTH_LONG)
                                         .setCallback(new Snackbar.Callback() {
                                             @Override
                                             public void onDismissed(Snackbar snackbar, int event) {
-                                                course.hide(getContext(), exceptionHandler);
+                                                if(!undoHide)
+                                                    course.hide(getContext(), exceptionHandler);
                                             }
                                         })
                                         .setAction(R.string.undo, new View.OnClickListener() {
                                             @Override
                                             public void onClick(View v) {
                                                 course.show(getActivity());
+                                                undoHide=true;
                                                 refresh();
                                             }
                                         })
@@ -442,7 +446,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
             if (course.hasImage()) {
                 course.getImage(getContext(), imageSize, exceptionHandler, imageView);
-            } else {
+            } else if(course.getYear()!=null) {
                 imageView.setImageBitmap(Utils.generateBitmapFor(course.getYear(), imageSize, imageSize));
             }
         }

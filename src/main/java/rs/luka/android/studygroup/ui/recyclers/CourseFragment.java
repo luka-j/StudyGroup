@@ -273,6 +273,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             return false;
         }
 
+        private boolean undoHide;
         @Override
         public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
             LessonHolder swipedHolder = (LessonHolder) viewHolder;
@@ -280,6 +281,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             final int noteCount = swipedHolder.noteCount, questionCount = swipedHolder.questionCount, _id
                     = swipedHolder._id;
             course.shallowHideLesson(getActivity(), lesson);
+            undoHide = false;
             getActivity().getSupportLoaderManager().restartLoader(LessonTasks.LOADER_ID, null, CourseFragment.this);
             // TODO: 4.9.15. http://stackoverflow.com/questions/32406144/hiding-and-re-showing-cards-in-recyclerview-backed-by-cursor
             Snackbar snackbar = Snackbar.make(lessonsRecyclerView,
@@ -288,7 +290,8 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                                         .setCallback(new Snackbar.Callback() {
                                             @Override
                                             public void onDismissed(Snackbar snackbar, int event) {
-                                                course.hideLesson(getContext(), lesson, exceptionHandler);
+                                                if(!undoHide)
+                                                    course.hideLesson(getContext(), lesson, exceptionHandler);
                                             }
                                         })
                                         .setAction(R.string.undo,
@@ -296,6 +299,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                                                        @Override
                                                        public void onClick(View v) {
                                                            course.showLesson(getActivity(), _id, lesson, noteCount, questionCount);
+                                                           undoHide=true;
                                                            refresh();
                                                        }
                                                    })
