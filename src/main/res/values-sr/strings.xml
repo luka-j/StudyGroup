@@ -282,4 +282,6 @@
     <string name="error_entity_too_large_title">Prevelik fajl</string>
     <string name="error_entity_too_large_text">Izgleda da pokušavaš da pošalješ preveliki fajl. Probaj s nečim manjim.</string>
     <string name="error_default_entity_too_large">413 Entity Too Large: izgleda da aplouduješ prevelik fajl</string>
+    <string name="error_slash_in_lesson_name">Kose crte nisu dozvoljene u imenima lekcija</string>
+    <string name="empty_lesson_readonly_title">Izgleda da ovde nema ničeg</string>
 </resources>

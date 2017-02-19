@@ -193,27 +193,27 @@ public class LocalImages {
     public static File generateNoteImageFile(String courseName, String lessonName, ID itemId)
             throws FileIOException {
         File courseDir = createCourseDir(courseName);
-        return new File(courseDir, lessonName + "-NIMG_" + itemId.getItemIdValue() + ".jpg");
+        return new File(courseDir, lessonName.replace("/", "") + "-NIMG_" + itemId.getItemIdValue() + ".jpg");
     }
 
     public static File generateQuestionImageFile(String courseName, String lessonName, ID itemId)
             throws FileIOException {
         File courseDir = createCourseDir(courseName);
-        return new File(courseDir, lessonName + "-QIMG_" + itemId.getItemIdValue() + ".jpg");
+        return new File(courseDir, lessonName.replace("/", "") + "-QIMG_" + itemId.getItemIdValue() + ".jpg");
     }
 
     public static File generateNoteThumbFile(String courseName, String lessonName, ID itemId)
             throws IOException {
         File courseDir = createCourseThumbsDir(courseName);
-        return new File(courseDir, lessonName + "-nthumb_" + itemId.getItemIdValue() + ".jpg");
+        return new File(courseDir, lessonName.replace("/", "") + "-nthumb_" + itemId.getItemIdValue() + ".jpg");
     }
 
     public static File generateQuestionThumbFile(String courseName, String lessonName, ID itemId)
             throws IOException {
         File courseDir = createCourseThumbsDir(courseName);
-        return new File(courseDir, lessonName + "-qthumb_" + itemId.getItemIdValue() + ".jpg");
+        return new File(courseDir, lessonName.replace("/", "") + "-qthumb_" + itemId.getItemIdValue() + ".jpg");
     }
-
+    
     public static File generateUserThumbFile(long userId) throws IOException {
         createThumbsDir();
         return new File(APP_THUMBS_DIR, "IMG_User-" + userId);

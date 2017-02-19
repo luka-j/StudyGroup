@@ -215,6 +215,8 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         getMenuInflater().inflate(R.menu.menu_group, menu);
         if(group == null || group.getPermission() < Group.PERM_OWNER)
             menu.removeItem(R.id.add_announcement);
+        if(group == null || group.getPermission() < Group.PERM_WRITE)
+            menu.removeItem(R.id.view_announcements);
         return true;
     }
 
@@ -466,4 +468,11 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                 break;
         }
     }
+
+    /*@Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        fragment = GroupFragment.newInstance(intent.<Group>getParcelableExtra(EXTRA_GROUP));
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, fragment).commitAllowingStateLoss();
+    }*/
 }

@@ -104,7 +104,7 @@ public class LoadingActivity extends AppCompatActivity implements GroupTasks.Gro
 
     public static void setPreferredGroup(Context c, Group group) {
         SharedPreferences prefs = c.getSharedPreferences(PREFERRED_GROUP_PREFS_NAME, MODE_PRIVATE);
-        prefs.edit().putLong(PREFERRED_GROUP_KEY, group.getIdValue()).apply();
+        prefs.edit().putLong(PREFERRED_GROUP_KEY+User.getLoggedInUser().getId(), group.getIdValue()).apply();
     }
 
     @Override
@@ -143,22 +143,24 @@ public class LoadingActivity extends AppCompatActivity implements GroupTasks.Gro
     private void proceed() {
         if(groupsLoaded && userdataLoaded) {
             groups.moveToFirst();
+            Group first = groups.getGroup();
             if(groups.getCount() == 1) {
                 startActivity(new Intent(this, GroupActivity.class)
-                             .putExtra(GroupActivity.EXTRA_GROUP, groups.getGroup()));
+                             .putExtra(GroupActivity.EXTRA_GROUP, first));
             } else if(groups.getCount() == 0) {
                 startActivity(new Intent(this, GroupActivity.class));
             } else {
                 SharedPreferences prefs = getSharedPreferences(PREFERRED_GROUP_PREFS_NAME, MODE_PRIVATE);
-                long id = prefs.getLong(PREFERRED_GROUP_KEY, 0);
+                long id = prefs.getLong(PREFERRED_GROUP_KEY+User.getLoggedInUser().getId(), 0);
                 if(id == 0) { //doesn't contain pref
                     startActivity(new Intent(this, GroupActivity.class)
                                           .putExtra(GroupActivity.EXTRA_GROUP, groups.getGroup()));
                 } else {
                     while(groups.getGroup().getIdValue() != id)
-                        groups.moveToNext();
+                        if(!groups.moveToNext())
+                            break;
                     startActivity(new Intent(this, GroupActivity.class)
-                                          .putExtra(GroupActivity.EXTRA_GROUP, groups.getGroup()));
+                                          .putExtra(GroupActivity.EXTRA_GROUP, groups.getGroup()==null?first:groups.getGroup()));
                 }
             }
         }

@@ -74,7 +74,7 @@ public class NoteListFragment extends Fragment implements LoaderManager.LoaderCa
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
             if(permission < Group.PERM_MODIFY) {
-                menu.removeItem(R.id.context_remove_note); //todo fix
+                menu.removeItem(R.id.context_remove_note);
                 return true;
             }
             return false;

@@ -1,6 +1,5 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -31,6 +30,7 @@ import rs.luka.android.studygroup.io.network.Network;
 import rs.luka.android.studygroup.io.network.Notes;
 import rs.luka.android.studygroup.io.network.Questions;
 import rs.luka.android.studygroup.model.Course;
+import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.Note;
 import rs.luka.android.studygroup.model.Question;
 import rs.luka.android.studygroup.ui.dialogs.ConfirmDialog;
@@ -108,8 +108,10 @@ public class LessonActivity extends AppCompatActivity
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         if(!lessonName.trim().isEmpty())
             toolbar.setTitle(lessonName);
-        else
+        else if(permission>=Group.PERM_WRITE)
             toolbar.setTitle(R.string.new_course_hint);
+        else
+            toolbar.setTitle(R.string.empty_lesson_readonly_title);
         setSupportActionBar(toolbar);
 
         if (NavUtils.getParentActivityIntent(this) != null) {
@@ -133,25 +135,28 @@ public class LessonActivity extends AppCompatActivity
         tabs.setViewPager(pager);
 
         fab = (FloatingActionButton) findViewById(R.id.fab_add_noqu);
-        final Activity This = this;
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (pager.getCurrentItem() == 0) {
-                    Intent i = new Intent(This, AddNoteActivity.class);
-                    i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
-                    i.putExtra(EXTRA_CURRENT_COURSE, course);
-                    i.putExtra(AddNoteActivity.EXTRA_IS_EXAM, isPrivate);
-                    startActivityForResult(i, REQUEST_ADD_NOTE);
-                } else {
-                    Intent i = new Intent(This, AddQuestionActivity.class);
-                    i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
-                    i.putExtra(EXTRA_CURRENT_COURSE, course);
-                    i.putExtra(AddQuestionActivity.EXTRA_IS_PRIVATE, isPrivate);
-                    startActivityForResult(i, REQUEST_ADD_QUESTION);
+        if( permission >= Group.PERM_WRITE) {
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (pager.getCurrentItem() == 0) {
+                        Intent i = new Intent(LessonActivity.this, AddNoteActivity.class);
+                        i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
+                        i.putExtra(EXTRA_CURRENT_COURSE, course);
+                        i.putExtra(AddNoteActivity.EXTRA_IS_EXAM, isPrivate);
+                        startActivityForResult(i, REQUEST_ADD_NOTE);
+                    } else {
+                        Intent i = new Intent(LessonActivity.this, AddQuestionActivity.class);
+                        i.putExtra(EXTRA_CURRENT_LESSON, lessonName);
+                        i.putExtra(EXTRA_CURRENT_COURSE, course);
+                        i.putExtra(AddQuestionActivity.EXTRA_IS_PRIVATE, isPrivate);
+                        startActivityForResult(i, REQUEST_ADD_QUESTION);
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            fab.setVisibility(View.GONE);
+        }
     }
 
     @Override

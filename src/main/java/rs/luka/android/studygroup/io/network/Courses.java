@@ -77,7 +77,7 @@ public class Courses {
             } else {
                 Log.w(TAG, "Something's wrong; server returned code " + response.responseCode);
                 Network.Response handled = response.handleErrorCode(exceptionHandler);
-                if( handled.responseCode == Network.Response.RESPONSE_OK) getCourses(c, group, exceptionHandler);
+                if(handled.responseCode == Network.Response.RESPONSE_OK) getCourses(c, group, exceptionHandler);
                 //todo review, edited old code late night
             }
         } catch (MalformedURLException e) {

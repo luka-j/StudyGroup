@@ -86,6 +86,7 @@ public class QuestionTasks {
                     String realQuestion = TextUtils.replaceEscapes(question);
                     String realAnswer = TextUtils.replaceEscapes(answer);
                     String realLesson = TextUtils.replaceEscapes(lesson);
+                    if(realLesson.contains("/")) throw new IllegalArgumentException("slash in lesson name!");
                     Long questionId = Questions.createQuestion(courseId.getCourseIdValue(),
                                                                realLesson,
                                                                realQuestion, realAnswer, handler,
@@ -118,6 +119,7 @@ public class QuestionTasks {
                     String realQuestion = TextUtils.replaceEscapes(question);
                     String realAnswer = TextUtils.replaceEscapes(answer);
                     String realLesson = TextUtils.replaceEscapes(lesson);
+                    if(realLesson.contains("/")) throw new IllegalArgumentException("slash in lesson name!");
                     boolean success = Questions.updateQuestion(id.getItemIdValue(), realLesson, realQuestion, realAnswer, handler);
                     if(success) {
                         Course course = CourseTasks.getCourse(c, id);

@@ -85,6 +85,7 @@ public class Network {
         public static final int RESPONSE_SERVER_DOWN        = 503;
         public static final int RESPONSE_GATEWAY_TIMEOUT    = 504;
         public static final int RESPONSE_SERVER_UNREACHABLE = 521;
+        private static final String TAG                     = "Network";
         public final  int     responseCode;
         public final  T       responseData;
         public final String   errorMessage;
@@ -128,6 +129,10 @@ public class Network {
         }
 
         public Response<T> handleErrorCode(NetworkExceptionHandler handler) {
+            if(!isError()) {
+                Log.w(TAG, "Asked to handle non-error code " + responseCode + "; ignoring");
+                return this;
+            }
             switch (responseCode) {
                 case RESPONSE_UNAUTHORIZED:
                     if("Expired".equals(errorMessage)) {
@@ -156,7 +161,7 @@ public class Network {
                     return this;
                 case RESPONSE_NOT_FOUND:
                     handler.handleNotFound(RESPONSE_NOT_FOUND);
-                    Log.e("Network", "404: " + request.url.toString());
+                    Log.e(TAG, "404: " + request.url.toString());
                     return this;
                 case RESPONSE_GONE:
                     handler.handleNotFound(RESPONSE_GONE);

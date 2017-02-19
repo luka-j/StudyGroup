@@ -35,7 +35,7 @@ public class LocalAudio {
         File courseDir = new File(APP_AUDIO_DIR, courseName);
         if (!courseDir.isDirectory()) courseDir.mkdir();
         return new File(courseDir,
-                        lessonName + "-REC_" + itemId.toString()
+                        lessonName.replace("/", "") + "-REC_" + itemId.toString()
                         + ".mp3"); // TODO: 19.9.15. support i za druge formate sem mp3
         //note 18.11.16. drugi formati su podržani, iako ova klasa sve imenuje kao ".mp3", to ne znači da je tip
         //fajla mp3, tako da se ne bi trebalo oslanjati na ekstenziju

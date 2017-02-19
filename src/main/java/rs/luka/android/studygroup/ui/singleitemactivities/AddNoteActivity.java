@@ -206,6 +206,9 @@ public class AddNoteActivity extends AppCompatActivity {
         } else if (lessonStr.length() > Limits.LESSON_MAX_LENGTH) {
             lessonTil.setError(getString(R.string.error_too_long));
             error = true;
+        } else if(lessonStr.contains("/")) {
+            lessonTil.setError(getString(R.string.error_slash_in_lesson_name));
+            error=true;
         } else { lessonTil.setError(null); }
         if (noteStr.isEmpty()) {
             textTil.setError(getString(R.string.error_empty));

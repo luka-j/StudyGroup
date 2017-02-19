@@ -104,7 +104,6 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         super.onAttach(activity);
         callbacks = (Callbacks) activity;
         exceptionHandler = new NetworkExceptionHandler.DefaultHandler((AppCompatActivity)activity);
-
     }
 
     @Override
@@ -119,46 +118,11 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
         courseRecyclerView = (RecyclerView) view.findViewById(R.id.course_recycler_view);
         fab = (FloatingActionButton) view.findViewById(R.id.fab_add_course);
-        if(group.getPermission() <= Group.PERM_READ_REQUEST_WRITE_FORBIDDEN) {
-            fab.setVisibility(View.GONE);
-        } else if (group.getPermission() <= Group.PERM_READ_CAN_REQUEST_WRITE) {
-            fab.setVisibility(View.VISIBLE);
-            fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_pencil));
-        } else if (group.getPermission() <= Group.PERM_REQUEST_WRITE) {
-            fab.setVisibility(View.GONE);
-        } else if (group.getPermission() <= Group.PERM_INVITED) {
-            fab.setVisibility(View.VISIBLE);
-            fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_invite));
-        } else {
-            fab.setVisibility(View.VISIBLE);
-            fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_add));
-        }
         coordinator = (CoordinatorLayout) view.findViewById(R.id.coordinator);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(group.getPermission() >= Group.PERM_WRITE) {
-                    Intent i = new Intent(getActivity(), AddCourseActivity.class);
-                    i.putExtra(AddCourseActivity.EXTRA_MY_PERMISSION, group.getPermission());
-                    i.putExtra(AddCourseActivity.EXTRA_GROUP, group);
-                    startActivityForResult(i, REQUEST_ADD_COURSE);
-                } else if(group.getPermission() >= Group.PERM_INVITED) {
-                    InfoDialog.newInstance(getString(R.string.invite_unapproved_info_title),
-                                           getString(R.string.invite_unapproved_info_text))
-                              .show(getFragmentManager(), "");
-                } else {
-                    callbacks.onRequestJoin(group);
-                }
-            }
-        });
-        if(group.getPermission() > Group.PERM_READ_REQUEST_WRITE_FORBIDDEN
-           && group.getPermission() <= Group.PERM_READ_CAN_REQUEST_WRITE) {
-            new Showcase(getActivity()).showShowcase("request-join", fab, false, R.string.tut_reqjoin, true, true);
-        }
+
         final LinearLayoutManager lm = new LinearLayoutManager(getActivity());
         courseRecyclerView.setLayoutManager(lm);
-        if(group.getPermission() >= Group.PERM_MODIFY) //context menu postoji samo za one koji mogu da ga koriste
-            registerForContextMenu(courseRecyclerView);
+        setupPermissionDependentViews();
         setData();
 
         new ItemTouchHelper(new TouchHelperCallbacks(0,
@@ -183,6 +147,50 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                                       R.color.refresh_progress_3);
 
         return view;
+    }
+
+    private void setupPermissionDependentViews() {
+        if(group.getPermission() <= Group.PERM_READ_REQUEST_WRITE_FORBIDDEN) {
+            fab.setVisibility(View.GONE);
+        } else if (group.getPermission() <= Group.PERM_READ_CAN_REQUEST_WRITE) {
+            fab.setVisibility(View.VISIBLE);
+            fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_pencil));
+        } else if (group.getPermission() <= Group.PERM_REQUEST_WRITE) {
+            fab.setVisibility(View.GONE);
+        } else if (group.getPermission() <= Group.PERM_INVITED) {
+            fab.setVisibility(View.VISIBLE);
+            fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_invite));
+        } else {
+            fab.setVisibility(View.VISIBLE);
+            fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_add));
+        }
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(group.getPermission() >= Group.PERM_WRITE) {
+                    Intent i = new Intent(getActivity(), AddCourseActivity.class);
+                    i.putExtra(AddCourseActivity.EXTRA_MY_PERMISSION, group.getPermission());
+                    i.putExtra(AddCourseActivity.EXTRA_GROUP, group);
+                    startActivityForResult(i, REQUEST_ADD_COURSE);
+                } else if(group.getPermission() >= Group.PERM_INVITED) {
+                    InfoDialog.newInstance(getString(R.string.invite_unapproved_info_title),
+                                           getString(R.string.invite_unapproved_info_text))
+                              .show(getFragmentManager(), "");
+                } else {
+                    callbacks.onRequestJoin(group);
+                }
+            }
+        });
+
+        if(group.getPermission() > Group.PERM_READ_REQUEST_WRITE_FORBIDDEN
+           && group.getPermission() <= Group.PERM_READ_CAN_REQUEST_WRITE) {
+            new Showcase(getActivity()).showShowcase("request-join", fab, false, R.string.tut_reqjoin, true, true);
+        }
+
+        if(group.getPermission() >= Group.PERM_MODIFY) //context menu postoji samo za one koji mogu da ga koriste
+            registerForContextMenu(courseRecyclerView);
+        else
+            unregisterForContextMenu(courseRecyclerView);
     }
 
     @Override
@@ -252,6 +260,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
     protected void changeGroup(Group group) {
         this.group = group;
+        setupPermissionDependentViews();
         setData();
     }
 

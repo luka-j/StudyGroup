@@ -304,4 +304,6 @@
     <string name="error_default_entity_too_large">413 Entity Too Large: seems like you\'re uploading too big file</string>
     <string name="error_entity_too_large_title">Entity Too Large</string>
     <string name="error_entity_too_large_text">It seems that you\'re trying to send too large file. Try something smaller.</string>
+    <string name="error_slash_in_lesson_name">Slashes aren\'t allowed in lesson names, please pick a different one</string>
+    <string name="empty_lesson_readonly_title">Looks like there\'s nothing here</string>
 </resources>

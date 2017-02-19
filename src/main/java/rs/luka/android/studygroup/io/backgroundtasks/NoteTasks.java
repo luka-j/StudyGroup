@@ -84,6 +84,7 @@ public class NoteTasks {
                 try {
                     String realText = TextUtils.replaceEscapes(text);
                     String realLesson = TextUtils.replaceEscapes(lesson);
+                    if(realLesson.contains("/")) throw new IllegalArgumentException("slash in lesson name!");
                     Long noteId = Notes.createNote(courseId.getCourseIdValue(), realLesson, realText,
                                                    handler, isPrivate ? Group.PERM_WRITE : Group.PERM_READ_CAN_REQUEST_WRITE);
                     if(noteId != null) {
@@ -117,6 +118,7 @@ public class NoteTasks {
                 try {
                     String realText = TextUtils.replaceEscapes(text);
                     String realLesson = TextUtils.replaceEscapes(lesson);
+                    if(realLesson.contains("/")) throw new IllegalArgumentException("slash in lesson name!");
                     boolean success = Notes.updateNote(id.getItemIdValue(), realLesson, realText, handler);
                     if(success) {
                         Course course = CourseTasks.getCourse(c, id);

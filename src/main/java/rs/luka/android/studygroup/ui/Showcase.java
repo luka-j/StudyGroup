@@ -50,7 +50,14 @@ public class Showcase {
     private MaterialShowcaseView buildShowcase(String showcaseId, View target, boolean isOval,
                                                int title, int content, int dismissText, int skipText,
                                                boolean dimissOnTap, boolean targetTouchable) {
-        if(showcaseId != null && MaterialShowcaseView.hasAlreadyFired(activity, showcaseId)) return new MaterialShowcaseView(activity);
+        if(showcaseId != null && MaterialShowcaseView.hasAlreadyFired(activity, showcaseId)) {
+            return new MaterialShowcaseView(activity) {
+                @Override
+                public boolean show(Activity activity) {
+                    return false;
+                }
+            };
+        }
 
         MaterialShowcaseView.Builder builder = new MaterialShowcaseView.Builder(activity)
                 .setConfig(config)
