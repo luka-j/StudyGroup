@@ -6,13 +6,12 @@ android {
         }
     }
     compileSdkVersion 23 // ne menjati ako nije neophodno ili imaš viška vremena
-    buildToolsVersion "23.0.3"
     defaultConfig {
         applicationId "rs.luka.android.studygroup"
         minSdkVersion 15
         targetSdkVersion 22 //jer nisam pisao zahteve za dozvole koje koristim - TODO
-        versionCode 7
-        versionName "1.0-beta2"
+        versionCode 8
+        versionName "1.0-beta2.1"
     }
     buildTypes {
         release {

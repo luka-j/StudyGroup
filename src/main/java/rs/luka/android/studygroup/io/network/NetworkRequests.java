@@ -16,6 +16,8 @@ import java.util.concurrent.TimeoutException;
 import rs.luka.android.studygroup.model.User;
 
 /**
+ * Utility methods for creating network requests. Uses User#getInstanceToken to retrieve authorization token (see JWT tokens)
+ * Some unused methods missing, but can be made analogous to the existing ones
  * Created by luka on 22.1.16..
  */
 public class NetworkRequests {
@@ -25,7 +27,7 @@ public class NetworkRequests {
     private static final String VERB_GET = "GET";
     private static final String VERB_PUT = "PUT";
     private static final String VERB_DELETE = "DELETE";
-    private static final ExecutorService     executor = Executors.newCachedThreadPool();
+    private static final ExecutorService     executor = Executors.newCachedThreadPool(); //executor for background execution of requests
 
     private static void requestDataAsync(int requestId, URL url, Map<String, String> data, Network.NetworkCallbacks<String> callback, String verb) {
         executor.submit(new Network.StringRequest(requestId, url, User.getInstanceToken(), data, verb, callback));
@@ -36,6 +38,8 @@ public class NetworkRequests {
         executor.submit(new Network.FileRequest(requestId, url, User.getInstanceToken(), data, verb, callbacks, saveTo));
     }
 
+    //this also does request on executor (i.e. on background thread); HOWEVER it returns value after the timeout has passed, if it's done
+    //if not, it throws TimeoutException
     private static Network.Response<String> requestDataBlocking(int requestId, URL url, Map<String, String> data, long timeout,
                                                         TimeUnit unit, String verb)
             throws ExecutionException, TimeoutException, FileNotFoundException, IOException {

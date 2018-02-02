@@ -15,6 +15,7 @@ import rs.luka.android.studygroup.ui.dialogs.InfoDialog;
 import rs.luka.android.studygroup.ui.singleitemactivities.LoginActivity;
 
 /**
+ * Handles possible network errors
  * Created by luka on 3.1.16..
  */
 public interface NetworkExceptionHandler {
@@ -39,6 +40,12 @@ public interface NetworkExceptionHandler {
     void finished();
 
 
+    /**
+     * Reference implementation, methods can be overrided as necessary.
+     * Uses InfoDialog to display error messages on the hostActivity
+     * Provides finishedSuccessfully and finishedUnsucessfully methods, as well
+     * as pinning down the IOException cause (file/socket/unknown) 
+     */
     class DefaultHandler implements NetworkExceptionHandler {
         private static final String LOGGING_TAG = "net.defaulthandler";
         protected static final String TAG_DIALOG = "studygroup.dialog.error";

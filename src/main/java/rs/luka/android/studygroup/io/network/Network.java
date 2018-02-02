@@ -32,7 +32,8 @@ import rs.luka.android.studygroup.misc.Utils;
 import rs.luka.android.studygroup.model.User;
 
 /**
- * Created by luka on 1.1.16..
+ * Obavlja mrežne zahteve direktno (lowlevel)
+ * Created by luka on 1.1.16.
  */
 public class Network {
     static final String API_VERSION = "v1/";
@@ -45,11 +46,14 @@ public class Network {
     private static final int BUFFER_SIZE = 51_200; //50kb
 
     private static URL                  DOMAIN; //catch in static block complains if this is made final
+    //URL format: http(s)://api.notekeep.me/v1/[path]
+    //localhost url format: http://192.168.0.12:9000/api/v1/[path] (/api/ injected in request making)
+    //Authorization header: JWT token (generated on server, kept in app)
 
     static {
         try {
             if(USE_REMOTE_SERVER)
-                DOMAIN = new URL("http://api.notekeep.me/");
+                DOMAIN = new URL("http://api.notekeeper.cf/");
             else
                 DOMAIN = new URL("http://192.168.0.12:9000/");
         } catch (MalformedURLException e) {
@@ -62,16 +66,28 @@ public class Network {
         return DOMAIN;
     }
 
+    /**
+     * Network callbacks used for async calls
+     */
     public interface NetworkCallbacks<T> {
         void onRequestCompleted(int id, Response<T> response);
         void onExceptionThrown(int id, Throwable ex);
     }
 
+    /**
+     * Holds a response from server. Consists of response code, an (optional) content and (optional) error message.
+     * There cannot be both an error message and content present. Consult response codes in order to figure out what
+     * to look for, or use {@link #isError()}
+     */
     public static class Response<T> {
+        //posible response codes
+        //normal execution, in most cases can be treated as interchangeable
         public static final int RESPONSE_OK                 = 200;
         public static final int RESPONSE_CREATED            = 201;
         public static final int RESPONSE_ACCEPTED           = 202;
+        //HttpURLConnection should handle this almost always
         public static final int NOT_MODIFIED                = 304;
+        //client errors
         public static final int RESPONSE_BAD_REQUEST        = 400;
         public static final int RESPONSE_UNAUTHORIZED       = 401;
         public static final int RESPONSE_FORBIDDEN          = 403;
@@ -80,11 +96,13 @@ public class Network {
         public static final int RESPONSE_GONE               = 410;
         public static final int RESPONSE_ENTITY_TOO_LARGE   = 413;
         public static final int RESPONSE_TOO_MANY_REQUESTS  = 429;
+        //server errors
         public static final int RESPONSE_SERVER_ERROR       = 500;
         public static final int RESPONSE_BAD_GATEWAY        = 502;
         public static final int RESPONSE_SERVER_DOWN        = 503;
         public static final int RESPONSE_GATEWAY_TIMEOUT    = 504;
         public static final int RESPONSE_SERVER_UNREACHABLE = 521;
+
         private static final String TAG                     = "Network";
         public final  int     responseCode;
         public final  T       responseData;
@@ -106,6 +124,8 @@ public class Network {
             return isError(responseCode);
         }
 
+        //returns default error messages, depending on the context
+        //not really portable, usually unnecessary as handlers provide their own error messages
         public String getDefaultErrorMessage(Context context) {
             switch(responseCode) {
                 case RESPONSE_OK: return context.getString(R.string.error_default_ok);
@@ -128,6 +148,10 @@ public class Network {
             }
         }
 
+        /**
+         * Uses passed NEH to handle possbile errors and returns new response.
+         * It is not guaranteed same Response object (this) will be returned, or that no other requests will be made.
+         */
         public Response<T> handleErrorCode(NetworkExceptionHandler handler) {
             if(!isError()) {
                 Log.w(TAG, "Asked to handle non-error code " + responseCode + "; ignoring");
@@ -135,11 +159,12 @@ public class Network {
             }
             switch (responseCode) {
                 case RESPONSE_UNAUTHORIZED:
-                    if("Expired".equals(errorMessage)) {
+                    if("Expired".equals(errorMessage)) { //in case token has expired, refresh it and try again
                         try {
-                            UserManager.handleTokenError(this, handler);
+                            UserManager.handleTokenError(this, handler); //this makes actual request to refresh token
+                            // ^^ !! Does networking on current thread !! ^^
                             request.swapToken(User.getInstanceToken());
-                            Response<T> handled = request.call();
+                            Response<T> handled = request.call(); //redoing the request
                             handled.handleErrorCode(handler);
                             return handled;
                         } catch (NotLoggedInException ex) {
@@ -200,6 +225,13 @@ public class Network {
     }
 
 
+    /**
+     * Represents one network request, consisting of url, authorization token, and http method (get, post, update, delete)
+     * In case of async calls (on executor) it also holds requestId and appropriate callback
+     * T is type of request, i.e. what's sent and what's received. Currently, it's not possible to have StringRequest
+     * which has file as a request (though it's of course possible to have empty request, i.e. get, which is usually more 
+     * appropriate).
+     */
     protected static abstract class Request<T> implements Callable<Response<T>> {
         private int                 requestId;
         private URL                 url;
@@ -215,7 +247,7 @@ public class Network {
                     this.url = new URL(url.getProtocol(),
                                        url.getHost(),
                                        url.getPort(),
-                                       "api" + url.getFile());
+                                       "api" + url.getFile()); //injecting /api/ path in case of local server, debugging purposes
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
@@ -223,7 +255,8 @@ public class Network {
             else this.url = url;
             this.token = token;
             this.httpVerb = httpVerb;
-            this.callback = callback;
+            this.callback = callback; //in case this isn't null, it also notifies callback when request is done (apart from 
+                                      //returning value in call() method)
         }
 
         @Override
@@ -286,6 +319,9 @@ public class Network {
         protected abstract void uploadData(URLConnection connection) throws IOException;
     }
 
+    /**
+     * Request which uploads data (key-value pairs) in as a urlencoded form
+     */
     protected static class StringRequest extends Request<String> {
 
         private Map<String, String> data;
@@ -323,6 +359,9 @@ public class Network {
         }
     }
 
+    /**
+     * Request which uploads and/or downloads a file from server
+     */
     protected static class FileRequest extends Request<File> {
 
         private File saveTo;
@@ -367,6 +406,7 @@ public class Network {
         }
     }
 
+    //serves as unified point of setting and checking network status of the app
     public static class Status {
         private static boolean online = true;
         public static boolean isOnline() {return online;}
