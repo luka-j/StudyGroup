@@ -61,12 +61,9 @@ public class LoadingActivity extends AppCompatActivity implements GroupTasks.Gro
     private boolean groupsLoaded = false;
     private GroupTable.GroupCursor groups;
     private boolean userdataLoaded = false;
-    private Runnable userLoaded = new Runnable() {
-        @Override
-        public void run() {
-            userdataLoaded = true;
-            proceed();
-        }
+    private Runnable userLoaded = () -> {
+        userdataLoaded = true;
+        proceed();
     };
 
     private class ExceptionHandler extends NetworkExceptionHandler.DefaultHandler {
@@ -81,7 +78,7 @@ public class LoadingActivity extends AppCompatActivity implements GroupTasks.Gro
                 InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_login_socketex_title),
                                                            hostActivity.getString(R.string.error_login_socketex_text));
                 dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
-                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                dialog.show(hostActivity.getFragmentManager(), TAG_DIALOG);
             } else {
                 ((InfoDialog.Callbacks)hostActivity).onInfoDialogClosed(null);
             }
@@ -94,7 +91,7 @@ public class LoadingActivity extends AppCompatActivity implements GroupTasks.Gro
                 InfoDialog dialog = InfoDialog.newInstance(hostActivity.getString(R.string.error_offline_title),
                                                            hostActivity.getString(R.string.error_offline_text));
                 dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
-                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                dialog.show(hostActivity.getFragmentManager(), TAG_DIALOG);
                 Network.Status.setOffline();
             } else {
                 ((InfoDialog.Callbacks)hostActivity).onInfoDialogClosed(null);

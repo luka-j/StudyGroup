@@ -1,7 +1,7 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.app.Fragment;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 
 import rs.luka.android.studygroup.io.network.Groups;
 import rs.luka.android.studygroup.model.Group;

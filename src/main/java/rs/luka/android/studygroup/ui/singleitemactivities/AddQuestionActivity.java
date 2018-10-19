@@ -15,7 +15,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -260,7 +259,7 @@ public class AddQuestionActivity extends AppCompatActivity {
             public void handleOffline() {
                 InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
                                        getString(R.string.error_offline_edit_text))
-                          .show(getSupportFragmentManager(), "");
+                          .show(getFragmentManager(), "");
                 Network.Status.setOffline();
             }
             @Override
@@ -275,7 +274,7 @@ public class AddQuestionActivity extends AppCompatActivity {
                                                            hostActivity.getString(R.string.error_socketex_text));
                 if(hostActivity instanceof InfoDialog.Callbacks)
                     dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
-                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                dialog.show(hostActivity.getFragmentManager(), TAG_DIALOG);
                 Log.e(TAG, "Unexpected SocketException", ex);
                 Network.Status.setOffline();
             }
@@ -326,36 +325,18 @@ public class AddQuestionActivity extends AppCompatActivity {
         next = (CardView) buttonsLayout.findViewById(R.id.button_next);
         nextText = (TextView) next.getChildAt(0);
         done = (CardView) buttonsLayout.findViewById(R.id.button_done);
-        next.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                doSubmit();
-            }
-        });
-        done.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                done();
-            }
-        });
+        next.setOnClickListener(v -> doSubmit());
+        done.setOnClickListener(v -> done());
     }
 
     private void initTextListeners() {
-        add.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        add.setOnClickListener(v -> doSubmit());
+        answer.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
                 doSubmit();
+                return true;
             }
-        });
-        answer.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    doSubmit();
-                    return true;
-                }
-                return false;
-            }
+            return false;
         });
         lesson.addTextChangedListener(new TextWatcher() {
             @Override
@@ -375,22 +356,19 @@ public class AddQuestionActivity extends AppCompatActivity {
     }
 
     private void initMediaListeners() {
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                File courseImageDir = new File(LocalImages.APP_IMAGE_DIR, course.getSubject());
-                if (!LocalImages.APP_IMAGE_DIR.isDirectory()) { LocalImages.APP_IMAGE_DIR.mkdir(); }
-                if (!courseImageDir.isDirectory()) courseImageDir.mkdir();
-                imageFile = new File(courseImageDir, lesson.getText().toString() + ".temp");
-                Intent gallery = new Intent(Intent.ACTION_PICK);
-                gallery.setType("image/*");
-                camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
-                Intent chooserIntent = Intent.createChooser(camera,
-                                                            getString(R.string.select_image));
-                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
-                startActivityForResult(chooserIntent, INTENT_IMAGE);
-            }
+        image.setOnClickListener(v -> {
+            Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            File courseImageDir = new File(LocalImages.APP_IMAGE_DIR, course.getSubject());
+            if (!LocalImages.APP_IMAGE_DIR.isDirectory()) { LocalImages.APP_IMAGE_DIR.mkdir(); }
+            if (!courseImageDir.isDirectory()) courseImageDir.mkdir();
+            imageFile = new File(courseImageDir, lesson.getText().toString() + ".temp");
+            Intent gallery = new Intent(Intent.ACTION_PICK);
+            gallery.setType("image/*");
+            camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
+            Intent chooserIntent = Intent.createChooser(camera,
+                                                        getString(R.string.select_image));
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
+            startActivityForResult(chooserIntent, INTENT_IMAGE);
         });
     }
 }

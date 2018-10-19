@@ -4,10 +4,10 @@ package rs.luka.android.studygroup.ui;
  * Created by Luka on 7/1/2015.
  */
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -37,7 +37,7 @@ public abstract class SingleFragmentActivity extends AppCompatActivity {
             toolbar = (Toolbar) findViewById(R.id.toolbar);
             setSupportActionBar(toolbar);
 
-            FragmentManager fm = getSupportFragmentManager();
+            FragmentManager fm = getFragmentManager();
             Fragment fragment = fm.findFragmentById(R.id.fragment_container);
 
             if (fragment == null) {

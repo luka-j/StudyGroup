@@ -1,5 +1,6 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -7,10 +8,8 @@ import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -95,7 +94,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         group = getArguments().getParcelable(GroupActivity.EXTRA_GROUP);
 
         Groups.getAnnouncements(REQUEST_GET_ANNOUNCEMENTS, group.getIdValue(), this);
-        showCourseTutorial = !MaterialShowcaseView.hasAlreadyFired(getContext(), TUTORIAL_ID) && group.getPermission() >= Group.PERM_WRITE;
+        showCourseTutorial = !MaterialShowcaseView.hasAlreadyFired(getActivity(), TUTORIAL_ID) && group.getPermission() >= Group.PERM_WRITE;
         //setRetainInstance(true);
     }
 
@@ -112,7 +111,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         View view = inflater.inflate(R.layout.fragment_group, container, false);
 
         AppCompatActivity ac = (AppCompatActivity) getActivity();
-        ac.getSupportActionBar().setTitle(group.getName(getContext()));
+        ac.getSupportActionBar().setTitle(group.getName(getActivity()));
 
         progress = (CircularProgressView) view.findViewById(R.id.progress_view);
 
@@ -130,18 +129,8 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                 .attachToRecyclerView(courseRecyclerView);
 
         swipe = (PoliteSwipeRefreshLayout) view.findViewById(R.id.group_swipe);
-        swipe.setOnChildScrollUpListener(new PoliteSwipeRefreshLayout.OnChildScrollUpListener() {
-            @Override
-            public boolean canChildScrollUp() {
-                return adapter.getItemCount()>0 && lm.findFirstCompletelyVisibleItemPosition() != 0;
-            }
-        });
-        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refresh();
-            }
-        });
+        swipe.setOnChildScrollUpListener(() -> adapter.getItemCount() > 0 && lm.findFirstCompletelyVisibleItemPosition() != 0);
+        swipe.setOnRefreshListener(this::refresh);
         swipe.setColorSchemeResources(R.color.refresh_progress_1,
                                       R.color.refresh_progress_2,
                                       R.color.refresh_progress_3);
@@ -151,34 +140,31 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private void setupPermissionDependentViews() {
         if(group.getPermission() <= Group.PERM_READ_REQUEST_WRITE_FORBIDDEN) {
-            fab.setVisibility(View.GONE);
+            fab.hide();
         } else if (group.getPermission() <= Group.PERM_READ_CAN_REQUEST_WRITE) {
-            fab.setVisibility(View.VISIBLE);
+            fab.show();
             fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_pencil));
         } else if (group.getPermission() <= Group.PERM_REQUEST_WRITE) {
-            fab.setVisibility(View.GONE);
+            fab.hide();
         } else if (group.getPermission() <= Group.PERM_INVITED) {
-            fab.setVisibility(View.VISIBLE);
+            fab.show();
             fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_invite));
         } else {
-            fab.setVisibility(View.VISIBLE);
+            fab.show();
             fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_add));
         }
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(group.getPermission() >= Group.PERM_WRITE) {
-                    Intent i = new Intent(getActivity(), AddCourseActivity.class);
-                    i.putExtra(AddCourseActivity.EXTRA_MY_PERMISSION, group.getPermission());
-                    i.putExtra(AddCourseActivity.EXTRA_GROUP, group);
-                    startActivityForResult(i, REQUEST_ADD_COURSE);
-                } else if(group.getPermission() >= Group.PERM_INVITED) {
-                    InfoDialog.newInstance(getString(R.string.invite_unapproved_info_title),
-                                           getString(R.string.invite_unapproved_info_text))
-                              .show(getFragmentManager(), "");
-                } else {
-                    callbacks.onRequestJoin(group);
-                }
+        fab.setOnClickListener(v -> {
+            if(group.getPermission() >= Group.PERM_WRITE) {
+                Intent i = new Intent(getActivity(), AddCourseActivity.class);
+                i.putExtra(AddCourseActivity.EXTRA_MY_PERMISSION, group.getPermission());
+                i.putExtra(AddCourseActivity.EXTRA_GROUP, group);
+                startActivityForResult(i, REQUEST_ADD_COURSE);
+            } else if(group.getPermission() >= Group.PERM_INVITED) {
+                InfoDialog.newInstance(getString(R.string.invite_unapproved_info_title),
+                                       getString(R.string.invite_unapproved_info_text))
+                          .show(getFragmentManager(), "");
+            } else {
+                callbacks.onRequestJoin(group);
             }
         });
 
@@ -213,8 +199,8 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
     protected void refresh() {
         swipe.setRefreshing(true);
-        Groups.getGroupsInBackground(getContext(), exceptionHandler);
-        CourseTasks.refreshCourses(getContext(), group, this, getActivity().getSupportLoaderManager(),
+        Groups.getGroupsInBackground(getActivity(), exceptionHandler);
+        CourseTasks.refreshCourses(getActivity(), group, this, ((AppCompatActivity)getActivity()).getSupportLoaderManager(),
                                    exceptionHandler);
     }
 
@@ -253,8 +239,8 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             adapter = new CourseAdapter(getActivity(), null);
             courseRecyclerView.setAdapter(adapter);
         }
-        Groups.getGroupsInBackground(getContext(), exceptionHandler);
-        CourseTasks.getCourses(getContext(), group, this, getActivity().getSupportLoaderManager(),
+        Groups.getGroupsInBackground(getActivity(), exceptionHandler);
+        CourseTasks.getCourses(getActivity(), group, this, ((AppCompatActivity)getActivity()).getSupportLoaderManager(),
                                exceptionHandler);
     }
 
@@ -266,12 +252,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisibility(View.VISIBLE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progress.setVisibility(View.VISIBLE));
         return group.getCourseLoader(getActivity());
     }
 
@@ -295,12 +276,7 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             case REQUEST_SHOW_ALL:
             case REQUEST_REMOVE_COURSE:
                 if (response.responseCode == Network.Response.RESPONSE_OK) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            refresh();
-                        }
-                    });
+                    getActivity().runOnUiThread(this::refresh);
                 } else {
                     response.handleErrorCode(exceptionHandler);
                 }
@@ -314,13 +290,8 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
                             final String     text         = announcement.getString("text");
                             final String     years        = announcement.getString("years");
                             final long       date         = announcement.getLong("date");
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    AnnouncementDialog.newInstance(text, years, date)
-                                                      .show(getActivity().getFragmentManager(), "");
-                                }
-                            });
+                            getActivity().runOnUiThread(() -> AnnouncementDialog.newInstance(text, years, date)
+                                                                        .show(getActivity().getFragmentManager(), ""));
                         }
                     } catch (JSONException e) {
                         exceptionHandler.handleJsonException();
@@ -340,14 +311,9 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
         if(ex instanceof IOException)
             exceptionHandler.handleIOException((IOException)ex);
         else {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                              .show(getFragmentManager(), "");
-                }
-            });
+            getActivity().runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                                             getString(R.string.error_unknown_ex_text))
+                                                .show(getFragmentManager(), ""));
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
     }
@@ -379,22 +345,19 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             final Course course   = ((CourseHolder) viewHolder).course;
             course.shallowHide(getActivity());
             undoHide = false;
-            getActivity().getSupportLoaderManager().restartLoader(CourseTasks.LOADER_ID, null, GroupFragment.this);
+            ((AppCompatActivity)getActivity()).getSupportLoaderManager().restartLoader(CourseTasks.LOADER_ID, null, GroupFragment.this);
             Snackbar snackbar = Snackbar.make(coordinator, R.string.course_hidden, Snackbar.LENGTH_LONG)
                                         .setCallback(new Snackbar.Callback() {
                                             @Override
                                             public void onDismissed(Snackbar snackbar, int event) {
                                                 if(!undoHide)
-                                                    course.hide(getContext(), exceptionHandler);
+                                                    course.hide(getActivity(), exceptionHandler);
                                             }
                                         })
-                                        .setAction(R.string.undo, new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                course.show(getActivity());
-                                                undoHide=true;
-                                                refresh();
-                                            }
+                                        .setAction(R.string.undo, v -> {
+                                            course.show(getActivity());
+                                            undoHide=true;
+                                            refresh();
                                         })
                                         .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
                     //.colorTheFuckingTextToWhite(getActivity())
@@ -441,11 +404,11 @@ public class GroupFragment extends Fragment implements LoaderManager.LoaderCallb
             } else { teacherTextView.setText(""); }
             if (course.getYear() != null) {
                 yearTextView.setText(getResources().getString(R.string.year_no,
-                                                              course.getYear().toString()));
+                                                              course.getYear()));
             } else { yearTextView.setText(""); }
 
             if (course.hasImage()) {
-                course.getImage(getContext(), imageSize, exceptionHandler, imageView);
+                course.getImage(getActivity(), imageSize, exceptionHandler, imageView);
             } else if(course.getYear()!=null) {
                 imageView.setImageBitmap(Utils.generateBitmapFor(course.getYear(), imageSize, imageSize));
             }

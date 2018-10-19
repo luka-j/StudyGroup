@@ -1,7 +1,7 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.app.Fragment;
 import android.content.Intent;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 
 import java.io.IOException;
@@ -105,12 +105,7 @@ public class ScheduleActivity extends SingleFragmentActivity implements Schedule
 
     @Override
     public void onRequestCompleted(int id, Network.Response<String> response) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                fragment.refresh();
-            }
-        });
+        runOnUiThread(() -> fragment.refresh());
     }
 
     @Override
@@ -120,14 +115,9 @@ public class ScheduleActivity extends SingleFragmentActivity implements Schedule
         if(ex instanceof IOException)
             new NetworkExceptionHandler.DefaultHandler(this).handleIOException((IOException)ex);
         else {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                              .show(getSupportFragmentManager(), "");
-                }
-            });
+            runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                               getString(R.string.error_unknown_ex_text))
+                                  .show(getFragmentManager(), ""));
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
     }

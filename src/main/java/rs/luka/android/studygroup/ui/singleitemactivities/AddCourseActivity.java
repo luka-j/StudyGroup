@@ -189,7 +189,7 @@ public class AddCourseActivity extends AppCompatActivity {
             public void handleOffline() {
                 InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
                                        getString(R.string.error_offline_edit_text))
-                          .show(getSupportFragmentManager(), "");
+                          .show(getFragmentManager(), "");
                 Network.Status.setOffline();
                 progressView.setVisibility(View.GONE);
                 add.setVisibility(View.VISIBLE);
@@ -205,7 +205,7 @@ public class AddCourseActivity extends AppCompatActivity {
                                                            hostActivity.getString(R.string.error_socketex_text));
                 if(hostActivity instanceof InfoDialog.Callbacks)
                     dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
-                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                dialog.show(hostActivity.getFragmentManager(), TAG_DIALOG);
                 Log.e(TAG, "Unexpected SocketException", ex);
                 Network.Status.setOffline();
             }

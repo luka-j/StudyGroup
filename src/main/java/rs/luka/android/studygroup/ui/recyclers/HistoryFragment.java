@@ -1,11 +1,11 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -68,7 +68,7 @@ public class HistoryFragment extends Fragment implements Network.NetworkCallback
             public void handleOffline() {
                 InfoDialog.newInstance(getString(R.string.error_offline_history_title),
                                        getString(R.string.error_offline_history_text))
-                          .show(ac.getSupportFragmentManager(), "");
+                          .show(ac.getFragmentManager(), "");
                 Network.Status.setOffline();
             }
         };
@@ -116,36 +116,28 @@ public class HistoryFragment extends Fragment implements Network.NetworkCallback
     @Override
     public void onRequestCompleted(int id, final Network.Response<String> response) {
         if (response.responseCode == Network.Response.RESPONSE_OK) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        JSONArray jsonArray = new JSONArray(response.responseData);
-                        JSONObject jsonEdit, jsonUser;
-                        List<Edit> edits = new ArrayList<>(jsonArray.length());
-                        for(int i=0; i<jsonArray.length(); i++) {
-                            jsonEdit = jsonArray.getJSONObject(i);
-                            jsonUser = jsonEdit.getJSONObject("editor");
-                            User u = new User(jsonUser.getLong("id"), jsonUser.getString("username"), 0, jsonUser.getBoolean("hasImage"));
-                            edits.add(new Edit(u,  jsonEdit.getInt("action"), jsonEdit.getLong("time")));
-                        }
-                        Collections.reverse(edits);
-                        adapter.edits = edits;
-                        adapter.notifyDataSetChanged();
-                    } catch (JSONException e) {
-                        exceptionHandler.handleJsonException();
+            getActivity().runOnUiThread(() -> {
+                try {
+                    JSONArray jsonArray = new JSONArray(response.responseData);
+                    JSONObject jsonEdit, jsonUser;
+                    List<Edit> edits = new ArrayList<>(jsonArray.length());
+                    for(int i=0; i<jsonArray.length(); i++) {
+                        jsonEdit = jsonArray.getJSONObject(i);
+                        jsonUser = jsonEdit.getJSONObject("editor");
+                        User u = new User(jsonUser.getLong("id"), jsonUser.getString("username"), 0, jsonUser.getBoolean("hasImage"));
+                        edits.add(new Edit(u,  jsonEdit.getInt("action"), jsonEdit.getLong("time")));
                     }
+                    Collections.reverse(edits);
+                    adapter.edits = edits;
+                    adapter.notifyDataSetChanged();
+                } catch (JSONException e) {
+                    exceptionHandler.handleJsonException();
                 }
             });
         } else {
             response.handleErrorCode(exceptionHandler);
         }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisibility(View.GONE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progress.setVisibility(View.GONE));
     }
 
     @Override
@@ -155,22 +147,12 @@ public class HistoryFragment extends Fragment implements Network.NetworkCallback
         if(ex instanceof IOException)
             exceptionHandler.handleIOException((IOException)ex);
         else {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                              .show(getFragmentManager(), "");
-                }
-            });
+            getActivity().runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                                             getString(R.string.error_unknown_ex_text))
+                                                .show(getFragmentManager(), ""));
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisibility(View.GONE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progress.setVisibility(View.GONE));
     }
 
     private class HistoryHolder extends RecyclerView.ViewHolder {
@@ -188,8 +170,8 @@ public class HistoryFragment extends Fragment implements Network.NetworkCallback
             this.item = item;
             entryTextView.setText(getString(R.string.history_entry,
                                             item.getUserName(),
-                                            item.getLocalizedAction(getContext()),
-                                            item.getLocalizedDate(getContext())));
+                                            item.getLocalizedAction(getActivity()),
+                                            item.getLocalizedDate(getActivity())));
         }
     }
 

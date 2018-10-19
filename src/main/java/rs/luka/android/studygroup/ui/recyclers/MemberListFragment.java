@@ -1,8 +1,8 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,7 +28,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -78,7 +77,7 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
             public void handleOffline() {
                 InfoDialog.newInstance(getString(R.string.error_offline_memberlist_title),
                                        getString(R.string.error_offline_memberlist_text))
-                        .show(((AppCompatActivity) context).getSupportFragmentManager(), "");
+                        .show(((AppCompatActivity) context).getFragmentManager(), "");
                 Network.Status.setOffline();
             }
         };
@@ -127,7 +126,7 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
     @Override
     public void onResume() {
         super.onResume();
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName(getContext()));
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName(getActivity()));
     }
 
     @Override
@@ -157,61 +156,50 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
     @Override
     public void onRequestCompleted(final int id, final Network.Response<String> response) {
         if (response.responseCode == Network.Response.RESPONSE_OK) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    switch (id) {
-                        case REQUEST_GET_LIST:
-                            try {
-                                JSONArray  array = new JSONArray(response.responseData);
-                                List<User> list  = new ArrayList<>(array.length());
-                                for (int i = 0; i < array.length(); i++) {
-                                    JSONObject jsonUser = array.getJSONObject(i).getJSONObject("user");
-                                    list.add(new User(jsonUser.getLong("id"),
-                                                      jsonUser.getString("username"),
-                                                      array.getJSONObject(i).getInt("permission"),
-                                                      jsonUser.getBoolean("hasImage")));
-                                }
-                                Collections.sort(list, new Comparator<User>() {
-                                    @Override
-                                    public int compare(User lhs, User rhs) {
-                                        if(modMode) {
-                                            if(lhs.getPermission() == Group.PERM_INVITED
-                                                    && rhs.getPermission() != Group.PERM_INVITED) return -1;
-                                            if(lhs.getPermission() != Group.PERM_INVITED
-                                               && rhs.getPermission() == Group.PERM_INVITED) return 1;
-                                            if(lhs.getPermission() == Group.PERM_REQUEST_WRITE
-                                               && rhs.getPermission() != Group.PERM_REQUEST_WRITE) return -1;
-                                            if(lhs.getPermission() != Group.PERM_REQUEST_WRITE
-                                               && rhs.getPermission() == Group.PERM_REQUEST_WRITE) return 1;
-                                        }
-                                        if (lhs.getPermission() > rhs.getPermission()) return -1;
-                                        if (lhs.getPermission() < rhs.getPermission()) return 1;
-                                        return lhs.getName().compareTo(rhs.getName());
-                                    }
-                                });
-                                adapter.users = list;
-                                adapter.notifyDataSetChanged();
-                            } catch (JSONException e) {
-                                exceptionHandler.handleJsonException();
+            getActivity().runOnUiThread(() -> {
+                switch (id) {
+                    case REQUEST_GET_LIST:
+                        try {
+                            JSONArray  array = new JSONArray(response.responseData);
+                            List<User> list  = new ArrayList<>(array.length());
+                            for (int i = 0; i < array.length(); i++) {
+                                JSONObject jsonUser = array.getJSONObject(i).getJSONObject("user");
+                                list.add(new User(jsonUser.getLong("id"),
+                                                  jsonUser.getString("username"),
+                                                  array.getJSONObject(i).getInt("permission"),
+                                                  jsonUser.getBoolean("hasImage")));
                             }
-                            progress.setVisibility(View.GONE);
-                            break;
-                        case REQUEST_CHANGE_PERMISSION:
-                            setData();
-                            break;
-                    }
+                            Collections.sort(list, (lhs, rhs) -> {
+                                if(modMode) {
+                                    if(lhs.getPermission() == Group.PERM_INVITED
+                                            && rhs.getPermission() != Group.PERM_INVITED) return -1;
+                                    if(lhs.getPermission() != Group.PERM_INVITED
+                                       && rhs.getPermission() == Group.PERM_INVITED) return 1;
+                                    if(lhs.getPermission() == Group.PERM_REQUEST_WRITE
+                                       && rhs.getPermission() != Group.PERM_REQUEST_WRITE) return -1;
+                                    if(lhs.getPermission() != Group.PERM_REQUEST_WRITE
+                                       && rhs.getPermission() == Group.PERM_REQUEST_WRITE) return 1;
+                                }
+                                if (lhs.getPermission() > rhs.getPermission()) return -1;
+                                if (lhs.getPermission() < rhs.getPermission()) return 1;
+                                return lhs.getName().compareTo(rhs.getName());
+                            });
+                            adapter.users = list;
+                            adapter.notifyDataSetChanged();
+                        } catch (JSONException e) {
+                            exceptionHandler.handleJsonException();
+                        }
+                        progress.setVisibility(View.GONE);
+                        break;
+                    case REQUEST_CHANGE_PERMISSION:
+                        setData();
+                        break;
                 }
             });
         } else {
             Network.Response<String> handled = response.handleErrorCode(exceptionHandler);
             if(handled.responseCode == Network.Response.RESPONSE_OK) onRequestCompleted(id, handled);
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    progress.setVisibility(View.GONE);
-                }
-            });
+            getActivity().runOnUiThread(() -> progress.setVisibility(View.GONE));
         }
     }
 
@@ -222,22 +210,12 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
         if(ex instanceof IOException)
             exceptionHandler.handleIOException((IOException)ex);
         else {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                              .show(getFragmentManager(), "");
-                }
-            });
+            getActivity().runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                                             getString(R.string.error_unknown_ex_text))
+                                                .show(getFragmentManager(), ""));
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisibility(View.GONE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progress.setVisibility(View.GONE));
     }
 
     private class UserHolder extends RecyclerView.ViewHolder {
@@ -288,7 +266,7 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
                                               R.string.confirm_revoke_write_text,
                                               R.string.confirm_revoke_write_positive,
                                               R.string.cancel)
-                                 .show(getFragmentManager(), String.valueOf(user.getId()));
+                                 .show(((AppCompatActivity)getActivity()).getSupportFragmentManager(), String.valueOf(user.getId()));
                 }
             }
         };
@@ -319,9 +297,9 @@ public class MemberListFragment extends Fragment implements Network.NetworkCallb
         public void bindUser(User user) {
             this.user = user;
             nameTextView.setText(user.getName());
-            roleTextView.setText(user.getRoleDescription(getContext()));
+            roleTextView.setText(user.getRoleDescription(getActivity()));
             if (user.hasImage()) {
-                user.getImage(getContext(), image.getWidth(), exceptionHandler, image);
+                user.getImage(getActivity(), image.getWidth(), exceptionHandler, image);
             } else {
                 image.setImageDrawable(getResources().getDrawable(R.drawable.default_user));
             }

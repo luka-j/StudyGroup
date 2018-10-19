@@ -13,6 +13,7 @@ import rs.luka.android.studygroup.io.database.ExamTable;
 import rs.luka.android.studygroup.io.network.Exams;
 import rs.luka.android.studygroup.model.ID;
 
+import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.onUIThread;
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
 
 /**
@@ -28,29 +29,8 @@ public class ExamTasks {
                                 final LoaderManager.LoaderCallbacks<Cursor> callbacks,
                                 final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
         final long currentTime = System.currentTimeMillis();
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                if((currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH_KEY, groupId)) > FETCH_TIMEOUT) {
-                    try {
-                        Exams.getExams(c, groupId, exceptionHandler);
-                        DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, groupId);
-                        exceptionHandler.finished();
-                    } catch (IOException e) {
-                        exceptionHandler.handleIOException(e);
-                    }
-                }
-                manager.initLoader(LOADER_ID, null, callbacks);
-            }
-        });
-    }
-
-    public static void refreshExams(final Context c, final long groupId,
-                                    final LoaderManager.LoaderCallbacks<Cursor> callbacks,
-                                    final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
+        pushToExecutor(() -> {
+            if((currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH_KEY, groupId)) > FETCH_TIMEOUT) {
                 try {
                     Exams.getExams(c, groupId, exceptionHandler);
                     DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, groupId);
@@ -58,66 +38,73 @@ public class ExamTasks {
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);
                 }
-                manager.restartLoader(LOADER_ID, null, callbacks);
             }
+            onUIThread(() -> manager.initLoader(LOADER_ID, null, callbacks));
         });
+    }
+
+    public static void refreshExams(final Context c, final long groupId,
+                                    final LoaderManager.LoaderCallbacks<Cursor> callbacks,
+                                    final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
+        pushToExecutor(() -> {
+            try {
+                Exams.getExams(c, groupId, exceptionHandler);
+                DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, groupId);
+                exceptionHandler.finished();
+            } catch (IOException e) {
+                exceptionHandler.handleIOException(e);
+            }
+            onUIThread(() -> manager.restartLoader(LOADER_ID, null, callbacks));
+        });
+
     }
 
     public static void addExam(final Context c, final ID courseId, final String klass, final String lesson,
                                final String type, final Date date, final NetworkExceptionHandler handler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Long examId = Exams.createExam(courseId.getGroupIdValue(), courseId.getCourseIdValue(),
-                                                       klass, lesson, type, date.getTime(), handler);
-                    if(examId != null) {
-                        ID id = new ID(courseId, examId);
-                        new ExamTable(c).insertExam(id, klass, lesson, type, date.getTime());
-                        handler.finished();
-                    } else {
-                        Log.w(TAG, "network.Exams#createExam returned null; exception should have been handled");
-                    }
-                } catch (IOException ex) {
-                    handler.handleIOException(ex);
+        pushToExecutor(() -> {
+            try {
+                Long examId = Exams.createExam(courseId.getGroupIdValue(), courseId.getCourseIdValue(),
+                                                   klass, lesson, type, date.getTime(), handler);
+                if(examId != null) {
+                    ID id = new ID(courseId, examId);
+                    new ExamTable(c).insertExam(id, klass, lesson, type, date.getTime());
+                    handler.finished();
+                } else {
+                    Log.w(TAG, "network.Exams#createExam returned null; exception should have been handled");
                 }
+            } catch (IOException ex) {
+                handler.handleIOException(ex);
             }
         });
     }
 
     public static void editExam(final Context c, final ID id, final String klass, final String lesson,
                                 final String type, final Date date, final NetworkExceptionHandler handler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    boolean success = Exams.updateExam(id.getItemIdValue(), lesson, date.getTime(), handler);
-                    if(success) {
-                        new ExamTable(c).updateExam(id, klass, lesson, type, date.getTime());
-                        handler.finished();
-                    } else {
-                        Log.w(TAG, "network.Exams#updateExam returned false; exception should have been handled");
-                    }
-                } catch (IOException ex) {
-                    handler.handleIOException(ex);
+        pushToExecutor(() -> {
+            try {
+                boolean success = Exams.updateExam(id.getItemIdValue(), lesson, date.getTime(), handler);
+                if(success) {
+                    new ExamTable(c).updateExam(id, klass, lesson, type, date.getTime());
+                    handler.finished();
+                } else {
+                    Log.w(TAG, "network.Exams#updateExam returned false; exception should have been handled");
                 }
+            } catch (IOException ex) {
+                handler.handleIOException(ex);
             }
         });
     }
 
     public static void hideExam(final Context c, final ID id, final String lesson,
                                 final NetworkExceptionHandler exceptionHandler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    boolean success = Exams.hideExam(id.getItemIdValue(), exceptionHandler);
-                    exceptionHandler.finished();
-                } catch (IOException e) {
-                    exceptionHandler.handleIOException(e);
-                }
-                new ExamTable(c).removeExam(id, lesson);
+        pushToExecutor(() -> {
+            try {
+                boolean success = Exams.hideExam(id.getItemIdValue(), exceptionHandler);
+                exceptionHandler.finished();
+            } catch (IOException e) {
+                exceptionHandler.handleIOException(e);
             }
+            new ExamTable(c).removeExam(id, lesson);
         });
     }
 }

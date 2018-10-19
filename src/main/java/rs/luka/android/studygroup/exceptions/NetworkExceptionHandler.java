@@ -57,14 +57,11 @@ public interface NetworkExceptionHandler {
         }
 
         private void showErrorDialog(final String title, final String message) {
-            hostActivity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog dialog = InfoDialog.newInstance(title, message);
-                    if(hostActivity instanceof InfoDialog.Callbacks)
-                        dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
-                    dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
-                }
+            hostActivity.runOnUiThread(() -> {
+                InfoDialog dialog = InfoDialog.newInstance(title, message);
+                if(hostActivity instanceof InfoDialog.Callbacks)
+                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
+                dialog.show(hostActivity.getFragmentManager(), TAG_DIALOG);
             });
         }
         private void showErrorDialog(final @StringRes int title, final @StringRes int message) {

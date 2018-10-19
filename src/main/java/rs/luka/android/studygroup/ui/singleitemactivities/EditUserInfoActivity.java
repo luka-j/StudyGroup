@@ -76,7 +76,7 @@ public class EditUserInfoActivity extends AppCompatActivity implements InputDial
             public void handleOffline() {
                 InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
                                        getString(R.string.error_offline_edit_text))
-                          .show(getSupportFragmentManager(), "");
+                          .show(getFragmentManager(), "");
                 Network.Status.setOffline();
                 progressView.setVisibility(View.GONE);
                 edit.setVisibility(View.VISIBLE);
@@ -108,37 +108,25 @@ public class EditUserInfoActivity extends AppCompatActivity implements InputDial
         emailInput.setText(User.getMyEmail());
         usernameInput.setText(me.getName());
         usernameInput.setSelection(me.getName().length());
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent camera  = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                Intent gallery = new Intent(Intent.ACTION_PICK);
-                gallery.setType("image/*");
-                try {
-                    imageFile = LocalImages.generateMyImageFile();
-                } catch (IOException e) {
-                    handler.handleIOException(e);
-                }
-                camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
-                Intent chooserIntent = Intent.createChooser(camera,
-                                                            getString(R.string.select_image));
-                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
-                startActivityForResult(chooserIntent, INTENT_IMAGE);
+        image.setOnClickListener(v -> {
+            Intent camera  = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            Intent gallery = new Intent(Intent.ACTION_PICK);
+            gallery.setType("image/*");
+            try {
+                imageFile = LocalImages.generateMyImageFile();
+            } catch (IOException e) {
+                handler.handleIOException(e);
             }
+            camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
+            Intent chooserIntent = Intent.createChooser(camera,
+                                                        getString(R.string.select_image));
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
+            startActivityForResult(chooserIntent, INTENT_IMAGE);
         });
-        changePass.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                InputDialog.newInstance(R.string.enter_current_password, null, R.string.ok, R.string.cancel, null, R.string.password)
-                .show(getSupportFragmentManager(), DIALOG_CURRENT_PASS);
-            }
-        });
-        edit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                doEdit();
-            }
-        });
+        changePass.setOnClickListener(v -> InputDialog
+                .newInstance(R.string.enter_current_password, null, R.string.ok, R.string.cancel, null, R.string.password)
+                .show(getSupportFragmentManager(), DIALOG_CURRENT_PASS));
+        edit.setOnClickListener(v -> doEdit());
     }
 
     @Override
@@ -204,38 +192,23 @@ public class EditUserInfoActivity extends AppCompatActivity implements InputDial
         switch (id) {
             case REQUEST_CHECK_PASS:
                 if(response.responseCode == Network.Response.RESPONSE_OK) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            InputDialog.newInstance(R.string.enter_new_pass, null, R.string.submit, R.string.cancel,
-                                                    null, R.string.password)
-                                    .show(getSupportFragmentManager(), DIALOG_NEW_PASS);
-                        }
-                    });
+                    runOnUiThread(() -> InputDialog.newInstance(R.string.enter_new_pass, null, R.string.submit, R.string.cancel,
+                                                        null, R.string.password)
+                                           .show(getSupportFragmentManager(), DIALOG_NEW_PASS));
                 } else if( response.responseCode == Network.Response.RESPONSE_UNAUTHORIZED
                            && "wrong password".equals(response.errorMessage)) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            InfoDialog.newInstance(getString(R.string.error_wrong_password_title),
-                                                   getString(R.string.error_wrong_password_text))
-                                    .show(getSupportFragmentManager(), "");
-                        }
-                    });
+                    runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_wrong_password_title),
+                                                       getString(R.string.error_wrong_password_text))
+                                          .show(getFragmentManager(), ""));
                 } else {
                     response.handleErrorCode(handler);
                 }
                 break;
             case REQUEST_CHANGE_PASS:
                 if(response.responseCode == Network.Response.RESPONSE_OK) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            InfoDialog.newInstance(getString(R.string.info_pass_changed_title),
-                                                   getString(R.string.info_pass_changed_text))
-                                    .show(getSupportFragmentManager(), "");
-                        }
-                    });
+                    runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.info_pass_changed_title),
+                                                       getString(R.string.info_pass_changed_text))
+                                          .show(getFragmentManager(), ""));
                 } else {
                     response.handleErrorCode(handler);
                 }
@@ -250,14 +223,9 @@ public class EditUserInfoActivity extends AppCompatActivity implements InputDial
         if(ex instanceof IOException)
             handler.handleIOException((IOException)ex);
         else {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                              .show(getSupportFragmentManager(), "");
-                }
-            });
+            runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                               getString(R.string.error_unknown_ex_text))
+                                  .show(getFragmentManager(), ""));
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
     }

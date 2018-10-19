@@ -1,10 +1,10 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.Loader;
@@ -131,8 +131,8 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     protected void refresh() {
-        LessonTasks.refreshLessons(getContext(), course.getIdValue(),
-                                   this, getActivity().getSupportLoaderManager(), exceptionHandler);
+        LessonTasks.refreshLessons(getActivity(), course.getIdValue(),
+                                   this, ((AppCompatActivity)getActivity()).getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
@@ -177,17 +177,13 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             adapter = new LessonsAdapter(getActivity(), null);
             lessonsRecyclerView.setAdapter(adapter);
         }
-        LessonTasks.getLessons(getContext(), course.getIdValue(), this, getActivity().getSupportLoaderManager(), exceptionHandler);
+        LessonTasks.getLessons(getActivity(), course.getIdValue(), this,
+                               ((AppCompatActivity)getActivity()).getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisibility(View.VISIBLE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progress.setVisibility(View.VISIBLE));
         return course.getLessonLoader(getActivity());
     }
 
@@ -217,12 +213,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
             case REQUEST_SHOW_ALL:
             case REQUEST_REMOVE_LESSON:
                 if (response.responseCode == Network.Response.RESPONSE_OK) {
-                    getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        refresh();
-                    }
-                });
+                    getActivity().runOnUiThread(() -> refresh());
                 } else {
                     response.handleErrorCode(exceptionHandler);
                 }
@@ -239,14 +230,9 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
         if(ex instanceof IOException)
             exceptionHandler.handleIOException((IOException)ex);
         else {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                            .show(getFragmentManager(), "");
-                }
-            });
+            getActivity().runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                                             getString(R.string.error_unknown_ex_text))
+                                                .show(getFragmentManager(), ""));
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
     }
@@ -282,7 +268,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                     = swipedHolder._id;
             course.shallowHideLesson(getActivity(), lesson);
             undoHide = false;
-            getActivity().getSupportLoaderManager().restartLoader(LessonTasks.LOADER_ID, null, CourseFragment.this);
+            ((AppCompatActivity)getActivity()).getSupportLoaderManager().restartLoader(LessonTasks.LOADER_ID, null, CourseFragment.this);
             // TODO: 4.9.15. http://stackoverflow.com/questions/32406144/hiding-and-re-showing-cards-in-recyclerview-backed-by-cursor
             Snackbar snackbar = Snackbar.make(lessonsRecyclerView,
                                               R.string.lesson_hidden,
@@ -291,7 +277,7 @@ public class CourseFragment extends Fragment implements LoaderManager.LoaderCall
                                             @Override
                                             public void onDismissed(Snackbar snackbar, int event) {
                                                 if(!undoHide)
-                                                    course.hideLesson(getContext(), lesson, exceptionHandler);
+                                                    course.hideLesson(getActivity(), lesson, exceptionHandler);
                                             }
                                         })
                                         .setAction(R.string.undo,

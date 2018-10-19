@@ -155,7 +155,7 @@ public class LessonActivity extends AppCompatActivity
                 }
             });
         } else {
-            fab.setVisibility(View.GONE);
+            fab.hide();
         }
     }
 
@@ -226,14 +226,11 @@ public class LessonActivity extends AppCompatActivity
         if (response.responseCode == Network.Response.RESPONSE_OK) {
             count++;
             if (count >= setSize) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (id == REQUEST_SHOW_ALL_NOTES || id == REQUEST_REMOVE_NOTES) {
-                            ((NoteListFragment) adapter.getRegisteredFragment(NOTE_LIST_FRAGMENT_POSITION)).refresh();
-                        } else {
-                            ((QuestionListFragment) adapter.getRegisteredFragment(QUESTION_LIST_FRAGMENT_POSITION)).refresh();
-                        }
+                runOnUiThread(() -> {
+                    if (id == REQUEST_SHOW_ALL_NOTES || id == REQUEST_REMOVE_NOTES) {
+                        ((NoteListFragment) adapter.getRegisteredFragment(NOTE_LIST_FRAGMENT_POSITION)).refresh();
+                    } else {
+                        ((QuestionListFragment) adapter.getRegisteredFragment(QUESTION_LIST_FRAGMENT_POSITION)).refresh();
                     }
                 });
                 count = 0;
@@ -251,14 +248,9 @@ public class LessonActivity extends AppCompatActivity
         if(ex instanceof IOException)
             exceptionHandler.handleIOException((IOException)ex);
         else {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                              .show(getSupportFragmentManager(), "");
-                }
-            });
+            runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                               getString(R.string.error_unknown_ex_text))
+                                  .show(getFragmentManager(), ""));
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
     }

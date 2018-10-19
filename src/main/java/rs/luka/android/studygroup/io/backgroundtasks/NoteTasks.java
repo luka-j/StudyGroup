@@ -3,8 +3,6 @@ package rs.luka.android.studygroup.io.backgroundtasks;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v4.app.LoaderManager;
 import android.util.Log;
 import android.widget.ImageView;
@@ -23,6 +21,7 @@ import rs.luka.android.studygroup.model.Course;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 
+import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.onUIThread;
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.resetLastFetchTagged;
 
@@ -40,29 +39,8 @@ public class NoteTasks {
                                 final LoaderManager.LoaderCallbacks<Cursor> callbacks,
                                 final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
         final long currentTime = System.currentTimeMillis();
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                if((currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH, courseId+lesson)) > FETCH_TIMEOUT) {
-                    try {
-                        Notes.getNotes(c, courseId, lesson, exceptionHandler);
-                        DataManager.writeLastFetchTagged(c, LAST_FETCH, courseId+lesson);
-                        exceptionHandler.finished();
-                    } catch (IOException e) {
-                        exceptionHandler.handleIOException(e);
-                    }
-                }
-                manager.initLoader(LOADER_ID, null, callbacks);
-            }
-        });
-    }
-
-    public static void refreshNotes(final Context c, final long courseId, final String lesson,
-                                    final LoaderManager.LoaderCallbacks<Cursor> callbacks,
-                                    final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
+        pushToExecutor(() -> {
+            if((currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH, courseId+lesson)) > FETCH_TIMEOUT) {
                 try {
                     Notes.getNotes(c, courseId, lesson, exceptionHandler);
                     DataManager.writeLastFetchTagged(c, LAST_FETCH, courseId+lesson);
@@ -70,119 +48,119 @@ public class NoteTasks {
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);
                 }
-                manager.restartLoader(LOADER_ID, null, callbacks);
             }
+            onUIThread(() -> manager.initLoader(LOADER_ID, null, callbacks));
+        });
+    }
+
+    public static void refreshNotes(final Context c, final long courseId, final String lesson,
+                                    final LoaderManager.LoaderCallbacks<Cursor> callbacks,
+                                    final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
+        pushToExecutor(() -> {
+            try {
+                Notes.getNotes(c, courseId, lesson, exceptionHandler);
+                DataManager.writeLastFetchTagged(c, LAST_FETCH, courseId+lesson);
+                exceptionHandler.finished();
+            } catch (IOException e) {
+                exceptionHandler.handleIOException(e);
+            }
+            onUIThread(() -> manager.restartLoader(LOADER_ID, null, callbacks));
         });
     }
 
     public static void addNote(final Context c, final ID courseId, final String courseName, final String lesson,
                                final String text, final File image, final File audio, final boolean isPrivate,
                                final NetworkExceptionHandler handler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String realText = TextUtils.replaceEscapes(text);
-                    String realLesson = TextUtils.replaceEscapes(lesson);
-                    if(realLesson.contains("/")) throw new IllegalArgumentException("slash in lesson name!");
-                    Long noteId = Notes.createNote(courseId.getCourseIdValue(), realLesson, realText,
-                                                   handler, isPrivate ? Group.PERM_WRITE : Group.PERM_READ_CAN_REQUEST_WRITE);
-                    if(noteId != null) {
-                        ID id = new ID(courseId, noteId);
-                        new NoteTable(c).insertNote(id, realLesson, realText, image != null, audio != null, 0);
-                        if (image != null) {
-                            Notes.updateImage(noteId, image, handler);
-                            LocalImages.saveNoteImage(id, courseName, realLesson, image); //erases temp
-                        }
-                        if (audio != null) {
-                            Notes.updateAudio(noteId, audio, handler);
-                            LocalAudio.saveNoteAudio(id, courseName, realLesson, audio);
-                        }
-                        resetLastFetchTagged(c, LessonTasks.LAST_FETCH_KEY, courseId.getCourseIdValue());
-                        handler.finished();
-                    } else {
-                        Log.w(TAG, "network.Notes#createNote returned null; exception should have been handled");
+        pushToExecutor(() -> {
+            try {
+                String realText = TextUtils.replaceEscapes(text);
+                String realLesson = TextUtils.replaceEscapes(lesson);
+                if(realLesson.contains("/")) throw new IllegalArgumentException("slash in lesson name!");
+                Long noteId = Notes.createNote(courseId.getCourseIdValue(), realLesson, realText,
+                                               handler, isPrivate ? Group.PERM_WRITE : Group.PERM_READ_CAN_REQUEST_WRITE);
+                if(noteId != null) {
+                    ID id = new ID(courseId, noteId);
+                    new NoteTable(c).insertNote(id, realLesson, realText, image != null, audio != null, 0);
+                    if (image != null) {
+                        Notes.updateImage(noteId, image, handler);
+                        LocalImages.saveNoteImage(id, courseName, realLesson, image); //erases temp
                     }
-                } catch (IOException ex) {
-                    handler.handleIOException(ex);
+                    if (audio != null) {
+                        Notes.updateAudio(noteId, audio, handler);
+                        LocalAudio.saveNoteAudio(id, courseName, realLesson, audio);
+                    }
+                    resetLastFetchTagged(c, LessonTasks.LAST_FETCH_KEY, courseId.getCourseIdValue());
+                    handler.finished();
+                } else {
+                    Log.w(TAG, "network.Notes#createNote returned null; exception should have been handled");
                 }
+            } catch (IOException ex) {
+                handler.handleIOException(ex);
             }
         });
     }
 
     public static void editNote(final Context c, final ID id, final String lesson, final String text,
                                 final File imageFile, final File audioFile, final NetworkExceptionHandler handler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String realText = TextUtils.replaceEscapes(text);
-                    String realLesson = TextUtils.replaceEscapes(lesson);
-                    if(realLesson.contains("/")) throw new IllegalArgumentException("slash in lesson name!");
-                    boolean success = Notes.updateNote(id.getItemIdValue(), realLesson, realText, handler);
-                    if(success) {
-                        Course course = CourseTasks.getCourse(c, id);
-                        new NoteTable(c).updateNote(id, realLesson, realText, imageFile!=null, audioFile!=null);
-                        if(imageFile != null
-                           && !imageFile.equals(LocalImages.generateNoteImageFile(course.getSubject(), realLesson, id))) {
-                            Notes.updateImage(id.getItemIdValue(), imageFile, handler);
-                            LocalImages.saveNoteImage(id, course.getSubject(), realLesson, imageFile);
-                        }
-                        if(audioFile != null &&
-                                !audioFile.equals(LocalAudio.generateItemAudioFile(course.getSubject(), realLesson, id)))
-                            LocalAudio.saveNoteAudio(id, course.getSubject(), realLesson, audioFile);
-                        handler.finished();
-                    } else {
-                        Log.w(TAG, "network.Notes#updateNote returned false; exception should have been handled");
+        pushToExecutor(() -> {
+            try {
+                String realText = TextUtils.replaceEscapes(text);
+                String realLesson = TextUtils.replaceEscapes(lesson);
+                if(realLesson.contains("/")) throw new IllegalArgumentException("slash in lesson name!");
+                boolean success = Notes.updateNote(id.getItemIdValue(), realLesson, realText, handler);
+                if(success) {
+                    Course course = CourseTasks.getCourse(c, id);
+                    new NoteTable(c).updateNote(id, realLesson, realText, imageFile!=null, audioFile!=null);
+                    if(imageFile != null
+                       && !imageFile.equals(LocalImages.generateNoteImageFile(course.getSubject(), realLesson, id))) {
+                        Notes.updateImage(id.getItemIdValue(), imageFile, handler);
+                        LocalImages.saveNoteImage(id, course.getSubject(), realLesson, imageFile);
                     }
-                } catch (IOException ex) {
-                    handler.handleIOException(ex);
+                    if(audioFile != null &&
+                            !audioFile.equals(LocalAudio.generateItemAudioFile(course.getSubject(), realLesson, id)))
+                        LocalAudio.saveNoteAudio(id, course.getSubject(), realLesson, audioFile);
+                    handler.finished();
+                } else {
+                    Log.w(TAG, "network.Notes#updateNote returned false; exception should have been handled");
                 }
+            } catch (IOException ex) {
+                handler.handleIOException(ex);
             }
         });
     }
 
     public static void reorderNote(final Context c, final ID id, final String lesson, final int newOrder, final int order,
                                    final NetworkExceptionHandler handler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new NoteTable(c).reorderNote(id, lesson, newOrder, order);
-                    Notes.reorderNote(id.getItemIdValue(), newOrder, handler);
-                } catch (IOException ex) {
-                    handler.handleIOException(ex);
-                }
+        pushToExecutor(() -> {
+            try {
+                new NoteTable(c).reorderNote(id, lesson, newOrder, order);
+                Notes.reorderNote(id.getItemIdValue(), newOrder, handler);
+            } catch (IOException ex) {
+                handler.handleIOException(ex);
             }
         });
     }
 
     public static void hideNote(final Context c, final ID noteId, final String lesson,
                                 final NetworkExceptionHandler exceptionHandler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new NoteTable(c).removeNote(noteId, lesson);
-                    boolean success = Notes.hideNote(noteId.getItemIdValue(), exceptionHandler);
-                    exceptionHandler.finished();
-                } catch (IOException e) {
-                    exceptionHandler.handleIOException(e);
-                }
+        pushToExecutor(() -> {
+            try {
+                new NoteTable(c).removeNote(noteId, lesson);
+                boolean success = Notes.hideNote(noteId.getItemIdValue(), exceptionHandler);
+                exceptionHandler.finished();
+            } catch (IOException e) {
+                exceptionHandler.handleIOException(e);
             }
         });
     }
 
     public static void getNoteImage(final Context c, final ID id, final String courseName, final String lessonName,
                                     final int scaleTo, final NetworkExceptionHandler handler, final ImageView insertInto) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                if(scaleTo > DataManager.THUMB_THRESHOLD)
-                    getNoteFullsizeImage(id, courseName, lessonName, scaleTo, handler, insertInto);
-                else
-                    getNoteThumb(c, id, courseName, lessonName, scaleTo, handler, insertInto);
-            }
+        pushToExecutor(() -> {
+            if(scaleTo > DataManager.THUMB_THRESHOLD)
+                getNoteFullsizeImage(id, courseName, lessonName, scaleTo, handler, insertInto);
+            else
+                getNoteThumb(c, id, courseName, lessonName, scaleTo, handler, insertInto);
         });
     }
 
@@ -202,12 +180,9 @@ public class NoteTasks {
 
         try {
             final Bitmap image = LocalImages.getNoteImage(courseName, lessonName, id, scaleTo);
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    if(insertInto.getContext() != null)
-                        insertInto.setImageBitmap(image);
-                }
+            onUIThread(() -> {
+                if(insertInto.getContext() != null)
+                    insertInto.setImageBitmap(image);
             });
         } catch (IOException e) {
             handler.handleIOException(e);
@@ -244,12 +219,9 @@ public class NoteTasks {
         try {
             final Bitmap image;
             image = LocalImages.getNoteThumb(courseName, lessonName, id, scaleTo);
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    if(insertInto.getContext() != null)
-                        insertInto.setImageBitmap(image);
-                }
+            onUIThread(() -> {
+                if(insertInto.getContext() != null)
+                    insertInto.setImageBitmap(image);
             });
         } catch (IOException e) {
             exceptionHandler.handleIOException(e);
@@ -258,18 +230,15 @@ public class NoteTasks {
 
     public static void getAudio(final int requestId, final ID noteId, final String courseName, final String lessonName,
                                 final NetworkExceptionHandler exceptionHandler, final AudioCallbacks callbacks) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                File file = LocalAudio.generateItemAudioFile(courseName, lessonName, noteId);
-                try {
-                    Notes.loadAudio(noteId.getItemIdValue(), file, exceptionHandler);
-                } catch (IOException e) {
-                    exceptionHandler.handleIOException(e);
-                }
-                if(callbacks != null)
-                    callbacks.onAudioReady(requestId, file);
+        pushToExecutor(() -> {
+            File file = LocalAudio.generateItemAudioFile(courseName, lessonName, noteId);
+            try {
+                Notes.loadAudio(noteId.getItemIdValue(), file, exceptionHandler);
+            } catch (IOException e) {
+                exceptionHandler.handleIOException(e);
             }
+            if(callbacks != null)
+                callbacks.onAudioReady(requestId, file);
         });
     }
 

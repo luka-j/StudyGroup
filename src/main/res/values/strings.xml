@@ -10,7 +10,7 @@
     <string name="add_question">Add question</string>
     <string name="add_exam">Add exam</string>
 
-    <string name="year_no">Year %s</string> <!--%s. razred / %s. godina-->
+    <string name="year_no">Year %d</string> <!--%s. razred / %s. godina-->
     <string name="notes">Notes</string>
     <string name="questions">Questions</string>
 
@@ -306,4 +306,7 @@
     <string name="error_entity_too_large_text">It seems that you\'re trying to send too large file. Try something smaller.</string>
     <string name="error_slash_in_lesson_name">Slashes aren\'t allowed in lesson names, please pick a different one</string>
     <string name="empty_lesson_readonly_title">Looks like there\'s nothing here</string>
+
+    <string name="explain_perm_storage_title">Insufficient permissions</string>
+    <string name="explain_perm_storage_text">This app needs storage permission in order to load media from storage. Please allow the app to use local storage.</string>
 </resources>

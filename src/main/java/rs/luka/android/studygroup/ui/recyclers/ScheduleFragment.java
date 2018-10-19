@@ -1,5 +1,6 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -7,7 +8,6 @@ import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.Loader;
@@ -155,13 +155,13 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
 
     protected void refresh() {
         swipe.setRefreshing(true);
-        ExamTasks.refreshExams(getContext(), group.getIdValue(), this, getActivity().getSupportLoaderManager(), exceptionHandler);
+        ExamTasks.refreshExams(getActivity(), group.getIdValue(), this, ((AppCompatActivity)getActivity()).getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName(getContext()));
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName(getActivity()));
     }
 
     @Override
@@ -210,17 +210,12 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             adapter = new ExamAdapter(getActivity(), null);
             recycler.setAdapter(adapter);
         }
-        ExamTasks.getExams(getContext(), group.getIdValue(), this, getActivity().getSupportLoaderManager(), exceptionHandler);
+        ExamTasks.getExams(getActivity(), group.getIdValue(), this, ((AppCompatActivity)getActivity()).getSupportLoaderManager(), exceptionHandler);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisibility(View.VISIBLE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progress.setVisibility(View.VISIBLE));
         return group.getExamLoader(getActivity());
     }
 
@@ -244,12 +239,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             case REQUEST_SHOW_ALL:
             case REQUEST_REMOVE:
                 if (response.responseCode == Network.Response.RESPONSE_OK) {
-                    getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        refresh();
-                    }
-                });
+                    getActivity().runOnUiThread(() -> refresh());
                 } else {
                     response.handleErrorCode(exceptionHandler);
                 }
@@ -266,14 +256,9 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
         if(ex instanceof IOException)
             exceptionHandler.handleIOException((IOException)ex);
         else {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                              .show(getFragmentManager(), "");
-                }
-            });
+            getActivity().runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                                             getString(R.string.error_unknown_ex_text))
+                                                .show(getFragmentManager(), ""));
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
     }
@@ -302,22 +287,19 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             final Exam exam   = ((ExamHolder) viewHolder).exam;
             exam.shallowHide(getActivity());
             undoHide = false;
-            getActivity().getSupportLoaderManager().restartLoader(ExamTasks.LOADER_ID, null, ScheduleFragment.this);
+            ((AppCompatActivity)getActivity()).getSupportLoaderManager().restartLoader(ExamTasks.LOADER_ID, null, ScheduleFragment.this);
             Snackbar snackbar = Snackbar.make(coordinator, R.string.exam_hidden, Snackbar.LENGTH_LONG)
                                         .setCallback(new Snackbar.Callback() {
                                             @Override
                                             public void onDismissed(Snackbar snackbar, int event) {
                                                 if(!undoHide)
-                                                    exam.hide(getContext(), exceptionHandler);
+                                                    exam.hide(getActivity(), exceptionHandler);
                                             }
                                         })
-                                        .setAction(R.string.undo, new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                exam.show(getActivity());
-                                                undoHide=true;
-                                                refresh();
-                                            }
+                                        .setAction(R.string.undo, v -> {
+                                            exam.show(getActivity());
+                                            undoHide=true;
+                                            refresh();
                                         })
                                         .setActionTextColor(getActivity().getResources().getColor(R.color.color_accent))
                     //.colorTheFuckingTextToWhite(getActivity())
@@ -359,7 +341,7 @@ public class ScheduleFragment extends Fragment implements LoaderManager.LoaderCa
             yearTextView.setText(exam.getKlass());
             Course examCourse = exam.getCourse();
             if (examCourse.hasImage()) {
-                examCourse.getImage(getContext(),
+                examCourse.getImage(getActivity(),
                                     getResources().getDimensionPixelSize(R.dimen.card_image_size),
                                     exceptionHandler, imageView);
             } else {

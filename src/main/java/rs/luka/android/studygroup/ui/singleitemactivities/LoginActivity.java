@@ -102,38 +102,35 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
 
     @Override
     public void onRequestCompleted(final int id, final Network.Response<String> response) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if(id == REQUEST_LOGIN) {
-                    switch (response.responseCode) {
-                        case Network.Response.RESPONSE_OK:
-                            User.instantiateUser(response.responseData, LoginActivity.this);
-                            startActivity(new Intent(LoginActivity.this, LoadingActivity.class));
-                            break;
-                        case Network.Response.RESPONSE_UNAUTHORIZED:
-                            InfoDialog.newInstance(getString(R.string.wrong_creds_title),
-                                                   getString(R.string.wrong_creds))
-                                      .registerCallbacks(LoginActivity.this)
-                                      .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
-                            reshowButtons();
-                            break;
-                        default:
-                            InfoDialog.newInstance(getString(R.string.unexpected_server_error),
-                                                   response.getDefaultErrorMessage(LoginActivity.this))
-                                      .registerCallbacks(LoginActivity.this)
-                                      .show(getSupportFragmentManager(), TAG_DIALOG_ERROR);
-                            reshowButtons();
-                    }
-                } else if(id == REQUEST_REFRESH) {
-                    switch (response.responseCode) {
-                        case Network.Response.RESPONSE_OK:
-                            User.instantiateUser(response.responseData, LoginActivity.this);
-                            startActivity(new Intent(LoginActivity.this, LoadingActivity.class));
-                            break;
-                        case Network.Response.RESPONSE_UNAUTHORIZED: break; //proceed to login
-                        default: ; // todo ?
-                    }
+        runOnUiThread(() -> {
+            if(id == REQUEST_LOGIN) {
+                switch (response.responseCode) {
+                    case Network.Response.RESPONSE_OK:
+                        User.instantiateUser(response.responseData, LoginActivity.this);
+                        startActivity(new Intent(LoginActivity.this, LoadingActivity.class));
+                        break;
+                    case Network.Response.RESPONSE_UNAUTHORIZED:
+                        InfoDialog.newInstance(getString(R.string.wrong_creds_title),
+                                               getString(R.string.wrong_creds))
+                                  .registerCallbacks(LoginActivity.this)
+                                  .show(getFragmentManager(), TAG_DIALOG_ERROR);
+                        reshowButtons();
+                        break;
+                    default:
+                        InfoDialog.newInstance(getString(R.string.unexpected_server_error),
+                                               response.getDefaultErrorMessage(LoginActivity.this))
+                                  .registerCallbacks(LoginActivity.this)
+                                  .show(getFragmentManager(), TAG_DIALOG_ERROR);
+                        reshowButtons();
+                }
+            } else if(id == REQUEST_REFRESH) {
+                switch (response.responseCode) {
+                    case Network.Response.RESPONSE_OK:
+                        User.instantiateUser(response.responseData, LoginActivity.this);
+                        startActivity(new Intent(LoginActivity.this, LoadingActivity.class));
+                        break;
+                    case Network.Response.RESPONSE_UNAUTHORIZED: break; //proceed to login
+                    default: ; // todo ?
                 }
             }
         });
@@ -150,13 +147,10 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
         }
     }
     private void reshowButtons() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progressView.setVisibility(View.GONE);
-                forceShow(login);
-                forceShow(register);
-            }
+        runOnUiThread(() -> {
+            progressView.setVisibility(View.GONE);
+            forceShow(login);
+            forceShow(register);
         });
     }
 
@@ -164,29 +158,26 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
     public void onExceptionThrown(int id, final Throwable ex) {
         if(ex instanceof Error)
             throw new Error(ex);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if(ex instanceof SocketException && !Network.Status.checkNetworkStatus(LoginActivity.this)) {
-                    InfoDialog.newInstance(getString(R.string.error_offline_title),
-                                           getString(R.string.error_offline_text))
-                              .registerCallbacks(LoginActivity.this)
-                              .show(getSupportFragmentManager(), TAG_DIALOG_NO_NETWORK);
-                } else if (ex instanceof SocketException) {
-                    InfoDialog.newInstance(getString(R.string.error_login_socketex_title),
-                                           getString(R.string.error_login_socketex_text))
-                            .registerCallbacks(LoginActivity.this)
-                            .show(getSupportFragmentManager(), TAG_DIALOG_NO_NETWORK);
-                } else {
-                    InfoDialog.newInstance(getString(R.string.error_login_unknownex_title),
-                                           getString(R.string.error_login_unknownex_text))
-                            .registerCallbacks(LoginActivity.this)
-                            .show(getSupportFragmentManager(), TAG_DIALOG_NO_NETWORK);
-                }
-                User.setOfflineUser(getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
-                ex.printStackTrace();
-                requestInProgress = false;
+        runOnUiThread(() -> {
+            if(ex instanceof SocketException && !Network.Status.checkNetworkStatus(LoginActivity.this)) {
+                InfoDialog.newInstance(getString(R.string.error_offline_title),
+                                       getString(R.string.error_offline_text))
+                          .registerCallbacks(LoginActivity.this)
+                          .show(getFragmentManager(), TAG_DIALOG_NO_NETWORK);
+            } else if (ex instanceof SocketException) {
+                InfoDialog.newInstance(getString(R.string.error_login_socketex_title),
+                                       getString(R.string.error_login_socketex_text))
+                        .registerCallbacks(LoginActivity.this)
+                        .show(getFragmentManager(), TAG_DIALOG_NO_NETWORK);
+            } else {
+                InfoDialog.newInstance(getString(R.string.error_login_unknownex_title),
+                                       getString(R.string.error_login_unknownex_text))
+                        .registerCallbacks(LoginActivity.this)
+                        .show(getFragmentManager(), TAG_DIALOG_NO_NETWORK);
             }
+            User.setOfflineUser(getSharedPreferences(User.PREFS_NAME, MODE_PRIVATE));
+            ex.printStackTrace();
+            requestInProgress = false;
         });
     }
 }

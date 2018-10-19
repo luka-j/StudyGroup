@@ -1,10 +1,15 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.Manifest;
+import android.app.Fragment;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -66,6 +71,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     private static final int REQUEST_INVITE         = 2; //network request
     private static final int REQUEST_CREATE_GROUP   = 1000; //intent request
     private static final int REQUEST_LEAVE          = 3;
+    private static final int PERM_REQ_STORAGE       = 1001;
     private List<Integer> filterYears;
     private GroupFragment fragment;
     private Course pendingRemove;
@@ -76,14 +82,14 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         public void handleServerError(String message) {
             InfoDialog.newInstance(getString(R.string.error_invite_sending_failed_title),
                                    getString(R.string.error_invite_sending_failed_text))
-                    .show(getSupportFragmentManager(), "error_sending_failed");
+                    .show(getFragmentManager(), "error_sending_failed");
         }
 
         @Override
         public void handleInsufficientPermissions(String message) {
             InfoDialog.newInstance(getString(R.string.error_too_many_invites_title),
                                    getString(R.string.error_too_many_invites_text))
-                      .show(getSupportFragmentManager(), "error_too_many_invites");
+                      .show(getFragmentManager(), "error_too_many_invites");
         }
 
         @Override
@@ -93,7 +99,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                 int succ = Integer.parseInt(stats[0]), total = Integer.parseInt(stats[1]);
                 InfoDialog.newInstance(getString(R.string.error_invites_partial_title),
                                        getString(R.string.error_invites_partial_text, succ, total))
-                        .show(getSupportFragmentManager(), "error_invites_partial");
+                        .show(getFragmentManager(), "error_invites_partial");
             }
         }
     };
@@ -134,14 +140,35 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         ac.setHomeAsUpIndicator(R.drawable.ic_menu);
         ac.setDisplayHomeAsUpEnabled(true);
         navigation.setNavigationItemSelectedListener(this);
-        if(group == null) group = getIntent().getParcelableExtra(EXTRA_GROUP);
-        if(group == null) {
-            drawer.openDrawer(GravityCompat.START);
-            new Showcase(this).showSequence("intro-groups", new View[]{null, navigation.getHeaderView(0)},
-                                            new int[]{R.string.welcome, 0},
-                                            new int[]{R.string.tut_intro_groups, R.string.tut_intro_profile});
+
+        if (ContextCompat.checkSelfPermission(this,
+                                              Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                                              new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                              PERM_REQ_STORAGE);
+        } else {
+            initActivity();
         }
-        else LoadingActivity.setPreferredGroup(this, group);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERM_REQ_STORAGE:
+                if(grantResults.length > 0
+                   && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    InfoDialog.newInstance(getString(R.string.explain_perm_storage_title),
+                                           getString(R.string.explain_perm_storage_text))
+                              .registerCallbacks(d -> ActivityCompat.requestPermissions(this,
+                                                                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                                                                        PERM_REQ_STORAGE))
+                              .show(getFragmentManager(), "infoExplainStorage");
+                } else if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    initActivity();
+                }
+        }
     }
 
     private void setNavigationView() {
@@ -187,12 +214,17 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
             avatar.setImageDrawable(getResources().getDrawable(R.drawable.default_user));
 
         if(!headerContainer.hasOnClickListeners())
-            headerContainer.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(new Intent(GroupActivity.this, UserInfoActivity.class));
-                }
-            });
+            headerContainer.setOnClickListener(v -> startActivity(new Intent(GroupActivity.this, UserInfoActivity.class)));
+    }
+
+    private void initActivity() {
+        if (group == null) group = getIntent().getParcelableExtra(EXTRA_GROUP);
+        if (group == null) {
+            drawer.openDrawer(GravityCompat.START);
+            new Showcase(this).showSequence("intro-groups", new View[]{null, navigation.getHeaderView(0)},
+                                            new int[]{R.string.welcome, 0},
+                                            new int[]{R.string.tut_intro_groups, R.string.tut_intro_profile});
+        } else LoadingActivity.setPreferredGroup(this, group);
     }
 
     @Override
@@ -288,7 +320,7 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         Collections.sort(filterYears);
         String[] items = new String[filterYears.size()];
         for(int i=0; i<items.length; i++) {
-            items[i] = getString(R.string.year_no, filterYears.get(i).toString());
+            items[i] = getString(R.string.year_no, filterYears.get(i));
         }
         return items;
     }
@@ -351,28 +383,25 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
     @Override
     public void onRequestCompleted(final int id, Network.Response<String> response) {
         if(response.responseCode == Network.Response.RESPONSE_OK) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    switch (id) {
-                        case REQUEST_JOIN_GROUP:
-                            InfoDialog.newInstance(getString(R.string.join_request_sent_title),
-                                                   getString(R.string.join_request_sent_text))
-                                      .show(getSupportFragmentManager(), "");
-                            break;
-                        case REQUEST_FILTER_COURSES:
-                            fragment.refresh();
-                            break;
-                        case REQUEST_INVITE:
-                            InfoDialog.newInstance(getString(R.string.invite_sent), "")
-                                      .show(getSupportFragmentManager(), "");
-                            break;
-                        case REQUEST_LEAVE:
-                            startActivity(new Intent(GroupActivity.this, LoadingActivity.class));
-                            break;
-                        default:
-                            Log.w(TAG, "Invalid requestId " + id);
-                    }
+            runOnUiThread(() -> {
+                switch (id) {
+                    case REQUEST_JOIN_GROUP:
+                        InfoDialog.newInstance(getString(R.string.join_request_sent_title),
+                                               getString(R.string.join_request_sent_text))
+                                  .show(getFragmentManager(), "");
+                        break;
+                    case REQUEST_FILTER_COURSES:
+                        fragment.refresh();
+                        break;
+                    case REQUEST_INVITE:
+                        InfoDialog.newInstance(getString(R.string.invite_sent), "")
+                                  .show(getFragmentManager(), "");
+                        break;
+                    case REQUEST_LEAVE:
+                        startActivity(new Intent(GroupActivity.this, LoadingActivity.class));
+                        break;
+                    default:
+                        Log.w(TAG, "Invalid requestId " + id);
                 }
             });
         } else {
@@ -391,14 +420,9 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
         if(ex instanceof IOException)
             exceptionHandler.handleIOException((IOException)ex);
         else {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                              .show(getSupportFragmentManager(), "");
-                }
-            });
+            runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                               getString(R.string.error_unknown_ex_text))
+                                  .show(getFragmentManager(), ""));
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
     }

@@ -1,8 +1,8 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -54,7 +54,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
             } else if (getIntent().getBooleanExtra(EXTRA_GO_FORWARD, false)) {
                 startActivity(new Intent(this, LessonActivity.class)
                                       .putExtra(EXTRA_LESSON_NAME, lesson)
-                                      .putExtra(EXTRA_COURSE, getIntent().getParcelableExtra(EXTRA_COURSE))
+                                      .putExtra(EXTRA_COURSE, getIntent().<Course>getParcelableExtra(EXTRA_COURSE))
                              .putExtra(LessonActivity.EXTRA_MY_PERMISSION, getIntent().getIntExtra(EXTRA_MY_PERMISSION, 0)));
                 return true;
             }
@@ -65,7 +65,7 @@ public class CourseActivity extends SingleFragmentActivity implements CourseFrag
     @Override
     public void onLessonSelected(String title, boolean isPrivate) {
         Intent i = new Intent(this, LessonActivity.class);
-        i.putExtra(EXTRA_COURSE, getIntent().getParcelableExtra(EXTRA_COURSE));
+        i.putExtra(EXTRA_COURSE, getIntent().<Course>getParcelableExtra(EXTRA_COURSE));
         i.putExtra(EXTRA_LESSON_NAME, title);
         i.putExtra(LessonActivity.EXTRA_MY_PERMISSION, getIntent().getIntExtra(EXTRA_MY_PERMISSION, 0));
         i.putExtra(LessonActivity.EXTRA_IS_PRIVATE, isPrivate);

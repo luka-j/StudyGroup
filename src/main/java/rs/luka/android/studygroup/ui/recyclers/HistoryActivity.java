@@ -1,6 +1,6 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 
 import rs.luka.android.studygroup.ui.SingleFragmentActivity;
 

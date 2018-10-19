@@ -99,26 +99,20 @@ public class NoteFragment extends Fragment implements NoteTasks.AudioCallbacks {
         image = (ImageView) view.findViewById(R.id.note_image);
         audio = (TextView) view.findViewById(R.id.play_audio);
         audioCpv = (CircularProgressView) view.findViewById(R.id.play_audio_cpv);
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(getContext(), FullscreenImageActivity.class);
-                try {
-                    i.putExtra(FullscreenImageActivity.EXTRA_IMAGE_PATH, note.getImagePath(courseName));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                startActivity(i);
+        image.setOnClickListener(v -> {
+            Intent i = new Intent(getContext(), FullscreenImageActivity.class);
+            try {
+                i.putExtra(FullscreenImageActivity.EXTRA_IMAGE_PATH, note.getImagePath(courseName));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            startActivity(i);
         });
         if (note.hasAudio()) {
             audio.setVisibility(View.VISIBLE);
-            audio.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    note.getAudio(REQUEST_GET_AUDIO_FOR_PLAY, courseName, exceptionHandler, NoteFragment.this);
-                    audioCpv.setVisibility(View.VISIBLE);
-                }
+            audio.setOnClickListener(v -> {
+                note.getAudio(REQUEST_GET_AUDIO_FOR_PLAY, courseName, exceptionHandler, NoteFragment.this);
+                audioCpv.setVisibility(View.VISIBLE);
             });
         }
 
@@ -176,12 +170,7 @@ public class NoteFragment extends Fragment implements NoteTasks.AudioCallbacks {
     @Override
     public void onAudioReady(int requestId, File audioFile) {
         if(getActivity() != null && requestId == REQUEST_GET_AUDIO_FOR_PLAY) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    audioCpv.setVisibility(View.GONE);
-                }
-            });
+            getActivity().runOnUiThread(() -> audioCpv.setVisibility(View.GONE));
             Uri    uri    = Uri.fromFile(audioFile);
             Intent intent = new Intent();
             intent.setAction(android.content.Intent.ACTION_VIEW);

@@ -89,17 +89,14 @@ public class QuestionFragment extends Fragment {
         questionText = (TextView) view.findViewById(R.id.question_text);
         answerText = (TextView) view.findViewById(R.id.answer_text);
         image = (ImageView) view.findViewById(R.id.question_image);
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(getContext(), FullscreenImageActivity.class);
-                try {
-                    i.putExtra(FullscreenImageActivity.EXTRA_IMAGE_PATH, question.getImagePath(courseName));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                startActivity(i);
+        image.setOnClickListener(v -> {
+            Intent i = new Intent(getContext(), FullscreenImageActivity.class);
+            try {
+                i.putExtra(FullscreenImageActivity.EXTRA_IMAGE_PATH, question.getImagePath(courseName));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            startActivity(i);
         });
 
         updateUI();

@@ -1,9 +1,8 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.app.Fragment;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
-import android.view.View;
 
 import rs.luka.android.studygroup.R;
 import rs.luka.android.studygroup.model.Group;
@@ -22,15 +21,10 @@ public class AnnouncementsActivity extends SingleFragmentActivity {
         super.onCreate(savedInstanceState);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if(getIntent().<Group>getParcelableExtra(EXTRA_GROUP).getPermission() < Group.PERM_OWNER) {
-            fab.setVisibility(View.GONE);
+            fab.hide();
         } else {
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AddAnnouncementDialog.newInstance(getIntent().<Group>getParcelableExtra(EXTRA_GROUP))
-                                         .show(getFragmentManager(), "");
-                }
-            });
+            fab.setOnClickListener(v -> AddAnnouncementDialog.newInstance(getIntent().getParcelableExtra(EXTRA_GROUP))
+                                                     .show(getFragmentManager(), ""));
         }
     }
 

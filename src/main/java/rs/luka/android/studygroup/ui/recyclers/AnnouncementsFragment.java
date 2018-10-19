@@ -1,9 +1,9 @@
 package rs.luka.android.studygroup.ui.recyclers;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -63,7 +63,7 @@ public class AnnouncementsFragment extends Fragment implements Network.NetworkCa
             public void handleOffline() {
                 InfoDialog.newInstance(getString(R.string.error_offline_memberlist_title),
                                        getString(R.string.error_offline_announcements_text))
-                          .show(((AppCompatActivity) context).getSupportFragmentManager(), "");
+                          .show(((AppCompatActivity) context).getFragmentManager(), "");
                 Network.Status.setOffline();
             }
         };
@@ -98,12 +98,12 @@ public class AnnouncementsFragment extends Fragment implements Network.NetworkCa
     @Override
     public void onResume() {
         super.onResume();
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName(getContext()));
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(group.getName(getActivity()));
     }
 
     private void setData() {
         if (adapter == null) {
-            adapter = new AnnouncementAdapter(new LinkedList<Announcement>());
+            adapter = new AnnouncementAdapter(new LinkedList<>());
             recycler.setAdapter(adapter);
         }
         progress.setVisibility(View.VISIBLE);
@@ -113,39 +113,31 @@ public class AnnouncementsFragment extends Fragment implements Network.NetworkCa
     @Override
     public void onRequestCompleted(final int id, final Network.Response<String> response) {
         if(response.responseCode == Network.Response.RESPONSE_OK) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    switch (id) {
-                        case REQUEST_GET_ANNOUNCEMENTS:
-                            try {
-                                JSONArray          jsonAnns      = new JSONArray(response.responseData);
-                                List<Announcement> announcements = new ArrayList<>();
-                                for(int i=0; i<jsonAnns.length(); i++) {
-                                    Announcement a = new Announcement(jsonAnns.getJSONObject(i));
-                                    announcements.add(a);
-                                }
-                                adapter.announcements = announcements;
-                                adapter.notifyDataSetChanged();
-                            } catch (JSONException e) {
-                                exceptionHandler.handleJsonException();
+            getActivity().runOnUiThread(() -> {
+                switch (id) {
+                    case REQUEST_GET_ANNOUNCEMENTS:
+                        try {
+                            JSONArray          jsonAnns      = new JSONArray(response.responseData);
+                            List<Announcement> announcements = new ArrayList<>();
+                            for(int i=0; i<jsonAnns.length(); i++) {
+                                Announcement a = new Announcement(jsonAnns.getJSONObject(i));
+                                announcements.add(a);
                             }
-                            break;
-                        default:
-                            Log.w("AnnouncementsFragment", "Invalid request code @ onRequestCompleted: " + id);
-                    }
+                            adapter.announcements = announcements;
+                            adapter.notifyDataSetChanged();
+                        } catch (JSONException e) {
+                            exceptionHandler.handleJsonException();
+                        }
+                        break;
+                    default:
+                        Log.w("AnnouncementsFragment", "Invalid request code @ onRequestCompleted: " + id);
                 }
             });
         } else {
             Network.Response<String> handled = response.handleErrorCode(exceptionHandler);
             if(handled.responseCode == Network.Response.RESPONSE_OK) onRequestCompleted(id, handled);
         }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisibility(View.GONE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progress.setVisibility(View.GONE));
     }
 
     @Override
@@ -155,22 +147,12 @@ public class AnnouncementsFragment extends Fragment implements Network.NetworkCa
         if(ex instanceof IOException)
             exceptionHandler.handleIOException((IOException)ex);
         else {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                              .show(getFragmentManager(), "");
-                }
-            });
+            getActivity().runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                                             getString(R.string.error_unknown_ex_text))
+                                                .show(getFragmentManager(), ""));
             Log.e("AnnouncementsFragment", "Unknown Throwable caught", ex);
         }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisibility(View.GONE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progress.setVisibility(View.GONE));
     }
 
     private class AnnouncementHolder extends RecyclerView.ViewHolder {
@@ -191,7 +173,7 @@ public class AnnouncementsFragment extends Fragment implements Network.NetworkCa
 
         public void bindAnnouncement(Announcement announcement) {
             years.setText(announcement.getYears());
-            date.setText(DateFormat.getDateFormat(getContext()).format(announcement.getDate()));
+            date.setText(DateFormat.getDateFormat(getActivity()).format(announcement.getDate()));
             text.setText(announcement.getText());
 
             this.announcement = announcement;

@@ -73,12 +73,7 @@ public class AddGroupActivity extends AppCompatActivity {
             setupViewsForEditing();
         }
 
-        add.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                doSubmit();
-            }
-        });
+        add.setOnClickListener(v -> doSubmit());
         initTextListeners();
         initMediaListeners();
 
@@ -165,7 +160,7 @@ public class AddGroupActivity extends AppCompatActivity {
             public void handleOffline() {
                 InfoDialog.newInstance(getString(R.string.error_offline_edit_title),
                                        getString(R.string.error_offline_edit_text))
-                          .show(getSupportFragmentManager(), "");
+                          .show(getFragmentManager(), "");
                 Network.Status.setOffline();
                 progressView.setVisibility(View.GONE);
                 add.setVisibility(View.VISIBLE);

@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -55,12 +54,9 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
         password = (EditText) findViewById(R.id.register_password_input);
         ((TextView)findViewById(R.id.register_legal)).setMovementMethod(LinkMovementMethod.getInstance());
 
-        register.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!requestInProgress)
-                    register();
-            }
+        register.setOnClickListener(v -> {
+            if (!requestInProgress)
+                register();
         });
     }
 
@@ -98,40 +94,37 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
 
     @Override
     public void onRequestCompleted(final int id, final Network.Response<String> response) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                emailTil.setError(null);
-                if (id == REQUEST_REGISTER) {
-                    switch (response.responseCode) {
-                        case Network.Response.RESPONSE_CREATED:
-                            User.instantiateUser(response.responseData, RegisterActivity.this);
-                            startActivity(new Intent(RegisterActivity.this, LoadingActivity.class));
-                            break;
-                        case Network.Response.RESPONSE_DUPLICATE:
-                            emailTil.setError(getString(R.string.email_duplicate));
-                            break;
-                        case Network.Response.RESPONSE_UNAUTHORIZED:
-                            UserManager.login(REQUEST_LOGIN,
-                                              email.getText().toString(),
-                                              password.getText().toString(),
-                                              RegisterActivity.this);
-                            break;
-                        default:
-                            InfoDialog.newInstance                                                       (getString(R.string.unexpected_server_error),
-                                                   response.getDefaultErrorMessage(RegisterActivity.this))
-                                      .show(RegisterActivity.this.getSupportFragmentManager(), TAG_DIALOG_UNEXPECTED_ERROR);
-                    }
-                } else if (id == REQUEST_LOGIN) {
-                    if(response.responseCode == Network.Response.RESPONSE_OK) {
+        runOnUiThread(() -> {
+            emailTil.setError(null);
+            if (id == REQUEST_REGISTER) {
+                switch (response.responseCode) {
+                    case Network.Response.RESPONSE_CREATED:
                         User.instantiateUser(response.responseData, RegisterActivity.this);
-                        startActivity(new Intent(RegisterActivity.this, LoadingActivity.class).addFlags(
-                                Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                    } else {
+                        startActivity(new Intent(RegisterActivity.this, LoadingActivity.class));
+                        break;
+                    case Network.Response.RESPONSE_DUPLICATE:
+                        emailTil.setError(getString(R.string.email_duplicate));
+                        break;
+                    case Network.Response.RESPONSE_UNAUTHORIZED:
+                        UserManager.login(REQUEST_LOGIN,
+                                          email.getText().toString(),
+                                          password.getText().toString(),
+                                          RegisterActivity.this);
+                        break;
+                    default:
                         InfoDialog.newInstance                                                       (getString(R.string.unexpected_server_error),
                                                response.getDefaultErrorMessage(RegisterActivity.this))
-                                  .show(RegisterActivity.this.getSupportFragmentManager(), TAG_DIALOG_UNEXPECTED_ERROR);
-                    }
+                                  .show(RegisterActivity.this.getFragmentManager(), TAG_DIALOG_UNEXPECTED_ERROR);
+                }
+            } else if (id == REQUEST_LOGIN) {
+                if(response.responseCode == Network.Response.RESPONSE_OK) {
+                    User.instantiateUser(response.responseData, RegisterActivity.this);
+                    startActivity(new Intent(RegisterActivity.this, LoadingActivity.class).addFlags(
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                } else {
+                    InfoDialog.newInstance                                                       (getString(R.string.unexpected_server_error),
+                                           response.getDefaultErrorMessage(RegisterActivity.this))
+                              .show(RegisterActivity.this.getFragmentManager(), TAG_DIALOG_UNEXPECTED_ERROR);
                 }
             }
         });
@@ -147,20 +140,15 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
             public void handleOffline() {
                 InfoDialog.newInstance(getString(R.string.error_offline_register_title),
                                        getString(R.string.error_offline_register_text))
-                        .show(getSupportFragmentManager(), "");
+                        .show(getFragmentManager(), "");
             }
         };
         if(ex instanceof IOException)
             handler.handleIOException((IOException)ex);
         else {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
-                                           getString(R.string.error_unknown_ex_text))
-                              .show(getSupportFragmentManager(), "");
-                }
-            });
+            runOnUiThread(() -> InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
+                                               getString(R.string.error_unknown_ex_text))
+                                  .show(getFragmentManager(), ""));
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
         requestInProgress = false;

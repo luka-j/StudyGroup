@@ -13,6 +13,7 @@ import rs.luka.android.studygroup.io.network.Lessons;
 import rs.luka.android.studygroup.misc.TextUtils;
 import rs.luka.android.studygroup.model.ID;
 
+import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.onUIThread;
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
 
 /**
@@ -28,29 +29,8 @@ public class LessonTasks {
                                   final LoaderManager.LoaderCallbacks<Cursor> callbacks,
                                   final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
         final long currentTime = System.currentTimeMillis();
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                if((currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH_KEY, courseId)) > FETCH_TIMEOUT) {
-                    try {
-                        Lessons.getLessons(c, courseId, exceptionHandler);
-                        exceptionHandler.finished();
-                        DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, courseId);
-                    } catch (IOException e) {
-                        exceptionHandler.handleIOException(e);
-                    }
-                }
-                manager.initLoader(LOADER_ID, null, callbacks);
-            }
-        });
-    }
-
-    public static void refreshLessons(final Context c, final long courseId,
-                                      final LoaderManager.LoaderCallbacks<Cursor> callbacks,
-                                      final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
+        pushToExecutor(() -> {
+            if((currentTime - DataManager.getLastFetchTagged(c, LAST_FETCH_KEY, courseId)) > FETCH_TIMEOUT) {
                 try {
                     Lessons.getLessons(c, courseId, exceptionHandler);
                     exceptionHandler.finished();
@@ -58,45 +38,54 @@ public class LessonTasks {
                 } catch (IOException e) {
                     exceptionHandler.handleIOException(e);
                 }
-                manager.restartLoader(LOADER_ID, null, callbacks);
             }
+            onUIThread(() -> manager.initLoader(LOADER_ID, null, callbacks));
+        });
+    }
+
+    public static void refreshLessons(final Context c, final long courseId,
+                                      final LoaderManager.LoaderCallbacks<Cursor> callbacks,
+                                      final LoaderManager manager, final NetworkExceptionHandler exceptionHandler) {
+        pushToExecutor(() -> {
+            try {
+                Lessons.getLessons(c, courseId, exceptionHandler);
+                exceptionHandler.finished();
+                DataManager.writeLastFetchTagged(c, LAST_FETCH_KEY, courseId);
+            } catch (IOException e) {
+                exceptionHandler.handleIOException(e);
+            }
+            onUIThread(() -> manager.restartLoader(LOADER_ID, null, callbacks));
         });
     }
 
     public static void hideLesson(final Context c, final ID courseId, final String lesson,
                                   final NetworkExceptionHandler exceptionHandler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    boolean success = Lessons.hideLesson(courseId.getCourseIdValue(), lesson, exceptionHandler);
-                    exceptionHandler.finished();
-                } catch (IOException e) {
-                    exceptionHandler.handleIOException(e);
-                }
-                new LessonTable(c).removeLesson(courseId, lesson);
+        pushToExecutor(() -> {
+            try {
+                boolean success = Lessons.hideLesson(courseId.getCourseIdValue(), lesson, exceptionHandler);
+                exceptionHandler.finished();
+            } catch (IOException e) {
+                exceptionHandler.handleIOException(e);
             }
+            new LessonTable(c).removeLesson(courseId, lesson);
         });
 
     }
 
     public static void renameLesson(final Context c, final ID courseId, final String oldName, final String newName,
                                     final NetworkExceptionHandler handler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String newNameReal = TextUtils.replaceEscapes(newName);
-                    boolean success = Lessons.renameLesson(courseId.getCourseIdValue(), oldName, newNameReal, handler);
-                    if(success) {
-                        new LessonTable(c).renameLesson(courseId, oldName, newNameReal);
-                        handler.finished();
-                    } else {
-                        Log.w(TAG, "network.Lessons#renameLesson returned false; exception should have been handled");
-                    }
-                } catch (IOException ex) {
-                    handler.handleIOException(ex);
+        pushToExecutor(() -> {
+            try {
+                String newNameReal = TextUtils.replaceEscapes(newName);
+                boolean success = Lessons.renameLesson(courseId.getCourseIdValue(), oldName, newNameReal, handler);
+                if(success) {
+                    new LessonTable(c).renameLesson(courseId, oldName, newNameReal);
+                    handler.finished();
+                } else {
+                    Log.w(TAG, "network.Lessons#renameLesson returned false; exception should have been handled");
                 }
+            } catch (IOException ex) {
+                handler.handleIOException(ex);
             }
         });
     }

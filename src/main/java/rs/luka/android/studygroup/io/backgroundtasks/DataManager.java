@@ -2,6 +2,8 @@ package rs.luka.android.studygroup.io.backgroundtasks;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -27,7 +29,7 @@ public class DataManager {
 
     static {
         executor = new ThreadPoolExecutor(EXECUTOR_THREADS, EXECUTOR_THREADS, 60, TimeUnit.SECONDS,
-                                          new LinkedBlockingQueue<Runnable>());
+                                          new LinkedBlockingQueue<>());
         executor.allowCoreThreadTimeOut(true);
     }
 
@@ -76,23 +78,25 @@ public class DataManager {
 
     //todo fix shitty workaround
     static void pushToExecutor(final Runnable r) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
+        executor.execute(() -> {
+            try {
+                r.run();
+            } catch (IllegalStateException e) {
+                Log.w(TAG, "got illegalstate, retrying"); //timing issue/race condition (probably)
                 try {
-                    r.run();
-                } catch (IllegalStateException e) {
-                    Log.w(TAG, "got illegalstate, retrying"); //timing issue/race condition (probably)
-                    try {
-                        Thread.sleep(500);
-                        r.run(); //call recursively? enough evil for today
-                    } catch (IllegalStateException e2) {
-                        Log.e(TAG, "got illegalstate twice, ignoring"); //doesn't happen (for now)
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace(); //doesn't happen (really)
-                    }
+                    Thread.sleep(500);
+                    r.run(); //call recursively? enough evil for today
+                } catch (IllegalStateException e2) {
+                    Log.e(TAG, "got illegalstate twice, ignoring", e2); //doesn't happen (for now)
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace(); //doesn't happen (really)
                 }
             }
         });
+    }
+
+    private static Handler handler = new Handler(Looper.getMainLooper());
+    static void onUIThread(final Runnable r) {
+        handler.post(r);
     }
 }

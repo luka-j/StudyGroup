@@ -3,7 +3,6 @@ package rs.luka.android.studygroup.ui.recyclers;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -65,7 +64,7 @@ public class GroupSearchActivity extends AppCompatActivity implements Network.Ne
             public void handleOffline() {
                 InfoDialog.newInstance(getString(R.string.error_offline_search_title),
                                        getString(R.string.error_offline_search_text))
-                        .show(getSupportFragmentManager(), "");
+                        .show(getFragmentManager(), "");
             }
         };
         searchTerm = getIntent().getStringExtra(EXTRA_SEARCH_TERM);
@@ -87,18 +86,8 @@ public class GroupSearchActivity extends AppCompatActivity implements Network.Ne
         setData();
 
         swipe = (PoliteSwipeRefreshLayout) findViewById(R.id.group_list_swipe);
-        swipe.setOnChildScrollUpListener(new PoliteSwipeRefreshLayout.OnChildScrollUpListener() {
-            @Override
-            public boolean canChildScrollUp() {
-                return lm.findFirstCompletelyVisibleItemPosition() != 0;
-            }
-        });
-        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refresh();
-            }
-        });
+        swipe.setOnChildScrollUpListener(() -> lm.findFirstCompletelyVisibleItemPosition() != 0);
+        swipe.setOnRefreshListener(this::refresh);
         swipe.setColorSchemeResources(R.color.refresh_progress_1,
                                       R.color.refresh_progress_2,
                                       R.color.refresh_progress_3);
@@ -132,27 +121,24 @@ public class GroupSearchActivity extends AppCompatActivity implements Network.Ne
         if(response.responseCode == Network.Response.RESPONSE_OK) {
             switch (id) {
                 case REQUEST_SEARCH_GROUPS:
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                JSONArray jsonGroups = new JSONArray(response.responseData);
-                                List<Group> groups = new ArrayList<>(jsonGroups.length());
-                                for(int i=0; i<jsonGroups.length(); i++) {
-                                    JSONObject jsonGroup = jsonGroups.getJSONObject(i);
-                                    groups.add(new Group(new ID(jsonGroup.getLong("id")),
-                                                         jsonGroup.getString("name"),
-                                                         jsonGroup.getString("place"),
-                                                         jsonGroup.getBoolean("hasImage"),
-                                                         Utils.stringToList(jsonGroup.getString("courseYears")),
-                                                         jsonGroup.getBoolean("inviteOnly") ?
-                                    Group.PERM_READ_REQUEST_WRITE_FORBIDDEN : Group.PERM_READ_CAN_REQUEST_WRITE));
-                                }
-                                adapter.groups = groups;
-                                adapter.notifyDataSetChanged();
-                            } catch (JSONException e) {
-                                exceptionHandler.handleJsonException();
+                    runOnUiThread(() -> {
+                        try {
+                            JSONArray jsonGroups = new JSONArray(response.responseData);
+                            List<Group> groups = new ArrayList<>(jsonGroups.length());
+                            for(int i=0; i<jsonGroups.length(); i++) {
+                                JSONObject jsonGroup = jsonGroups.getJSONObject(i);
+                                groups.add(new Group(new ID(jsonGroup.getLong("id")),
+                                                     jsonGroup.getString("name"),
+                                                     jsonGroup.getString("place"),
+                                                     jsonGroup.getBoolean("hasImage"),
+                                                     Utils.stringToList(jsonGroup.getString("courseYears")),
+                                                     jsonGroup.getBoolean("inviteOnly") ?
+                                Group.PERM_READ_REQUEST_WRITE_FORBIDDEN : Group.PERM_READ_CAN_REQUEST_WRITE));
                             }
+                            adapter.groups = groups;
+                            adapter.notifyDataSetChanged();
+                        } catch (JSONException e) {
+                            exceptionHandler.handleJsonException();
                         }
                     });
                     break;
@@ -160,12 +146,9 @@ public class GroupSearchActivity extends AppCompatActivity implements Network.Ne
         } else {
             response.handleErrorCode(exceptionHandler);
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setVisibility(View.GONE);
-                swipe.setRefreshing(false);
-            }
+        runOnUiThread(() -> {
+            progress.setVisibility(View.GONE);
+            swipe.setRefreshing(false);
         });
     }
 
@@ -181,7 +164,7 @@ public class GroupSearchActivity extends AppCompatActivity implements Network.Ne
                 public void run() {
                     InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
                                            getString(R.string.error_unknown_ex_text))
-                            .show(getSupportFragmentManager(), "");
+                            .show(getFragmentManager(), "");
                     Log.e(TAG, "Unknown Exception caught", ex);
                 }
             });

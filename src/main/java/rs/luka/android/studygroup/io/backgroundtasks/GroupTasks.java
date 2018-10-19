@@ -19,6 +19,7 @@ import rs.luka.android.studygroup.io.network.Groups;
 import rs.luka.android.studygroup.model.Group;
 import rs.luka.android.studygroup.model.ID;
 
+import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.onUIThread;
 import static rs.luka.android.studygroup.io.backgroundtasks.DataManager.pushToExecutor;
 
 /**
@@ -33,67 +34,53 @@ public class GroupTasks {
 
     public static void loadGroups(final Context c, final NetworkExceptionHandler exceptionHandler, final GroupLoaderCallbacks callbacks) {
         final long currentTime = System.currentTimeMillis();
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                if((currentTime - DataManager.getLastFetch(c, LAST_FETCH_KEY)) > FETCH_TIMEOUT ||
-                   new GroupTable(c).getGroupCount() == 0) {
-                    try {
-                        Groups.getGroups(c, exceptionHandler);
-                        exceptionHandler.finished();
-                        DataManager.writeLastFetch(c, LAST_FETCH_KEY);
-                    } catch (IOException e) {
-                        exceptionHandler.handleIOException(e);
-                    }
+        pushToExecutor(() -> {
+            if((currentTime - DataManager.getLastFetch(c, LAST_FETCH_KEY)) > FETCH_TIMEOUT ||
+               new GroupTable(c).getGroupCount() == 0) {
+                try {
+                    Groups.getGroups(c, exceptionHandler);
+                    exceptionHandler.finished();
+                    DataManager.writeLastFetch(c, LAST_FETCH_KEY);
+                } catch (IOException e) {
+                    exceptionHandler.handleIOException(e);
                 }
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        callbacks.onGroupsLoaded(new GroupTable(c).queryGroups());
-                    }
-                });
             }
+            onUIThread(() -> callbacks.onGroupsLoaded(new GroupTable(c).queryGroups()));
         });
     }
 
     public static void refreshGroups(final Context c, final LoaderManager.LoaderCallbacks<Cursor> callbacks,
                                      final LoaderManager manager, final NetworkExceptionHandler handler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Groups.getGroups(c, handler);
-                    handler.finished();
-                    DataManager.writeLastFetch(c, LAST_FETCH_KEY);
-                } catch (IOException e) {
-                    handler.handleIOException(e);
-                }
-                manager.restartLoader(LOADER_ID, null, callbacks);
+        pushToExecutor(() -> {
+            try {
+                Groups.getGroups(c, handler);
+                handler.finished();
+                DataManager.writeLastFetch(c, LAST_FETCH_KEY);
+            } catch (IOException e) {
+                handler.handleIOException(e);
             }
+            onUIThread(() -> manager.restartLoader(LOADER_ID, null, callbacks));
         });
     }
 
     public static void addGroup(final Context c, final String name, final String place, final boolean inviteOnly,
                                 final File image, final NetworkExceptionHandler handler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Long groupId = Groups.createGroup(name, place, inviteOnly, handler);
-                    if(groupId != null) {
-                        ID id = new ID(groupId);
-                        if (image != null && image.exists()) {
-                            Groups.updateImage(groupId, image, handler);
-                            LocalImages.saveGroupImage(id, image);
-                        }
-                        new GroupTable(c).insertGroup(id, name, place, image != null, Group.PERM_OWNER);
-                        handler.finished();
-                    } else {
-                        Log.w(TAG, "network.Groups#createGroup returned null; exception should have been handled");
+        pushToExecutor(() -> {
+            try {
+                Long groupId = Groups.createGroup(name, place, inviteOnly, handler);
+                if(groupId != null) {
+                    ID id = new ID(groupId);
+                    if (image != null && image.exists()) {
+                        Groups.updateImage(groupId, image, handler);
+                        LocalImages.saveGroupImage(id, image);
                     }
-                } catch (IOException ex) {
-                    handler.handleIOException(ex);
+                    new GroupTable(c).insertGroup(id, name, place, image != null, Group.PERM_OWNER);
+                    handler.finished();
+                } else {
+                    Log.w(TAG, "network.Groups#createGroup returned null; exception should have been handled");
                 }
+            } catch (IOException ex) {
+                handler.handleIOException(ex);
             }
         });
     }
@@ -105,55 +92,44 @@ public class GroupTasks {
     public static void editGroup(final Context c, final ID id, final String name, final String place,
                                  final boolean inviteOnly, final File image,
                                  final NetworkExceptionHandler exceptionHandler) {
-        pushToExecutor(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    boolean success = Groups.updateGroup(id.getGroupIdValue(), name, place, inviteOnly, exceptionHandler);
-                    if(success) {
-                        new GroupTable(c).updateGroup(id, name, place, image != null);
-                        if(image != null && !image.equals(LocalImages.generateGroupImageFile(id))) {
-                            Groups.updateImage(id.getGroupIdValue(), image, exceptionHandler);
-                            LocalImages.saveGroupImage(id, image);
-                        }
-                        exceptionHandler.finished();
-                    } else {
-                        Log.w(TAG, "network.groups#updateGroup returned false; exception should have been handled");
+        pushToExecutor(() -> {
+            try {
+                boolean success = Groups.updateGroup(id.getGroupIdValue(), name, place, inviteOnly, exceptionHandler);
+                if(success) {
+                    new GroupTable(c).updateGroup(id, name, place, image != null);
+                    if(image != null && !image.equals(LocalImages.generateGroupImageFile(id))) {
+                        Groups.updateImage(id.getGroupIdValue(), image, exceptionHandler);
+                        LocalImages.saveGroupImage(id, image);
                     }
-                } catch (IOException ex) {
-                    exceptionHandler.handleIOException(ex);
+                    exceptionHandler.finished();
+                } else {
+                    Log.w(TAG, "network.groups#updateGroup returned false; exception should have been handled");
                 }
+            } catch (IOException ex) {
+                exceptionHandler.handleIOException(ex);
             }
         });
     }
 
     public static void getGroupImage(final Context c, final ID id, final int scaleTo,
                                      final NetworkExceptionHandler handler, final ImageView insertInto) {
-        DataManager.executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    long currentTime = System.currentTimeMillis();
-                    boolean exists = LocalImages.groupImageExists(id);
-                    if(!exists || currentTime - DataManager.getLastFetch(c, LAST_FETCH_THUMB_KEY) > DataManager.FETCH_TIMEOUT_THUMBS) {
-                        Groups.loadImage(id.getGroupIdValue(), scaleTo, LocalImages.generateGroupImageFile(id), handler);
-                        DataManager.writeLastFetch(c, LAST_FETCH_THUMB_KEY);
-                    }
-                } catch (IOException e) {
-                    handler.handleIOException(e);
+        DataManager.executor.execute(() -> {
+            try {
+                long currentTime = System.currentTimeMillis();
+                boolean exists = LocalImages.groupImageExists(id);
+                if(!exists || currentTime - DataManager.getLastFetch(c, LAST_FETCH_THUMB_KEY) > DataManager.FETCH_TIMEOUT_THUMBS) {
+                    Groups.loadImage(id.getGroupIdValue(), scaleTo, LocalImages.generateGroupImageFile(id), handler);
+                    DataManager.writeLastFetch(c, LAST_FETCH_THUMB_KEY);
                 }
-                try {
-                    final Bitmap image;
-                    image = LocalImages.getGroupImage(id, scaleTo);
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run() {
-                            insertInto.setImageBitmap(image);
-                        }
-                    });
-                } catch (IOException e) {
-                    handler.handleIOException(e);
-                }
+            } catch (IOException e) {
+                handler.handleIOException(e);
+            }
+            try {
+                final Bitmap image;
+                image = LocalImages.getGroupImage(id, scaleTo);
+                new Handler(Looper.getMainLooper()).post(() -> insertInto.setImageBitmap(image));
+            } catch (IOException e) {
+                handler.handleIOException(e);
             }
         });
     }

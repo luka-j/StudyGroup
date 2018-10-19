@@ -6,7 +6,7 @@
     <string name="history_last_change">Poslednju izmenu je napravio %1$s, %2$s</string>
     <string name="notes">Beleške</string>
     <string name="questions">Pitanja</string>
-    <string name="year_no">%s. godina</string>
+    <string name="year_no">%d. godina</string>
     <string name="subject">Predmet</string>
     <string name="teacher">Predavač</string>
     <string name="add_course">Dodaj predmet</string>
@@ -284,4 +284,8 @@
     <string name="error_default_entity_too_large">413 Entity Too Large: izgleda da aplouduješ prevelik fajl</string>
     <string name="error_slash_in_lesson_name">Kose crte nisu dozvoljene u imenima lekcija</string>
     <string name="empty_lesson_readonly_title">Izgleda da ovde nema ničeg</string>
+
+
+    <string name="explain_perm_storage_title">Nedovoljne dozvole</string>
+    <string name="explain_perm_storage_text">Ovoj aplikaciji je neophodna dozvola za pristup datotekama kako bi mogla da učita medijske fajlove iz njih. Molim te dozvoli aplikaciji da pristupi datotekama.</string>
 </resources>

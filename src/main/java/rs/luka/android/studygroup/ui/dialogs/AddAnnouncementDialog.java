@@ -58,7 +58,7 @@ public class AddAnnouncementDialog extends DialogFragment implements Network.Net
         group = getArguments().getParcelable(ARG_GROUP);
         final List<Integer>    years   = group.getCourseYears();
         final List<String>     yearStrings = new ArrayList<>(years.size());
-        for(Integer y : years) yearStrings.add(getResources().getString(R.string.year_no, y.toString()));
+        for(Integer y : years) yearStrings.add(getResources().getString(R.string.year_no, y));
 
         final View           v         = getActivity().getLayoutInflater().inflate(R.layout.dialog_add_announcement, null, false);
         LinearLayout         root      = (LinearLayout) v.findViewById(R.id.add_announcement_root);
@@ -132,7 +132,7 @@ public class AddAnnouncementDialog extends DialogFragment implements Network.Net
                 public void run() {
                     InfoDialog.newInstance(getString(R.string.error_unknown_ex_title),
                                            getString(R.string.error_unknown_ex_text))
-                              .show(((AppCompatActivity)attachedTo).getSupportFragmentManager(), "");
+                              .show(((AppCompatActivity)attachedTo).getFragmentManager(), "");
                 }
             });
             Log.e(TAG, "Unknown Throwable caught", ex);
