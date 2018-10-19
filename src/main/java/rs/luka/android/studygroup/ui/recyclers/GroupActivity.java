@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Fragment;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -143,7 +144,9 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
 
         if (ContextCompat.checkSelfPermission(this,
                                               Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED ||
+            (Build.VERSION.SDK_INT >= 16 && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) !=
+            PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this,
                                               new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                                               PERM_REQ_STORAGE);
@@ -161,9 +164,15 @@ public class GroupActivity extends SingleFragmentActivity implements GroupFragme
                    && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     InfoDialog.newInstance(getString(R.string.explain_perm_storage_title),
                                            getString(R.string.explain_perm_storage_text))
-                              .registerCallbacks(d -> ActivityCompat.requestPermissions(this,
-                                                                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                                                                        PERM_REQ_STORAGE))
+                              .registerCallbacks(d -> {
+                                  String[] perms;
+                                  if(Build.VERSION.SDK_INT >= 16) {
+                                      perms = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                                  } else {
+                                      perms = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                                  }
+                                  ActivityCompat.requestPermissions(this,perms, PERM_REQ_STORAGE);
+                              })
                               .show(getFragmentManager(), "infoExplainStorage");
                 } else if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     initActivity();

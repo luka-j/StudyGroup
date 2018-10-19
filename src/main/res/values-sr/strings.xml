@@ -288,4 +288,6 @@
 
     <string name="explain_perm_storage_title">Nedovoljne dozvole</string>
     <string name="explain_perm_storage_text">Ovoj aplikaciji je neophodna dozvola za pristup datotekama kako bi mogla da učita medijske fajlove iz njih. Molim te dozvoli aplikaciji da pristupi datotekama.</string>
+    <string name="explain_perm_camera_title">Dozvoli pristup kameri</string>
+    <string name="explain_perm_camera_text">Ovoj aplikaciji je potreban pristup kameri kako bi ti omogućila da slikaš bez napuštanja aplikacije. Ako to ne dozvoljavaš, moći ćeš samo da biraš već postojeće slike u galeriji.</string>
 </resources>

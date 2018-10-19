@@ -309,4 +309,6 @@
 
     <string name="explain_perm_storage_title">Insufficient permissions</string>
     <string name="explain_perm_storage_text">This app needs storage permission in order to load media from storage. Please allow the app to use local storage.</string>
+    <string name="explain_perm_camera_title">Allow camera usage</string>
+    <string name="explain_perm_camera_text">This app needs camera access in order to allow you to take photos from inside the app. If you deny this, you will be able only to select photos from gallery.</string>
 </resources>
